@@ -13,7 +13,7 @@
      CONSTANTS
   ───────────────────────────────────────────────────────────── */
 
-  const API_URL   = 'https://api.anthropic.com/v1/messages';
+  const API_URL   = 'https://www.csttraining.co.uk/?cst_advisor_proxy=1';
   const API_MODEL = 'claude-sonnet-4-6';
 
   /* ─────────────────────────────────────────────────────────────
