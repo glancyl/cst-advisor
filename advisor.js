@@ -241,13 +241,6 @@ const res = await fetch(API_URL, {
               </button>
             </div>
 
-            <!-- Footer -->
-            <div class="cst-advisor__footer">
-              <button class="cst-advisor__reset" id="cst-reset" type="button">
-                Start a new conversation
-              </button>
-            </div>
-
           </div>
         </div>`;
 
