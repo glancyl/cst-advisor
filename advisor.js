@@ -374,15 +374,21 @@ const res = await fetch(API_URL, {
 
     /* ── RENDER MESSAGES ──────────────────────────────────── */
 
-    _addAdvisorMessage(html) {
-      const el = document.createElement('div');
-      el.className = 'cst-msg cst-msg--advisor';
-      el.innerHTML = `
-        <div class="cst-msg__avatar" aria-hidden="true">${ICONS.advisor}</div>
-        <div class="cst-msg__bubble">${html}</div>`;
-      this.msgEl.appendChild(el);
-      this._scrollToBottom();
-    }
+  _addAdvisorMessage(html) {
+  // Convert markdown bold (**text**) to HTML <strong>
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  // Convert markdown italic (*text*) to HTML <em>
+  html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+  // Convert newlines to line breaks
+  html = html.replace(/\n/g, '<br>');
+  const el = document.createElement('div');
+  el.className = 'cst-msg cst-msg--advisor';
+  el.innerHTML = `
+    <div class="cst-msg__avatar" aria-hidden="true">${ICONS.advisor}</div>
+    <div class="cst-msg__bubble">${html}</div>`;
+  this.msgEl.appendChild(el);
+  this._scrollToBottom();
+}
 
     _addUserMessage(text) {
       const el = document.createElement('div');
