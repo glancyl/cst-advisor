@@ -358,9 +358,8 @@ const res = await fetch(API_URL, {
           this.messages.push({ role: 'assistant', content: rawResponse });
           this._showRecommendation(parsed.data);
         } else if (parsed.type === 'lead_capture') {
-          this.messages.push({ role: 'assistant', content: rawResponse });
-          this._addAdvisorMessage("Of course — I'd be happy to have one of our advisers get in touch. Let me take a few details.");
-          setTimeout(() => this._showLeadCapture(), 400);
+  this.messages.push({ role: 'assistant', content: rawResponse });
+  this._addAdvisorMessage("Of course — please use the <a href='/contact/' style='color:var(--cst-navy);font-weight:600'>Enquire Now</a> button above and one of our team will be in touch.");;
         } else {
           // Normal conversational response
           this.messages.push({ role: 'assistant', content: rawResponse });
