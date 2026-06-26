@@ -191,10 +191,6 @@ const res = await fetch(API_URL, {
       this.container.innerHTML = `
         <div class="cst-advisor" role="region" aria-label="Qualification Adviser">
 
-          <p class="cst-advisor__subheading">
-            Tell us about your role and goals — our adviser will recommend the right qualification for you.
-          </p>
-
           <div class="cst-advisor__card">
 
             <!-- Header bar -->
