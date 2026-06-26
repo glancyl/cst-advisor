@@ -178,13 +178,7 @@ const res = await fetch(API_URL, {
       this.pageConfig = pageConfig || {};
       this.messages   = [];       // conversation history for API
       this.isTyping   = false;
-      this.chips      = [
-        "I'm a project manager looking to gain a recognised qualification.",
-        "I'm a supervisor wanting to move into senior management.",
-        "I'm responsible for health and safety in my organisation.",
-        "I want to become a programme manager.",
-        "I'm looking for a qualification to help with promotion."
-      ];
+      this.chips      = [ ];
 
       this._render();
       this._bindEvents();
