@@ -475,9 +475,6 @@ this.resetBtn.addEventListener('click', () => this._reset());
           <a href="/contact/?course=${encodeURIComponent(qual.title)}" class="cst-btn cst-btn--orange" target="_blank" rel="noopener">
             Enquire Now
           </a>
-          <button class="cst-btn cst-btn--ghost" type="button" id="cst-speak-adviser">
-            Speak to an Adviser
-          </button>
         </div>
 
         <div class="cst-confidence ${confClass}">
