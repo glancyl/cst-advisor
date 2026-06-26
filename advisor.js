@@ -285,9 +285,7 @@ const res = await fetch(API_URL, {
       });
 
       // Reset
-if (this.resetBtn) {
-  this.resetBtn.addEventListener('click', () => this._reset());
-}
+this.resetBtn.addEventListener('click', () => this._reset());
 
     /* ── WELCOME MESSAGE ──────────────────────────────────── */
     _sendWelcome() {
