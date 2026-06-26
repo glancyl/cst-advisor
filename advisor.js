@@ -125,10 +125,11 @@ Keep responses concise. This is a chat interface, not an essay.`;
       messages: messages.map(m => ({ role: m.role, content: m.content }))
     };
 
-    const res = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' }
-    });
+const res = await fetch(API_URL, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(body)
+});
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
