@@ -366,13 +366,19 @@ this.resetBtn.addEventListener('click', () => this._reset());
 
     /* ── RENDER MESSAGES ──────────────────────────────────── */
 
-  _addAdvisorMessage(html) {
+_addAdvisorMessage(html) {
+
+  console.log("Adding advisor message:", html);
+
   // Convert markdown bold (**text**) to HTML <strong>
   html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
   // Convert markdown italic (*text*) to HTML <em>
   html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
   // Convert newlines to line breaks
   html = html.replace(/\n/g, '<br>');
+
   const el = document.createElement('div');
   el.className = 'cst-msg cst-msg--advisor';
   el.innerHTML = `
