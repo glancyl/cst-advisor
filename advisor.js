@@ -437,7 +437,7 @@ _addAdvisorMessage(html) {
       // Log conversation to Google Sheet
 try {
   const conversationLog = this.messages
-    .map(m => (m.role === 'user' ? 'Visitor: ' : 'Adviser: ') + m.content.substring(0, 500))
+    .map(m => (m.role === 'user' ? 'Visitor: ' : 'Adviser: ') + m.content.substring(0, 2000))
     .join('\n\n');
 
   fetch('https://script.google.com/macros/s/AKfycbxoMWrFcuDLAqV-BhDbI-QrrmUYtKnfarYJbh_MnUrBqBIXMqWjDHq6LdfJVRxRYg4/exec', {
