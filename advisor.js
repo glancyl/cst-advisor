@@ -434,6 +434,29 @@ _addAdvisorMessage(html) {
       const kb     = window.CSTKnowledge;
       const qual   = kb.getById(data.qualificationId);
 
+      // Log conversation to Google Sheet
+try {
+  const conversationLog = this.messages
+    .map(m => (m.role === 'user' ? 'Visitor: ' : 'Adviser: ') + m.content.substring(0, 500))
+    .join('\n\n');
+
+  fetch('https://script.google.com/macros/s/AKfycbxoMWrFcuDLAqV-BhDbI-QrrmUYtKnfarYJbh_MnUrBqBIXMqWjDHq6LdfJVRxRYg4/exec', {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      timestamp:      new Date().toLocaleString('en-GB'),
+      page:           this.pageConfig.currentCourse || window.location.href,
+      recommendation: qual ? qual.title : data.qualificationId,
+      confidence:     data.confidence || 'unknown',
+      alsoConsidered: (data.alsoConsider || []).join(', '),
+      conversation:   conversationLog
+    })
+  });
+} catch(e) {
+  console.warn('CSTAdvisor: logging failed', e);
+}
+
       if (!qual) {
         // Fallback: show as plain text
         this._addAdvisorMessage(data.reason || "I'd recommend speaking to our team for a personalised recommendation.");
