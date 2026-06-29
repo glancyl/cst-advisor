@@ -222,7 +222,7 @@ window.CSTKnowledge = (function () {
       ],
       notSuitedFor:  'Not appropriate for those with existing management experience or a supervisory role of any substance — ILM Level 3 is more appropriate for them.',
       progression:   ['ilm-level-3', 'cmi-level-3'],
-      url:           'https://www.csttraining.co.uk/ilm-level-2-award-in-leadership-team-skills/',
+      url:           'https://www.csttraining.co.uk/ilm-courses-nvqs/#ILM-L2',
       benefits:      'A recognised first step into leadership development. Builds confidence and provides practical tools for leading a team from day one. CST delivers online with flexible payment plans including 0% finance.'
     },
 
@@ -247,7 +247,7 @@ window.CSTKnowledge = (function () {
       ],
       notSuitedFor:  'Not appropriate for experienced middle managers or senior leaders — ILM Level 5 or Level 7 are more suitable for those with substantial management experience.',
       progression:   ['ilm-level-4', 'ilm-level-5', 'cmi-level-3'],
-      url:           'https://www.csttraining.co.uk/ilm-level-3-award-in-leadership-management/',
+      url:           'https://www.csttraining.co.uk/ilm-courses-nvqs/#ILM-L3',
       benefits:      'Nationally recognised ILM qualification that validates first-line management skills. Builds practical confidence for day-to-day people management. CST delivers fully online with 0% finance available over 10 months.'
     },
 
@@ -271,7 +271,7 @@ window.CSTKnowledge = (function () {
       ],
       notSuitedFor:  'Less commonly the starting point for those without prior management experience — Level 3 is a better entry point. Those with significant middle management experience may be better suited to Level 5.',
       progression:   ['ilm-level-5'],
-      url:           'https://www.csttraining.co.uk/ilm-level-4-award-in-leadership-management/',
+      url:           'https://www.csttraining.co.uk/ilm-courses-nvqs/#ILM-L4',
       benefits:      'Bridges the gap between supervisory and middle management. Develops the planning and leadership skills required for operational management roles. Flexible online delivery with 0% finance from CST Training.'
     },
 
@@ -296,7 +296,7 @@ window.CSTKnowledge = (function () {
       ],
       notSuitedFor:  'Not the best starting point for first-line supervisors or those new to management — Level 3 is the right entry point. Not appropriate for very senior executives — Level 7 is more suitable.',
       progression:   ['ilm-level-6', 'ilm-level-7', 'cmi-level-5'],
-      url:           'https://www.csttraining.co.uk/ilm-level-5-award-in-leadership-management/',
+      url:           'https://www.csttraining.co.uk/ilm-courses-nvqs/#ILM-L5',
       benefits:      'Develops strategic management thinking and builds leadership influence across an organisation. Widely respected by employers in all sectors. CST delivers online with flexible payment plans and 0% finance.'
     },
 
@@ -320,7 +320,7 @@ window.CSTKnowledge = (function () {
       ],
       notSuitedFor:  'Not typically the starting point — most candidates come via Level 5. Very senior executives at director level may be better served by Level 7.',
       progression:   ['ilm-level-7'],
-      url:           'https://www.csttraining.co.uk/ilm-level-6-award-in-management/',
+      url:           'https://www.csttraining.co.uk/ilm-courses-nvqs/#ILM-L6',
       benefits:      'Develops advanced strategic leadership skills for senior management roles. A strong stepping stone to Level 7 or to director-level positions. CST delivers online with 0% finance available.'
     },
 
@@ -345,7 +345,7 @@ window.CSTKnowledge = (function () {
       ],
       notSuitedFor:  'Not appropriate for first-line managers, supervisors or those with limited management experience. ILM Level 3 is the correct starting point for most new managers. Level 5 suits middle managers.',
       progression:   [],
-      url:           'https://www.csttraining.co.uk/ilm-level-7-award-in-leadership-management/',
+      url:           'https://www.csttraining.co.uk/ilm-courses-nvqs/#ILM-L7',
       benefits:      'Masters-equivalent qualification recognised by employers nationally. Demonstrates executive leadership capability and supports movement into board-level roles. CST delivers fully online with a dedicated industry expert tutor and 0% finance over 10 months.'
     },
 
@@ -374,7 +374,7 @@ window.CSTKnowledge = (function () {
       ],
       notSuitedFor:  'Not appropriate for experienced middle or senior managers — CMI Level 5 or 7 would be more suitable.',
       progression:   ['cmi-level-5-management', 'ilm-level-5'],
-      url:           'https://www.csttraining.co.uk/cmi-level-3-diploma-in-principles-of-management-leadership/',
+      url:           'https://www.csttraining.co.uk/cmi-management-leadership-courses/',
       benefits:      'CMI-accredited qualification with a pathway to Chartered Manager status. CMI membership included throughout. Respected by employers across public and private sectors. CST delivers online with 0% finance.'
     },
 
@@ -399,7 +399,7 @@ window.CSTKnowledge = (function () {
       ],
       notSuitedFor:  'Not suitable for first-line supervisors without management experience, or for very senior executives — Level 3 and Level 7 are more appropriate for those groups.',
       progression:   ['cmi-level-7-management'],
-      url:           'https://www.csttraining.co.uk/cmi-level-5-diploma-in-management-leadership/',
+      url:           'https://www.csttraining.co.uk/cmi-management-leadership-courses/',
       benefits:      'CMI-accredited qualification supporting Chartered Manager status. Respected by employers nationally. CST delivers online with a dedicated tutor and 0% finance available.'
     },
 
@@ -423,7 +423,7 @@ window.CSTKnowledge = (function () {
       ],
       notSuitedFor:  'Not appropriate for those without substantial senior management experience. CMI Level 5 is the correct starting point for most middle managers.',
       progression:   [],
-      url:           'https://www.csttraining.co.uk/cmi-level-7-diploma-in-strategic-management-and-leadership-practice/',
+      url:           'https://www.csttraining.co.uk/cmi-management-leadership-courses/',
       benefits:      'Postgraduate-level CMI accreditation supporting Chartered Manager and Fellow CMI status. Demonstrates boardroom-level strategic leadership. CST delivers online with expert tutor support and 0% finance.'
     },
 
@@ -452,7 +452,7 @@ window.CSTKnowledge = (function () {
       ],
       notSuitedFor:  'Not a general management qualification — specifically for those whose role involves coaching or mentoring others. For general management skills, CMI Level 3 Management & Leadership is more appropriate.',
       progression:   ['cmi-level-7-coaching'],
-      url:           'https://www.csttraining.co.uk/cmi-level-3-diploma-in-coaching-mentoring/',
+      url:           'https://www.csttraining.co.uk/cmi-coaching-mentoring-courses/',
       benefits:      'CMI-accredited coaching qualification. Practical skills for developing people within your team. Supports progression into L&D or people development roles. CST delivers online with 0% finance.'
     },
 
@@ -477,7 +477,7 @@ window.CSTKnowledge = (function () {
       ],
       notSuitedFor:  'Not appropriate for those new to coaching or management. CMI Level 3 Coaching is a better starting point for first-line managers.',
       progression:   [],
-      url:           'https://www.csttraining.co.uk/cmi-level-7-diploma-in-leadership-coaching-mentoring/',
+      url:           'https://www.csttraining.co.uk/cmi-coaching-mentoring-courses/',
       benefits:      'Postgraduate-level CMI coaching qualification. Highly valued for executive coaching and leadership development roles. CST delivers online with expert tutor support.'
     },
 
@@ -507,7 +507,7 @@ window.CSTKnowledge = (function () {
       ],
       notSuitedFor:  'Not a general management qualification. Not suitable for those wanting leadership and management skills — CMI Level 5 Management & Leadership is more appropriate.',
       progression:   ['cmi-level-7-consulting'],
-      url:           'https://www.csttraining.co.uk/cmi-level-5-diploma-in-management-consulting/',
+      url:           'https://www.csttraining.co.uk/cmi-professional-consulting-courses/',
       benefits:      'CMI-accredited consulting qualification. Builds credibility as a professional consultant. Recognised framework for consulting practice. CST delivers online with 0% finance available.'
     },
 
@@ -531,7 +531,7 @@ window.CSTKnowledge = (function () {
       ],
       notSuitedFor:  'Not suitable for those new to consulting. CMI Level 5 Consulting is the appropriate starting point.',
       progression:   [],
-      url:           'https://www.csttraining.co.uk/cmi-level-7-diploma-in-professional-consulting/',
+      url:           'https://www.csttraining.co.uk/cmi-professional-consulting-courses/',
       benefits:      'Postgraduate CMI accreditation in professional consulting. Strengthens credibility and professional standing as a senior consultant or advisor.'
     },
 
@@ -560,7 +560,7 @@ window.CSTKnowledge = (function () {
       ],
       notSuitedFor:  'Those wanting the most widely recognised project management methodology should consider PRINCE2 7th Edition Foundation instead, which is more universally recognised by employers.',
       progression:   ['cmi-level-5-project-management', 'prince2-7-foundation'],
-      url:           'https://www.csttraining.co.uk/cmi-level-3-award-in-project-management/',
+      url:           'https://www.csttraining.co.uk/cmi-project-management-courses/',
       benefits:      'CMI-accredited introduction to project management. Good foundation for those in organisations that use CMI qualifications. Flexible online delivery from CST.'
     },
 
@@ -584,7 +584,7 @@ window.CSTKnowledge = (function () {
       ],
       notSuitedFor:  'Those wanting the industry-standard methodology qualification should consider PRINCE2 7th Edition Practitioner, which is more widely recognised across sectors.',
       progression:   ['prince2-7-practitioner', 'msp-foundation'],
-      url:           'https://www.csttraining.co.uk/cmi-level-5-certificate-in-project-management/',
+      url:           'https://www.csttraining.co.uk/cmi-project-management-courses/',
       benefits:      'CMI-accredited project management qualification at practitioner level. Good for those in CMI-aligned organisations or wanting to combine with management and leadership qualifications.'
     },
 
