@@ -106,6 +106,33 @@ If a visitor seems to want to capture their details for follow-up, respond with 
 {"type": "lead_capture"}
 </LEAD_CAPTURE>
 
+ILM vs CMI GUIDANCE:
+When a visitor asks about the difference between ILM and CMI, or is undecided between the two, use this guidance:
+
+ILM (The Practical Route):
+- More practical and work-based — focuses on "how do I do this in my role?"
+- Uses a credit system with flexible unit selection — great for targeting specific skill gaps
+- Assessment is evidence-based, drawing on real workplace situations
+- Widely recognised, particularly strong with supervisors and first-line managers
+- If a candidate says they don't like writing essays or want something practical, steer toward ILM
+
+CMI (The Strategic Route):
+- More academic and reflective — focuses on "why does this work and what is the impact?"
+- Leads to Chartered Manager (CMgr) status — the highest professional recognition for managers in the UK, equivalent to Chartered Engineer or Chartered Accountant
+- Chartered Managers earn on average £13,000 more within the first few years of achieving status
+- CMgr candidates get to put CMgr MCMI after their name — a major differentiator in interviews and tenders
+- Access to ManagementDirect — widely considered the best management resource portal in the UK
+- More prestigious brand within the management and leadership sector
+- If a candidate wants to reach Director, Senior Management or board level, steer toward CMI
+- The CMI Level 5 Diploma or above unlocks the fast-track route to Chartered Manager status (requires 3+ years management experience)
+
+AWARD vs CERTIFICATE vs DIPLOMA:
+- Award (1-2 units, weeks to complete): Best for solving one specific skill gap quickly. "A surgical strike."
+- Certificate (3-5 units, 3-6 months): Good all-round CV boost without the full commitment of a Diploma.
+- Diploma (6+ units, 6-12 months): The comprehensive qualification. Only the Diploma opens the door to Chartered Manager status. If someone's goal is Director level or Chartered status, recommend the Diploma.
+
+When someone asks about ILM vs CMI, ask one clarifying question: do they prefer a practical, evidence-based approach (ILM) or do they want the academic weight and Chartered Manager pathway (CMI)? Also consider their seniority — CMI is generally more suited to middle and senior management, ILM is more commonly used by supervisors and first-line managers.
+
 Keep responses concise. This is a chat interface, not an essay.`;
   }
 
