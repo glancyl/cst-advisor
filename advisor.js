@@ -204,6 +204,8 @@ const res = await fetch(API_URL, {
       this.messages   = [];       // conversation history for API
       this.isTyping   = false;
       this.chips      = [ ];
+        this.conversationId = 'conv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+
 
       this._render();
       this._bindEvents();
@@ -465,29 +467,30 @@ _scrollToBottom() {
       });
     }
 
-    _logConversation(extra) {
-      try {
-        const conversationLog = this.messages
-          .map(m => (m.role === 'user' ? 'Visitor: ' : 'Adviser: ') + m.content.substring(0, 2000))
-          .join('\n\n');
+_logConversation(extra) {
+  try {
+    const conversationLog = this.messages
+      .map(m => (m.role === 'user' ? 'Visitor: ' : 'Adviser: ') + m.content.substring(0, 2000))
+      .join('\n\n');
 
-        fetch('https://script.google.com/macros/s/AKfycbxoMWrFcuDLAqV-BhDbI-QrrmUYtKnfarYJbh_MnUrBqBIXMqWjDHq6LdfJVRxRYg4/exec', {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            timestamp:      new Date().toLocaleString('en-GB'),
-            page:           this.pageConfig.currentCourse || window.location.href,
-            recommendation: extra?.recommendation || 'No recommendation yet',
-            confidence:     extra?.confidence || 'n/a',
-            alsoConsidered: extra?.alsoConsidered || '',
-            conversation:   conversationLog
-          })
-        });
-      } catch(e) {
-        console.warn('CSTAdvisor: logging failed', e);
-      }
-    }
+    fetch('https://script.google.com/macros/s/AKfycbxoMWrFcuDLAqV-BhDbI-QrrmUYtKnfarYJbh_MnUrBqBIXMqWjDHq6LdfJVRxRYg4/exec', {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        conversationId: this.conversationId,
+        timestamp:      new Date().toLocaleString('en-GB'),
+        page:           this.pageConfig.currentCourse || window.location.href,
+        recommendation: extra?.recommendation || 'No recommendation yet',
+        confidence:     extra?.confidence || 'n/a',
+        alsoConsidered: extra?.alsoConsidered || '',
+        conversation:   conversationLog
+      })
+    });
+  } catch(e) {
+    console.warn('CSTAdvisor: logging failed', e);
+  }
+}
 
 /* ── RECOMMENDATION CARD ──────────────────────────────── */
     _showRecommendation(data) {
