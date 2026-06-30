@@ -647,7 +647,7 @@ window.CSTKnowledge = (function () {
        NEBOSH — CORE CERTIFICATES
     ═══════════════════════════════════════════════════════════ */
 
-    {
+ {
       id:            'nebosh-general',
       title:         'NEBOSH National General Certificate in Occupational Health & Safety',
       category:      'Health & Safety',
@@ -659,7 +659,7 @@ window.CSTKnowledge = (function () {
         'hr manager', 'h&s advisor', 'h&s coordinator'
       ],
       audience:      'Anyone responsible for health and safety in a general workplace environment — offices, warehouses, manufacturing, retail, logistics and similar non-specialist settings.',
-      description:   'The NEBOSH National General Certificate is the most widely held H&S qualification in the UK. It provides a comprehensive grounding in workplace health and safety management applicable across most industries. Course learning completed online in 10 days. Official NEBOSH exam included. Delivered by CST Training.',
+      description:   'The NEBOSH National General Certificate is the most widely held H&S qualification in the UK. It consists of two units: NG1 (Management of Health and Safety, assessed via an open book exam) and NG2 (Risk Assessment, assessed via a practical workplace risk assessment plus an interview with CST Training). Covers 11 elements including health and safety management systems, risk assessment, physical and psychological health, musculoskeletal health, chemical and biological agents, work equipment, fire and electricity. Delivered over 10 days via classroom or virtual classroom, with flexible scheduling options including block, day release and 2-day release formats.',
       suitedFor:     [
         'H&S officers and managers in any general sector',
         'Those with H&S management responsibilities in a non-specialist workplace',
@@ -670,10 +670,9 @@ window.CSTKnowledge = (function () {
       notSuitedFor:  'Not the best fit for construction-specific roles (NEBOSH Construction Certificate is more appropriate) or process/chemical industries (NEBOSH Process Safety). Not required for workers without H&S management responsibilities — IOSH Managing Safely covers those needs.',
       progression:   ['nebosh-construction', 'nebosh-fire-safety', 'nebosh-environmental-management'],
       url:           'https://www.csttraining.co.uk/nebosh-general-certificate-health-safety/',
-      benefits:      'The benchmark H&S qualification recognised across all sectors. Significantly improves career prospects in health and safety. Accepted as a pathway to CMIOSH membership. CST delivers with exam included.'
+      benefits:      'The benchmark H&S qualification recognised globally as the gold standard for health and safety. Significantly improves career prospects in health and safety. Accepted as a pathway to CMIOSH membership. CST delivers with flexible formats, a dedicated candidate support portal and ongoing tutor feedback throughout.'
     },
-
-    {
+   {
       id:            'nebosh-construction',
       title:         'NEBOSH Health & Safety Management for Construction (UK)',
       category:      'Health & Safety',
@@ -685,7 +684,7 @@ window.CSTKnowledge = (function () {
         'quantity surveyor', 'construction h&s officer', 'site agent'
       ],
       audience:      'Those working in the construction industry who need a specialist H&S qualification covering construction-specific risks, CDM regulations and site safety legislation.',
-      description:   'The NEBOSH Construction Certificate focuses on the specific hazards, risks and legal requirements of the construction sector, including working at height, plant operations and CDM regulations. Course learning completed online in 10 days. Official NEBOSH exam included. Delivered by CST Training.',
+      description:   'The NEBOSH Construction Certificate covers 13 elements specific to construction including excavation, demolition, mobile plant and vehicles, working at height, musculoskeletal health and load handling, work equipment, electricity, fire, and chemical and biological agents. Assessed via a single practical digital assessment with NEBOSH, where candidates carry out a series of tasks to demonstrate both knowledge and practical competence. Delivered over 10 days via classroom or virtual classroom, with flexible scheduling options including block, day release and 2-day release formats.',
       suitedFor:     [
         'Construction site managers and supervisors',
         'H&S professionals working in construction',
@@ -695,7 +694,7 @@ window.CSTKnowledge = (function () {
       notSuitedFor:  'Not appropriate for those who work in a general office, retail, manufacturing or non-construction environment — NEBOSH General Certificate is better suited. Not for workers without H&S management responsibilities.',
       progression:   [],
       url:           'https://www.csttraining.co.uk/nebosh-health-safety-management-construction/',
-      benefits:      'The specialist qualification for construction H&S professionals. Recognised by principal contractors and construction industry bodies. Demonstrates site-specific H&S expertise. CST delivers with exam included.'
+      benefits:      'The specialist qualification for construction H&S professionals, recognised by top construction companies globally for ensuring optimum site safety. Gives candidates the technical knowledge, practical skills and confidence to comply with legislation, implement best practice and influence safer work habits. CST delivers with flexible formats, a dedicated candidate support portal and ongoing tutor feedback throughout.'
     },
 
     {
