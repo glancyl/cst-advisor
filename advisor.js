@@ -21,7 +21,7 @@
   ───────────────────────────────────────────────────────────── */
 
   const ICONS = {
-advisor: `<img src="https://www.csttraining.co.uk/wp-content/uploads/2026/06/Screenshot-28.png" style="width:22px;height:22px;object-fit:contain" alt="CST Adviser" />`,
+    advisor: `<img src="https://www.csttraining.co.uk/wp-content/uploads/2026/06/Screenshot-28.png" style="width:22px;height:22px;object-fit:contain" alt="CST Adviser" />`,
     user: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
     </svg>`,
@@ -151,11 +151,11 @@ Keep responses concise. This is a chat interface, not an essay.`;
       messages: messages.map(m => ({ role: m.role, content: m.content }))
     };
 
-const res = await fetch(API_URL, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(body)
-});
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
@@ -205,8 +205,7 @@ const res = await fetch(API_URL, {
       this.messages   = [];       // conversation history for API
       this.isTyping   = false;
       this.chips      = [ ];
-        this.conversationId = 'conv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
-
+      this.conversationId = 'conv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
 
       this._render();
       this._bindEvents();
@@ -270,7 +269,8 @@ const res = await fetch(API_URL, {
                 ${ICONS.send}
               </button>
             </div>
- <!-- Footer -->
+
+            <!-- Footer -->
             <div class="cst-advisor__footer">
               <button class="cst-advisor__reset" id="cst-reset" type="button">
                 Start a new conversation
@@ -319,8 +319,8 @@ const res = await fetch(API_URL, {
         }
       });
 
-// Reset
-this.resetBtn.addEventListener('click', () => this._reset());
+      // Reset
+      this.resetBtn.addEventListener('click', () => this._reset());
     }
 
     /* ── WELCOME MESSAGE ──────────────────────────────────── */
@@ -369,7 +369,7 @@ this.resetBtn.addEventListener('click', () => this._reset());
         // Parse and handle
         const parsed = parseResponse(rawResponse);
 
-if (parsed.type === 'recommendation') {
+        if (parsed.type === 'recommendation') {
           // Add assistant response to history (store raw so context is preserved)
           this.messages.push({ role: 'assistant', content: rawResponse });
           this._showRecommendation(parsed.data);
@@ -381,9 +381,9 @@ if (parsed.type === 'recommendation') {
             alsoConsidered: (parsed.data.alsoConsider || []).join(', ')
           });
         } else if (parsed.type === 'lead_capture') {
-this.messages.push({ role: 'assistant', content: rawResponse });
-this._addAdvisorMessage("Of course — please use the <a href='/contact/' style='color:var(--cst-navy);font-weight:600'>Enquire Now</a> button above and one of our team will be in touch.");;
-this._logConversation();
+          this.messages.push({ role: 'assistant', content: rawResponse });
+          this._addAdvisorMessage("Of course — please use the <a href='/contact/' style='color:var(--cst-navy);font-weight:600'>Enquire Now</a> button above and one of our team will be in touch.");
+          this._logConversation();
         } else {
           // Normal conversational response
           this.messages.push({ role: 'assistant', content: rawResponse });
@@ -405,27 +405,22 @@ this._logConversation();
 
     /* ── RENDER MESSAGES ──────────────────────────────────── */
 
-_addAdvisorMessage(html) {
+    _addAdvisorMessage(html) {
+      // Convert markdown bold (**text**) to HTML <strong>
+      html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      // Convert markdown italic (*text*) to HTML <em>
+      html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+      // Convert newlines to line breaks
+      html = html.replace(/\n/g, '<br>');
 
-  console.log("Adding advisor message:", html);
-
-  // Convert markdown bold (**text**) to HTML <strong>
-  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-
-  // Convert markdown italic (*text*) to HTML <em>
-  html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
-
-  // Convert newlines to line breaks
-  html = html.replace(/\n/g, '<br>');
-
-  const el = document.createElement('div');
-  el.className = 'cst-msg cst-msg--advisor';
-  el.innerHTML = `
-    <div class="cst-msg__avatar" aria-hidden="true">${ICONS.advisor}</div>
-    <div class="cst-msg__bubble">${html}</div>`;
-  this.msgEl.appendChild(el);
-  this._scrollToBottom();
-}
+      const el = document.createElement('div');
+      el.className = 'cst-msg cst-msg--advisor';
+      el.innerHTML = `
+        <div class="cst-msg__avatar" aria-hidden="true">${ICONS.advisor}</div>
+        <div class="cst-msg__bubble">${html}</div>`;
+      this.msgEl.appendChild(el);
+      this._scrollToBottom();
+    }
 
     _addUserMessage(text) {
       const el = document.createElement('div');
@@ -462,38 +457,38 @@ _addAdvisorMessage(html) {
       }
     }
 
-_scrollToBottom() {
+    _scrollToBottom() {
       requestAnimationFrame(() => {
         this.msgEl.scrollTop = this.msgEl.scrollHeight;
       });
     }
 
-_logConversation(extra) {
-  try {
-    const conversationLog = this.messages
-      .map(m => (m.role === 'user' ? 'Visitor: ' : 'Adviser: ') + m.content.substring(0, 2000))
-      .join('\n\n');
+    _logConversation(extra) {
+      try {
+        const conversationLog = this.messages
+          .map(m => (m.role === 'user' ? 'Visitor: ' : 'Adviser: ') + m.content.substring(0, 5000))
+          .join('\n\n');
 
-    fetch('https://script.google.com/macros/s/AKfycbxoMWrFcuDLAqV-BhDbI-QrrmUYtKnfarYJbh_MnUrBqBIXMqWjDHq6LdfJVRxRYg4/exec', {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        conversationId: this.conversationId,
-        timestamp:      new Date().toLocaleString('en-GB'),
-        page:           this.pageConfig.currentCourse || window.location.href,
-        recommendation: extra?.recommendation || 'No recommendation yet',
-        confidence:     extra?.confidence || 'n/a',
-        alsoConsidered: extra?.alsoConsidered || '',
-        conversation:   conversationLog
-      })
-    });
-  } catch(e) {
-    console.warn('CSTAdvisor: logging failed', e);
-  }
-}
+        fetch('https://script.google.com/macros/s/AKfycbxoMWrFcuDLAqV-BhDbI-QrrmUYtKnfarYJbh_MnUrBqBIXMqWjDHq6LdfJVRxRYg4/exec', {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            conversationId: this.conversationId,
+            timestamp:      new Date().toLocaleString('en-GB'),
+            page:           this.pageConfig.currentCourse || window.location.href,
+            recommendation: extra?.recommendation || 'No recommendation yet',
+            confidence:     extra?.confidence || 'n/a',
+            alsoConsidered: extra?.alsoConsidered || '',
+            conversation:   conversationLog
+          })
+        });
+      } catch(e) {
+        console.warn('CSTAdvisor: logging failed', e);
+      }
+    }
 
-/* ── RECOMMENDATION CARD ──────────────────────────────── */
+    /* ── RECOMMENDATION CARD ──────────────────────────────── */
     _showRecommendation(data) {
       const kb     = window.CSTKnowledge;
       const qual   = kb.getById(data.qualificationId);
@@ -542,9 +537,9 @@ _logConversation(extra) {
           <a href="${qual.url}" class="cst-btn cst-btn--primary" target="_blank" rel="noopener">
             View Course ${ICONS.external}
           </a>
-          <a href="/contact/?course=${encodeURIComponent(qual.title)}" class="cst-btn cst-btn--orange" target="_blank" rel="noopener">
+          <button class="cst-btn cst-btn--orange" type="button" id="cst-speak-adviser">
             Enquire Now
-          </a>
+          </button>
         </div>
 
         <div class="cst-confidence ${confClass}">
@@ -568,12 +563,11 @@ _logConversation(extra) {
       this.msgEl.appendChild(recEl);
       this._scrollToBottom();
 
-      // Bind "Speak to an Adviser" button
+      // Bind "Enquire Now" button — relocates the real CF7 form already on the page
       const speakBtn = card.querySelector('#cst-speak-adviser');
       if (speakBtn) {
         speakBtn.addEventListener('click', () => {
-          this._addAdvisorMessage("No problem at all — let me take a few details and one of our advisers will be in touch.");
-          setTimeout(() => this._showLeadCapture(qual), 400);
+          this._showLeadCapture();
         });
       }
 
@@ -591,143 +585,59 @@ _logConversation(extra) {
       });
     }
 
-    /* ── LEAD CAPTURE FORM ────────────────────────────────── */
-    _showLeadCapture(contextQual) {
-      const qualTitle = contextQual
-        ? contextQual.title
-        : (this.pageConfig.currentCourse || '');
+    /* ── LEAD CAPTURE FORM ─────────────────────────────────────
+       Relocates a CLONE of the real Contact Form 7 form already
+       embedded on the current page into the chat window, so
+       submissions go through the same Zapier webhook / HubSpot
+       workflow as the page's normal enquiry form.
+    ──────────────────────────────────────────────────────────── */
+    _showLeadCapture() {
+      const existingForm = document.querySelector('.wpcf7-form');
+
+      if (!existingForm) {
+        this._addAdvisorMessage("Please call us on <strong>020 3488 4472</strong> or email <strong>enquiries@csttraining.co.uk</strong> and our team will be happy to help.");
+        return;
+      }
+
+      const wrapper = existingForm.closest('.wpcf7');
 
       const leadEl = document.createElement('div');
       leadEl.className = 'cst-msg cst-msg--advisor';
       leadEl.style.display = 'block';
 
-      const form = document.createElement('div');
-      form.className = 'cst-lead';
-      form.innerHTML = `
-        <div class="cst-lead__title">Get in touch with our team</div>
-        <div class="cst-lead__sub">We'll reach out to discuss the best qualification for you.</div>
+      const card = document.createElement('div');
+      card.className = 'cst-lead';
+      card.innerHTML = `<div class="cst-lead__title">Request a callback</div>
+        <div class="cst-lead__sub">Leave your details and our team will be in touch.</div>`;
 
-        <div class="cst-lead__grid">
-          <div class="cst-lead__field">
-            <label class="cst-lead__label" for="cst-lead-name">Your name</label>
-            <input id="cst-lead-name" class="cst-lead__input" type="text" placeholder="Jane Smith" autocomplete="name" />
-          </div>
-          <div class="cst-lead__field">
-            <label class="cst-lead__label" for="cst-lead-company">Company</label>
-            <input id="cst-lead-company" class="cst-lead__input" type="text" placeholder="Your organisation" autocomplete="organization" />
-          </div>
-          <div class="cst-lead__field">
-            <label class="cst-lead__label" for="cst-lead-email">Email</label>
-            <input id="cst-lead-email" class="cst-lead__input" type="email" placeholder="jane@company.co.uk" autocomplete="email" />
-          </div>
-          <div class="cst-lead__field">
-            <label class="cst-lead__label" for="cst-lead-phone">Telephone</label>
-            <input id="cst-lead-phone" class="cst-lead__input" type="tel" placeholder="07700 000000" autocomplete="tel" />
-          </div>
-          <div class="cst-lead__field cst-lead__field--full">
-            <label class="cst-lead__label" for="cst-lead-qual">Qualification discussed</label>
-            <input id="cst-lead-qual" class="cst-lead__input" type="text" value="${qualTitle}" />
-          </div>
-        </div>
+      const formHolder = document.createElement('div');
+      formHolder.id = 'cst-cf7-holder';
+      card.appendChild(formHolder);
 
-        <div class="cst-lead__actions">
-          <button class="cst-btn cst-btn--primary" id="cst-lead-submit" type="button">
-            Send My Details
-          </button>
-          <button class="cst-btn cst-btn--ghost" id="cst-lead-cancel" type="button">
-            Cancel
-          </button>
-        </div>
-        <p style="font-size:0.72rem;color:var(--cst-muted);margin:8px 0 0">
-          Your information is handled in accordance with our <a href="/privacy-policy/" style="color:var(--cst-navy)">Privacy Policy</a>.
-        </p>
-      `;
-
-      leadEl.appendChild(form);
+      leadEl.appendChild(card);
       this.msgEl.appendChild(leadEl);
       this._scrollToBottom();
 
-      // Focus first field
-      setTimeout(() => form.querySelector('#cst-lead-name')?.focus(), 100);
+      // Clone (rather than move) so the original form on the page is untouched
+      const clonedWrapper = wrapper.cloneNode(true);
+      formHolder.appendChild(clonedWrapper);
 
-      // Submit
-      form.querySelector('#cst-lead-submit').addEventListener('click', async () => {
-        const leadData = this._collectLeadData(form, qualTitle);
-        if (!leadData.name || !leadData.email) {
-          alert('Please enter at least your name and email address.');
-          return;
-        }
+      // Re-initialise CF7's validation/AJAX behaviour on the cloned form
+      if (typeof wpcf7 !== 'undefined' && wpcf7.init) {
+        wpcf7.init(clonedWrapper.querySelector('.wpcf7-form'));
+      }
 
-        // Build conversation summary
-        leadData.conversationSummary = this.messages
-          .filter(m => m.role !== 'system')
-          .map(m => `${m.role === 'user' ? 'Visitor' : 'Adviser'}: ${m.content.substring(0, 200)}`)
-          .join('\n');
-
-        await this._submitLead(leadData, form);
+      document.addEventListener('wpcf7mailsent', function handler() {
+        formHolder.innerHTML = `
+          <div class="cst-lead__success">
+            <div class="cst-lead__success-icon">
+              <svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+            </div>
+            <h4>Thank you!</h4>
+            <p>One of our advisers will be in touch shortly.</p>
+          </div>`;
+        document.removeEventListener('wpcf7mailsent', handler);
       });
-
-      // Cancel
-      form.querySelector('#cst-lead-cancel').addEventListener('click', () => {
-        leadEl.remove();
-        this._addAdvisorMessage("No problem — feel free to continue browsing or ask me anything else about our qualifications.");
-      });
-    }
-
-    _collectLeadData(formEl, qualTitle) {
-      return {
-        name:    formEl.querySelector('#cst-lead-name')?.value.trim()    || '',
-        company: formEl.querySelector('#cst-lead-company')?.value.trim() || '',
-        email:   formEl.querySelector('#cst-lead-email')?.value.trim()   || '',
-        phone:   formEl.querySelector('#cst-lead-phone')?.value.trim()   || '',
-        qualification: formEl.querySelector('#cst-lead-qual')?.value.trim() || qualTitle || ''
-      };
-    }
-
-    async _submitLead(data, formEl) {
-      /**
-       * HubSpot integration hook.
-       *
-       * Replace the body of this method with your HubSpot Forms API call.
-       * The data object contains: name, email, phone, company,
-       * qualification, conversationSummary.
-       *
-       * Example HubSpot Forms v3 submission:
-       *
-       * const PORTAL_ID = 'YOUR_PORTAL_ID';
-       * const FORM_ID   = 'YOUR_FORM_GUID';
-       * await fetch(
-       *   `https://api.hsforms.com/submissions/v3/integration/submit/${PORTAL_ID}/${FORM_ID}`,
-       *   {
-       *     method: 'POST',
-       *     headers: { 'Content-Type': 'application/json' },
-       *     body: JSON.stringify({
-       *       fields: [
-       *         { name: 'firstname', value: data.name },
-       *         { name: 'email',     value: data.email },
-       *         { name: 'phone',     value: data.phone },
-       *         { name: 'company',   value: data.company },
-       *         { name: 'qualification_discussed', value: data.qualification },
-       *         { name: 'conversation_summary',    value: data.conversationSummary }
-       *       ]
-       *     })
-       *   }
-       * );
-       */
-
-      // For now: log and show success state
-      console.log('CSTAdvisor lead capture:', data);
-
-      // Show success
-      formEl.innerHTML = `
-        <div class="cst-lead__success">
-          <div class="cst-lead__success-icon">
-            <svg viewBox="0 0 24 24"><path ${ICONS.check}/></svg>
-          </div>
-          <h4>Thank you, ${data.name.split(' ')[0]}!</h4>
-          <p>One of our advisers will be in touch shortly to discuss ${data.qualification || 'your qualification options'}.</p>
-        </div>`;
-      this._scrollToBottom();
     }
 
     /* ── RESET ────────────────────────────────────────────── */
