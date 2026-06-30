@@ -366,17 +366,26 @@ this.resetBtn.addEventListener('click', () => this._reset());
         // Parse and handle
         const parsed = parseResponse(rawResponse);
 
-        if (parsed.type === 'recommendation') {
+if (parsed.type === 'recommendation') {
           // Add assistant response to history (store raw so context is preserved)
           this.messages.push({ role: 'assistant', content: rawResponse });
           this._showRecommendation(parsed.data);
+          const kb = window.CSTKnowledge;
+          const qual = kb.getById(parsed.data.qualificationId);
+          this._logConversation({
+            recommendation: qual ? qual.title : parsed.data.qualificationId,
+            confidence: parsed.data.confidence || 'unknown',
+            alsoConsidered: (parsed.data.alsoConsider || []).join(', ')
+          });
         } else if (parsed.type === 'lead_capture') {
-  this.messages.push({ role: 'assistant', content: rawResponse });
-  this._addAdvisorMessage("Of course — please use the <a href='/contact/' style='color:var(--cst-navy);font-weight:600'>Enquire Now</a> button above and one of our team will be in touch.");;
+this.messages.push({ role: 'assistant', content: rawResponse });
+this._addAdvisorMessage("Of course — please use the <a href='/contact/' style='color:var(--cst-navy);font-weight:600'>Enquire Now</a> button above and one of our team will be in touch.");;
+this._logConversation();
         } else {
           // Normal conversational response
           this.messages.push({ role: 'assistant', content: rawResponse });
           this._addAdvisorMessage(parsed.text);
+          this._logConversation();
         }
 
       } catch (err) {
@@ -450,39 +459,40 @@ _addAdvisorMessage(html) {
       }
     }
 
-    _scrollToBottom() {
+_scrollToBottom() {
       requestAnimationFrame(() => {
         this.msgEl.scrollTop = this.msgEl.scrollHeight;
       });
     }
 
-    /* ── RECOMMENDATION CARD ──────────────────────────────── */
+    _logConversation(extra) {
+      try {
+        const conversationLog = this.messages
+          .map(m => (m.role === 'user' ? 'Visitor: ' : 'Adviser: ') + m.content.substring(0, 2000))
+          .join('\n\n');
+
+        fetch('https://script.google.com/macros/s/AKfycbxoMWrFcuDLAqV-BhDbI-QrrmUYtKnfarYJbh_MnUrBqBIXMqWjDHq6LdfJVRxRYg4/exec', {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            timestamp:      new Date().toLocaleString('en-GB'),
+            page:           this.pageConfig.currentCourse || window.location.href,
+            recommendation: extra?.recommendation || 'No recommendation yet',
+            confidence:     extra?.confidence || 'n/a',
+            alsoConsidered: extra?.alsoConsidered || '',
+            conversation:   conversationLog
+          })
+        });
+      } catch(e) {
+        console.warn('CSTAdvisor: logging failed', e);
+      }
+    }
+
+/* ── RECOMMENDATION CARD ──────────────────────────────── */
     _showRecommendation(data) {
       const kb     = window.CSTKnowledge;
       const qual   = kb.getById(data.qualificationId);
-
-      // Log conversation to Google Sheet
-try {
-  const conversationLog = this.messages
-    .map(m => (m.role === 'user' ? 'Visitor: ' : 'Adviser: ') + m.content.substring(0, 2000))
-    .join('\n\n');
-
-  fetch('https://script.google.com/macros/s/AKfycbxoMWrFcuDLAqV-BhDbI-QrrmUYtKnfarYJbh_MnUrBqBIXMqWjDHq6LdfJVRxRYg4/exec', {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      timestamp:      new Date().toLocaleString('en-GB'),
-      page:           this.pageConfig.currentCourse || window.location.href,
-      recommendation: qual ? qual.title : data.qualificationId,
-      confidence:     data.confidence || 'unknown',
-      alsoConsidered: (data.alsoConsider || []).join(', '),
-      conversation:   conversationLog
-    })
-  });
-} catch(e) {
-  console.warn('CSTAdvisor: logging failed', e);
-}
 
       if (!qual) {
         // Fallback: show as plain text
