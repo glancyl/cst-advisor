@@ -330,7 +330,7 @@ Keep responses concise. This is a chat interface, not an essay.`;
 /* ── WELCOME MESSAGE ──────────────────────────────────── */
     _sendWelcome() {
       const course = this.pageConfig.currentCourse;
-      const isMobile = window.innerWidth < 580;
+      const isMobile = window.innerWidth < 768;
       let welcome;
 
       if (course) {
