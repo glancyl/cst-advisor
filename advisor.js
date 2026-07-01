@@ -327,15 +327,24 @@ Keep responses concise. This is a chat interface, not an essay.`;
       this.resetBtn.addEventListener('click', () => this._reset());
     }
 
-    /* ── WELCOME MESSAGE ──────────────────────────────────── */
+/* ── WELCOME MESSAGE ──────────────────────────────────── */
     _sendWelcome() {
       const course = this.pageConfig.currentCourse;
+      const isMobile = window.innerWidth < 580;
       let welcome;
 
       if (course) {
-        welcome = `Hello! I'm the CST Training Qualification Adviser. I can see you're looking at the <strong>${course}</strong> — I'm here to help you decide whether it's the right qualification for you, or whether another option might suit you better.\n\nTell me a bit about your current role and what you're hoping to achieve, and I'll give you an honest recommendation.`;
+        if (isMobile) {
+          welcome = `Hi! I'm the CST Qualification Adviser. You're looking at the <strong>${course}</strong> — tell me about your role and I'll let you know if it's the right fit.`;
+        } else {
+          welcome = `Hello! I'm the CST Training Qualification Adviser. I can see you're looking at the <strong>${course}</strong> — I'm here to help you decide whether it's the right qualification for you, or whether another option might suit you better.\n\nTell me a bit about your current role and what you're hoping to achieve, and I'll give you an honest recommendation.`;
+        }
       } else {
-        welcome = `Hello! I'm the CST Training Qualification Adviser.\n\nI'm here to help you find the right professional qualification — whether that's in project management, leadership and management, or health and safety.\n\nTell me about your current role and what you're looking to achieve, and I'll point you in the right direction.`;
+        if (isMobile) {
+          welcome = `Hi! I'm the CST Qualification Adviser. Tell me about your role and what you're looking to achieve, and I'll point you toward the right qualification.`;
+        } else {
+          welcome = `Hello! I'm the CST Training Qualification Adviser.\n\nI'm here to help you find the right professional qualification — whether that's in project management, leadership and management, or health and safety.\n\nTell me about your current role and what you're looking to achieve, and I'll point you in the right direction.`;
+        }
       }
 
       this._addAdvisorMessage(welcome);
