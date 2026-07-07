@@ -365,8 +365,7 @@ window.CSTKnowledge = (function () {
         'site supervisor', 'practicing manager', 'aspiring manager'
       ],
       audience:      'Practicing or aspiring first-line managers who want a CMI-accredited qualification and a clear pathway toward Chartered Manager status.',
-      description:   'CMI Level 3 builds core management skills at a supervisory level, accredited by the Chartered Management Institute — the UK\'s professional body for managers. 3–6 months online delivery. £1,799+VAT with 0% finance over 10 months. CMI membership included for the duration of the course.',
-      suitedFor:     [
+      description:   'CMI Level 3 builds core management skills at a supervisory level, accredited by the Chartered Management Institute. Typical units include: Principles of Management & Leadership; Managing a Team to Achieve Results; Building Stakeholder Relationships Using Effective Communication; Contributing to the Delivery of a Project; Managing Daily Activities to Achieve Results; and Managing Budgets & Resources. 3–6 months online delivery. £1,799+VAT with 0% finance over 10 months. CMI membership included for the duration of the course.',      suitedFor:     [
         'First-line managers and supervisors wanting CMI accreditation',
         'Those who prefer CMI as their professional body over ILM',
         'Those wanting a pathway to Chartered Manager (CMgr) status',
@@ -390,8 +389,7 @@ window.CSTKnowledge = (function () {
         'commercial manager', 'aspiring senior manager'
       ],
       audience:      'Middle managers with experience who want CMI-accredited recognition at an operational and strategic level, with a pathway to Chartered Manager status.',
-      description:   'CMI Level 5 develops management and leadership skills at an operational and strategic level. Equivalent in content to ILM Level 5 but awarded by CMI, providing a pathway to Chartered Manager (CMgr). 6–12 months online delivery. £1,680+VAT with 0% finance over 10 months. CMI membership included.',
-      suitedFor:     [
+description:   'CMI Level 5 develops management and leadership skills at an operational and strategic level. Typical units include: Principles of Management & Leadership in an Organisational Context; Principles of Developing, Managing & Leading Individuals and Teams to Achieve Success; Managing Performance; Managing Stakeholder Relationships; Managing Change; and Creating & Delivering Operational Plans. 6–12 months online delivery. £1,680+VAT with 0% finance over 10 months. CMI membership included. Provides a pathway to Chartered Manager (CMgr) status for those with 3+ years management experience.',      suitedFor:     [
         'Middle managers with 2–4 years management experience',
         'Those wanting CMI accreditation rather than ILM',
         'Managers pursuing Chartered Manager (CMgr) status',
@@ -414,8 +412,7 @@ window.CSTKnowledge = (function () {
         'head of department', 'partner', 'business owner', 'executive'
       ],
       audience:      'Senior leaders and directors who want a postgraduate-equivalent CMI qualification to develop strategic leadership at the highest organisational level.',
-      description:   'CMI Level 7 is a postgraduate-equivalent qualification developing senior leaders\' ability to drive organisational strategy, culture and transformation. A pathway to Fellow of CMI. 6–12 months online delivery. £1,900+VAT with 0% finance over 10 months. CMI membership included throughout.',
-      suitedFor:     [
+description:   'CMI Level 7 is a postgraduate-equivalent qualification developing senior leaders\' ability to drive organisational strategy, culture and transformation. Typical units include: Strategic Leadership; Developing Organisational Strategy; Strategic Risk Management; Collaboration & Partnerships; Entrepreneurial Practice; and Personal & Professional Development for Strategic Leaders. 6–12 months online delivery. £1,900+VAT with 0% finance over 10 months. CMI membership included. Provides a pathway to Chartered Manager (CMgr) status for those with 3+ years management experience.',      suitedFor:     [
         'Senior managers and directors with 7+ years experience',
         'Executives wanting a Masters-level management qualification via CMI',
         'Those seeking Chartered Manager (CMgr) or Fellow CMI status',
@@ -443,8 +440,7 @@ window.CSTKnowledge = (function () {
         'learning and development professional', 'aspiring coach'
       ],
       audience:      'Supervisors and first-line managers who want to develop formal coaching and mentoring skills to better support their teams.',
-      description:   'CMI Level 3 Coaching & Mentoring develops practical coaching and mentoring skills for supervisors and first-line managers. 3–6 months online delivery. £1,340+VAT with 0% finance over 10 months.',
-      suitedFor:     [
+description:   'CMI Level 3 Coaching & Mentoring develops practical coaching and mentoring skills for supervisors and first-line managers. Typical units include: Principles, Skills and Impact of Coaching and Mentoring; Coaching and Mentoring for Individual and Team Needs; Coaching and Mentoring Processes; Coaching and Mentoring Relationships; Understanding Organisational Culture, Values and Behaviour; Promoting Equality and Diversity; and Understanding Team Dynamics. 3–6 months online delivery. £1,340+VAT with 0% finance over 10 months.',      suitedFor:     [
         'Supervisors and team leaders wanting coaching skills',
         'First-line managers who support team development',
         'HR or L&D professionals at an operational level',
@@ -468,8 +464,7 @@ window.CSTKnowledge = (function () {
         'people director'
       ],
       audience:      'Senior leaders, managers and coaches who want to develop advanced coaching and mentoring capability at a strategic level.',
-      description:   'CMI Level 7 Coaching & Mentoring develops advanced coaching and leadership mentoring skills at a postgraduate level. 6–12 months online delivery. £1,500+VAT with 0% finance over 10 months.',
-      suitedFor:     [
+description:   'CMI Level 7 Coaching & Mentoring develops advanced coaching and leadership mentoring skills at a postgraduate level. Typical units include: Coaching and Mentoring Within Organisational Culture; Coaching and Mentoring Policies; Strategic Impact of Coaching and Mentoring; Leadership Coaching and Mentoring Skills; Leading Equality and Diversity; and Embedding Coaching and Mentoring in the Organisation. 6–12 months online delivery. £1,500+VAT with 0% finance over 10 months.',      suitedFor:     [
         'Senior leaders wanting to develop as executive coaches',
         'HR, L&D or OD professionals operating at a strategic level',
         'Those building a professional coaching practice',
