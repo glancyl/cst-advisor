@@ -517,8 +517,7 @@ description:   'CMI Level 7 Coaching & Mentoring develops advanced coaching and 
         'head of consulting', 'strategy director', 'executive advisor'
       ],
       audience:      'Experienced consultants and senior advisors who want a postgraduate-level CMI qualification in professional consulting.',
-      description:   'CMI Level 7 Professional Consulting is a postgraduate-level qualification for experienced consultants wanting advanced accreditation. 6–12 months online delivery. £1,100+VAT with 0% finance over 10 months.',
-      suitedFor:     [
+description:   'CMI Level 7 Professional Consulting is a postgraduate-level qualification for experienced consultants wanting advanced accreditation. Typical units include: Principles of Professional Consulting; Leadership in Professional Consulting; Practice of Professional Consulting; Organisational Analysis & Diagnosis; Strategic Client Engagement; and Professional Development in Consulting. 6–12 months online delivery. £1,100+VAT with 0% finance over 10 months.',      suitedFor:     [
         'Senior or experienced management consultants',
         'Those building or leading a consulting practice',
         'Advisors wanting postgraduate-level CMI recognition',
@@ -546,8 +545,7 @@ description:   'CMI Level 7 Coaching & Mentoring develops advanced coaching and 
         'aspiring project manager', 'team leader managing small projects'
       ],
       audience:      'Those new to project management or in a junior project role who want a CMI-accredited introduction to project management principles.',
-      description:   'CMI Level 3 Project Management provides an introduction to project management principles and practice, awarded by CMI. 8–16 weeks online delivery. £300+VAT with 0% finance.',
-      suitedFor:     [
+description:   'CMI Level 3 Project Management provides an introduction to project management principles and practice, awarded by CMI. It consists of a single unit — Introduction to Project Management — covering the project lifecycle, key roles and responsibilities, project planning techniques, risk management and how to monitor progress to ensure successful delivery. 2–3 months online delivery. £300+VAT with 0% finance.',      suitedFor:     [
         'Those new to managing projects',
         'Junior project coordinators wanting a recognised qualification',
         'Those who prefer a CMI-accredited route into project management',
@@ -570,8 +568,7 @@ description:   'CMI Level 7 Coaching & Mentoring develops advanced coaching and 
         'delivery manager', 'operations manager managing projects'
       ],
       audience:      'Project managers and leaders with experience who want a CMI-accredited qualification at a practitioner level.',
-      description:   'CMI Level 5 Project Management develops project management knowledge and skills at a practitioner level. 3–5 months online delivery. £600+VAT with 0% finance.',
-      suitedFor:     [
+description:   'CMI Level 5 Project Management develops project management knowledge and skills at a practitioner level. Typical units include: Managing Projects to Achieve Results (covering project planning, resource management, stakeholder engagement, risk management and performance monitoring); and Conducting a Management Project (applying project management techniques to a real workplace business challenge). 3–5 months online delivery. £600+VAT with 0% finance.',      suitedFor:     [
         'Experienced project managers wanting CMI accreditation',
         'Those progressing from CMI Level 3 Project Management',
         'Project leaders in CMI-focused organisations',
