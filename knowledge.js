@@ -56,7 +56,7 @@ window.CSTKnowledge = (function () {
         'project assurance', 'operational line manager'
       ],
       audience:      'Anyone new to structured project management, or those wanting to formalise their knowledge with the UK\'s most widely recognised project management qualification.',
-      description:   'PRINCE2® 7th Edition Foundation introduces the updated PRINCE2 methodology — the UK\'s leading project management framework. It covers the seven principles, practices and processes of the 7th Edition and is the essential first step before Practitioner. Delivered by CST Training via virtual classroom, day release or e-learning, with exam and free resit included.',
+      description:   'PRINCE2® 7th Edition Foundation introduces the updated PRINCE2 methodology — the UK\'s leading project management framework. Covers the seven principles, practices and processes, with an increased focus on people, sustainability and digital projects in the 7th Edition. Available in three formats: E-Learning (£1,000+VAT, 24/7 self-paced access for 12 months with tutor support on hand throughout); Virtual Classroom (live interactive sessions via Google Meet, completable in days); or Day Release (one day per week via Google Meet). An All Inclusive Bundle combining e-learning, virtual classroom and dedicated 1-to-1 tutor sessions is also available. Foundation exam included (60 questions, 60 minutes, closed book, 60% pass mark) with a free resit. Certificate valid for 3 years. 0% finance available over 10 months.',
       suitedFor:     [
         'New or aspiring project managers with no prior PRINCE2 qualification',
         'Those in project support, coordination or administration roles',
@@ -81,8 +81,7 @@ window.CSTKnowledge = (function () {
         'programme manager', 'delivery manager'
       ],
       audience:      'Practising project managers who already hold PRINCE2 Foundation (or an equivalent accepted qualification) and want to apply PRINCE2 in a real-world project environment.',
-      description:   'PRINCE2® 7th Edition Practitioner demonstrates the ability to apply and adapt the PRINCE2 methodology to manage real projects. Practitioners can manage PRINCE2 projects with appropriate direction and independently lead project teams. Delivered by CST via virtual classroom or day release, with exam and free resit included.',
-      suitedFor:     [
+      description:   'PRINCE2® 7th Edition Practitioner demonstrates the ability to apply and adapt the PRINCE2 methodology to manage real projects. Requires PRINCE2 Foundation as a prerequisite. Available as E-Learning (£1,100+VAT, 24/7 self-paced access for 12 months with tutor support on hand throughout); Virtual Classroom (live interactive sessions via Google Meet); or Day Release (one day per week via Google Meet). An All Inclusive Bundle combining e-learning, virtual classroom and dedicated 1-to-1 tutor is also available. Practitioner exam included (150 minutes, 70 questions) with a free resit. 0% finance available over 10 months.',      suitedFor:     [
         'Existing PRINCE2 Foundation holders ready for the next step',
         'Practising project managers wanting full PRINCE2 certification',
         'Those managing complex, multi-workstream or larger projects',
@@ -106,9 +105,7 @@ window.CSTKnowledge = (function () {
         'digital project manager', 'team lead'
       ],
       audience:      'Project managers or Agile practitioners who want to understand how PRINCE2 governance and Agile delivery methods work together.',
-      description:   'PRINCE2 Agile® Foundation introduces the combination of PRINCE2 project governance with Agile delivery techniques such as Scrum, Kanban and Lean. It suits those moving into organisations that use hybrid delivery approaches. Delivered by CST via virtual classroom with exam included.',
-      suitedFor:     [
-        'Project managers wanting to add Agile skills to their PRINCE2 knowledge',
+      description:   'PRINCE2 Agile® Foundation introduces the combination of PRINCE2 project governance with Agile delivery techniques such as Scrum, Kanban and Lean. Best suited to technology-focused sectors such as IT, finance and banking where adaptive project delivery is preferred. Available as Virtual Classroom (live interactive sessions via Google Meet) or Day Release (one day per week via Google Meet). An All Inclusive Bundle combining e-learning, virtual classroom and 1-to-1 tutor is also available. Exam and free resit included. 0% finance available over 10 months.',        'Project managers wanting to add Agile skills to their PRINCE2 knowledge',
         'Agile practitioners needing a governance framework',
         'Those working in IT, digital, finance or technology sectors',
         'Teams adopting hybrid project delivery methods',
@@ -131,8 +128,7 @@ window.CSTKnowledge = (function () {
         'delivery manager', 'product owner', 'programme manager'
       ],
       audience:      'PRINCE2 Agile Foundation holders, or PRINCE2 Practitioners, who want to demonstrate they can apply Agile techniques within a PRINCE2 governance framework on real projects.',
-      description:   'PRINCE2 Agile® Practitioner is the advanced qualification demonstrating the ability to apply PRINCE2 Agile in practice. It requires PRINCE2 Agile Foundation (or PRINCE2 Foundation/Practitioner) as a prerequisite. Delivered by CST with exam and free resit included.',
-      suitedFor:     [
+      description:   'PRINCE2 Agile® Practitioner is the advanced qualification demonstrating the ability to apply PRINCE2 Agile in practice. Requires PRINCE2 Agile Foundation or PRINCE2 Foundation/Practitioner as a prerequisite. Available as Virtual Classroom (live interactive sessions via Google Meet) or Day Release (one day per week via Google Meet). An All Inclusive Bundle combining e-learning, virtual classroom and 1-to-1 tutor is also available. Exam and free resit included. 0% finance available over 10 months.',      suitedFor:     [
         'PRINCE2 Agile Foundation holders progressing to Practitioner',
         'PRINCE2 Practitioners adding Agile capability',
         'PMs leading hybrid Agile/waterfall project teams',
