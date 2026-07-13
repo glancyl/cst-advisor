@@ -128,11 +128,13 @@ window.CSTKnowledge = (function () {
         'delivery manager', 'product owner', 'programme manager'
       ],
       audience:      'PRINCE2 Agile Foundation holders, or PRINCE2 Practitioners, who want to demonstrate they can apply Agile techniques within a PRINCE2 governance framework on real projects.',
-      description:   'PRINCE2 Agile® Practitioner is the advanced qualification demonstrating the ability to apply PRINCE2 Agile in practice. Requires PRINCE2 Agile Foundation or PRINCE2 Foundation/Practitioner as a prerequisite. Available as Virtual Classroom (live interactive sessions via Google Meet) or Day Release (one day per week via Google Meet). An All Inclusive Bundle combining e-learning, virtual classroom and 1-to-1 tutor is also available. Exam and free resit included. 0% finance available over 10 months.',      suitedFor:     [
-        'PRINCE2 Agile Foundation holders progressing to Practitioner',
-        'PRINCE2 Practitioners adding Agile capability',
-        'PMs leading hybrid Agile/waterfall project teams',
-        'Those in technology, digital or product delivery roles'
+      description:   'PRINCE2 Agile® Foundation introduces the combination of PRINCE2 project governance with Agile delivery techniques such as Scrum, Kanban and Lean. Best suited to technology-focused sectors such as IT, finance and banking where adaptive project delivery is preferred. Available as Virtual Classroom (live interactive sessions via Google Meet) or Day Release (one day per week via Google Meet). An All Inclusive Bundle combining e-learning, virtual classroom and 1-to-1 tutor is also available. Exam and free resit included. 0% finance available over 10 months.',
+      suitedFor:     [
+        'Project managers wanting to add Agile skills to their PRINCE2 knowledge',
+        'Agile practitioners needing a governance framework',
+        'Those working in IT, digital, finance or technology sectors',
+        'Teams adopting hybrid project delivery methods',
+        'A foundation for PRINCE2 Agile Practitioner'
       ],
       notSuitedFor:  'Requires PRINCE2 Agile Foundation or PRINCE2 Foundation/Practitioner as a prerequisite. Not suitable for complete beginners to project management.',
       progression:   ['msp-foundation'],
