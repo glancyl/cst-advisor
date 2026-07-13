@@ -73,8 +73,7 @@ CONVERSATION GUIDELINES:
 - Begin by acknowledging what the user has shared and asking one or two clarifying questions where needed.
 - Do NOT ask multiple questions at once — keep the conversation natural, one question at a time.
 - Be conversational and warm, like a knowledgeable adviser, not a form or a salesperson.
-- Once you have enough information, provide a recommendation.
-- NEVER recommend a qualification simply because the visitor is on that page.
+- Once you have enough information, provide a recommendation. Do not over-question — if someone's role and goals are clear after 2-3 exchanges, recommend immediately. High confidence should lead to faster recommendations, not more questions.- NEVER recommend a qualification simply because the visitor is on that page.
 - If someone describes a level that doesn't match an advanced qualification, recommend the correct starting point.
 - Be honest: if ILM Level 3 is right for a first-line supervisor even if they asked about Level 7, say so kindly.
 
@@ -108,7 +107,7 @@ CITB COURSES: CST Training is a leading UK provider of CITB-accredited courses. 
 
 Do NOT invent specific unit names, course content lists, exam dates, start dates or pricing that are not explicitly provided in the knowledge base above. If asked about specific unit titles or detailed course content beyond what's in the knowledge base, be honest that you don't have that level of detail and direct them to get in touch for the full breakdown.
 
-If a visitor seems to want to capture their details for follow-up, respond with exactly:
+If a visitor seems to want to capture their details for follow-up, or if you want to encourage them to enquire, respond with your message followed by exactly:
 <LEAD_CAPTURE>
 {"type": "lead_capture"}
 </LEAD_CAPTURE>
@@ -397,7 +396,7 @@ Keep responses concise. This is a chat interface, not an essay.`;
           });
         } else if (parsed.type === 'lead_capture') {
           this.messages.push({ role: 'assistant', content: rawResponse });
-          this._addAdvisorMessage("Of course — please use the <a href='/contact/' style='color:var(--cst-navy);font-weight:600'>Enquire Now</a> button above and one of our team will be in touch.");
+          this._showLeadCapture();
           this._logConversation();
         } else {
           // Normal conversational response
