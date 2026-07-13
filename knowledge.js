@@ -1,38 +1,6 @@
 /**
  * CST Training – Qualification Advisor
  * js/knowledge.js  (rebuilt June 2026 from live site csttraining.co.uk)
- *
- * Covers every qualification the advisor should understand:
- *   - PRINCE2 7th Edition (Foundation, Practitioner)
- *   - PRINCE2 Agile (Foundation, Practitioner)
- *   - MSP 5th Edition (Foundation, Practitioner)
- *   - ILM Levels 2, 3, 4, 5, 6, 7  (Award / Certificate / Diploma variants)
- *   - CMI Management & Leadership (Levels 3, 5, 7)
- *   - CMI Coaching & Mentoring (Levels 3, 7)
- *   - CMI Professional Consulting (Level 5, 7)
- *   - CMI Project Management (Levels 3, 5)
- *   - IOSH Working Safely
- *   - IOSH Managing Safely
- *   - NEBOSH General Certificate
- *   - NEBOSH Construction Certificate
- *   - NEBOSH Fire Safety Certificate
- *   - NEBOSH Environmental Management Certificate
- *   - NEBOSH Process Safety Certificate
- *   - NEBOSH HSE Certificate in H&S Leadership Excellence
- *   - NEBOSH HSE Certificate in Managing Stress at Work
- *   - NEBOSH HSE Certificate in Manual Handling Risk Assessment
- *   - NEBOSH HSE Award in Managing Risks & Risk Assessment
- *   - NEBOSH Award in Environmental Awareness
- *   - NEBOSH Award in Health & Safety at Work
- *   - NEBOSH Working With Wellbeing
- *   - NEBOSH HSE Introduction to Incident Investigation
- *
- * NOT included (out of scope per brief):
- *   SMSTS, SSSTS, CITB, SHEA, First Aid, Mental Health, ISEP, NVQs, E-Learning
- *
- * To edit a qualification: find it by id and update the fields.
- * To add a new qualification: append an entry following the same schema.
- * URLs point to the live csttraining.co.uk pages.
  */
 
 window.CSTKnowledge = (function () {
@@ -81,7 +49,8 @@ window.CSTKnowledge = (function () {
         'programme manager', 'delivery manager'
       ],
       audience:      'Practising project managers who already hold PRINCE2 Foundation (or an equivalent accepted qualification) and want to apply PRINCE2 in a real-world project environment.',
-      description:   'PRINCE2® 7th Edition Practitioner demonstrates the ability to apply and adapt the PRINCE2 methodology to manage real projects. Requires PRINCE2 Foundation as a prerequisite. Available as E-Learning (£1,100+VAT, 24/7 self-paced access for 12 months with tutor support on hand throughout); Virtual Classroom (live interactive sessions via Google Meet); or Day Release (one day per week via Google Meet). An All Inclusive Bundle combining e-learning, virtual classroom and dedicated 1-to-1 tutor is also available. Practitioner exam included (150 minutes, 70 questions) with a free resit. 0% finance available over 10 months.',      suitedFor:     [
+      description:   'PRINCE2® 7th Edition Practitioner demonstrates the ability to apply and adapt the PRINCE2 methodology to manage real projects. Requires PRINCE2 Foundation as a prerequisite. Available as E-Learning (£1,100+VAT, 24/7 self-paced access for 12 months with tutor support on hand throughout); Virtual Classroom (live interactive sessions via Google Meet); or Day Release (one day per week via Google Meet). An All Inclusive Bundle combining e-learning, virtual classroom and dedicated 1-to-1 tutor is also available. Practitioner exam included (150 minutes, 70 questions) with a free resit. 0% finance available over 10 months.',
+      suitedFor:     [
         'Existing PRINCE2 Foundation holders ready for the next step',
         'Practising project managers wanting full PRINCE2 certification',
         'Those managing complex, multi-workstream or larger projects',
@@ -93,7 +62,7 @@ window.CSTKnowledge = (function () {
       benefits:      'Full PRINCE2® 7th Edition certification — the most current and employer-recognised version. Qualifies you to independently lead and manage PRINCE2 projects. CST includes exam, free resit and official manual. 0% finance available over 10 months.'
     },
 
-  {
+    {
       id:            'prince2-agile-foundation',
       title:         'PRINCE2 Agile® Foundation',
       category:      'Project Management',
@@ -130,12 +99,12 @@ window.CSTKnowledge = (function () {
         'delivery manager', 'product owner', 'programme manager'
       ],
       audience:      'PRINCE2 Agile Foundation holders, or PRINCE2 Practitioners, who want to demonstrate they can apply Agile techniques within a PRINCE2 governance framework on real projects.',
-      description:   'PRINCE2 Agile® Practitioner is the advanced qualification demonstrating the ability to apply PRINCE2 Agile in practice. Requires PRINCE2 Agile Foundation or PRINCE2 Foundation/Practitioner as a prerequisite. Available as Virtual Classroom (live interactive sessions via Google Meet) or Day Release (one day per week via Google Meet). An All Inclusive Bundle combining e-learning, virtual classroom and 1-to-1 tutor is also available. Exam and free resit included. 0% finance available over 10 months.',      suitedFor:     [
-        'Project managers wanting to add Agile skills to their PRINCE2 knowledge',
-        'Agile practitioners needing a governance framework',
-        'Those working in IT, digital, finance or technology sectors',
-        'Teams adopting hybrid project delivery methods',
-        'A foundation for PRINCE2 Agile Practitioner'
+      description:   'PRINCE2 Agile® Practitioner is the advanced qualification demonstrating the ability to apply PRINCE2 Agile in practice. Requires PRINCE2 Agile Foundation or PRINCE2 Foundation/Practitioner as a prerequisite. Available as Virtual Classroom (live interactive sessions via Google Meet) or Day Release (one day per week via Google Meet). An All Inclusive Bundle combining e-learning, virtual classroom and 1-to-1 tutor is also available. Exam and free resit included. 0% finance available over 10 months.',
+      suitedFor:     [
+        'PRINCE2 Agile Foundation holders progressing to Practitioner',
+        'PRINCE2 Practitioners adding Agile capability',
+        'PMs leading hybrid Agile/waterfall project teams',
+        'Those in technology, digital or product delivery roles'
       ],
       notSuitedFor:  'Requires PRINCE2 Agile Foundation or PRINCE2 Foundation/Practitioner as a prerequisite. Not suitable for complete beginners to project management.',
       progression:   ['msp-foundation'],
@@ -195,10 +164,6 @@ window.CSTKnowledge = (function () {
 
     /* ═══════════════════════════════════════════════════════════
        ILM LEADERSHIP & MANAGEMENT
-       Note: Each level has Award, Certificate and Diploma variants.
-       The advisor recommends at the LEVEL — the adviser or enquiry
-       process helps the visitor choose Award/Certificate/Diploma
-       based on depth of study required.
     ═══════════════════════════════════════════════════════════ */
 
     {
@@ -220,7 +185,7 @@ window.CSTKnowledge = (function () {
         'Those who want to build confidence before progressing to Level 3'
       ],
       notSuitedFor:  'Not appropriate for those with existing management experience or a supervisory role of any substance — ILM Level 3 is more appropriate for them.',
-      progression:   ['ilm-level-3', 'cmi-level-3'],
+      progression:   ['ilm-level-3', 'cmi-level-3-management'],
       url:           'https://www.csttraining.co.uk/ilm-courses-nvqs/#ILM-L2',
       benefits:      'A recognised first step into leadership development. Builds confidence and provides practical tools for leading a team from day one. CST delivers online with flexible payment plans including 0% finance.'
     },
@@ -245,7 +210,7 @@ window.CSTKnowledge = (function () {
         'Those wanting a stepping stone toward ILM Level 5'
       ],
       notSuitedFor:  'Not appropriate for experienced middle managers or senior leaders — ILM Level 5 or Level 7 are more suitable for those with substantial management experience.',
-      progression:   ['ilm-level-4', 'ilm-level-5', 'cmi-level-3'],
+      progression:   ['ilm-level-4', 'ilm-level-5', 'cmi-level-3-management'],
       url:           'https://www.csttraining.co.uk/ilm-courses-nvqs/#ILM-L3',
       benefits:      'Nationally recognised ILM qualification that validates first-line management skills. Builds practical confidence for day-to-day people management. CST delivers fully online with 0% finance available over 10 months.'
     },
@@ -294,7 +259,7 @@ window.CSTKnowledge = (function () {
         'Those wanting to progress toward ILM Level 7'
       ],
       notSuitedFor:  'Not the best starting point for first-line supervisors or those new to management — Level 3 is the right entry point. Not appropriate for very senior executives — Level 7 is more suitable.',
-      progression:   ['ilm-level-6', 'ilm-level-7', 'cmi-level-5'],
+      progression:   ['ilm-level-6', 'ilm-level-7', 'cmi-level-5-management'],
       url:           'https://www.csttraining.co.uk/ilm-courses-nvqs/#ILM-L5',
       benefits:      'Develops strategic management thinking and builds leadership influence across an organisation. Widely respected by employers in all sectors. CST delivers online with flexible payment plans and 0% finance.'
     },
@@ -364,7 +329,8 @@ window.CSTKnowledge = (function () {
         'site supervisor', 'practicing manager', 'aspiring manager'
       ],
       audience:      'Practicing or aspiring first-line managers who want a CMI-accredited qualification and a clear pathway toward Chartered Manager status.',
-      description:   'CMI Level 3 builds core management skills at a supervisory level, accredited by the Chartered Management Institute. Typical units include: Principles of Management & Leadership; Managing a Team to Achieve Results; Building Stakeholder Relationships Using Effective Communication; Contributing to the Delivery of a Project; Managing Daily Activities to Achieve Results; and Managing Budgets & Resources. 3–6 months online delivery. £1,799+VAT with 0% finance over 10 months. CMI membership included for the duration of the course.',      suitedFor:     [
+      description:   'CMI Level 3 builds core management skills at a supervisory level, accredited by the Chartered Management Institute. Typical units include: Principles of Management & Leadership; Managing a Team to Achieve Results; Building Stakeholder Relationships Using Effective Communication; Contributing to the Delivery of a Project; Managing Daily Activities to Achieve Results; and Managing Budgets & Resources. 3–6 months online delivery. £1,799+VAT with 0% finance over 10 months. CMI membership included for the duration of the course.',
+      suitedFor:     [
         'First-line managers and supervisors wanting CMI accreditation',
         'Those who prefer CMI as their professional body over ILM',
         'Those wanting a pathway to Chartered Manager (CMgr) status',
@@ -388,7 +354,8 @@ window.CSTKnowledge = (function () {
         'commercial manager', 'aspiring senior manager'
       ],
       audience:      'Middle managers with experience who want CMI-accredited recognition at an operational and strategic level, with a pathway to Chartered Manager status.',
-description:   'CMI Level 5 develops management and leadership skills at an operational and strategic level. Typical units include: Principles of Management & Leadership in an Organisational Context; Principles of Developing, Managing & Leading Individuals and Teams to Achieve Success; Managing Performance; Managing Stakeholder Relationships; Managing Change; and Creating & Delivering Operational Plans. 6–12 months online delivery. £1,680+VAT with 0% finance over 10 months. CMI membership included. Provides a pathway to Chartered Manager (CMgr) status for those with 3+ years management experience.',      suitedFor:     [
+      description:   'CMI Level 5 develops management and leadership skills at an operational and strategic level. Typical units include: Principles of Management & Leadership in an Organisational Context; Principles of Developing, Managing & Leading Individuals and Teams to Achieve Success; Managing Performance; Managing Stakeholder Relationships; Managing Change; and Creating & Delivering Operational Plans. 6–12 months online delivery. £1,680+VAT with 0% finance over 10 months. CMI membership included. Provides a pathway to Chartered Manager (CMgr) status for those with 3+ years management experience.',
+      suitedFor:     [
         'Middle managers with 2–4 years management experience',
         'Those wanting CMI accreditation rather than ILM',
         'Managers pursuing Chartered Manager (CMgr) status',
@@ -411,7 +378,8 @@ description:   'CMI Level 5 develops management and leadership skills at an oper
         'head of department', 'partner', 'business owner', 'executive'
       ],
       audience:      'Senior leaders and directors who want a postgraduate-equivalent CMI qualification to develop strategic leadership at the highest organisational level.',
-description:   'CMI Level 7 is a postgraduate-equivalent qualification developing senior leaders\' ability to drive organisational strategy, culture and transformation. Typical units include: Strategic Leadership; Developing Organisational Strategy; Strategic Risk Management; Collaboration & Partnerships; Entrepreneurial Practice; and Personal & Professional Development for Strategic Leaders. 6–12 months online delivery. £1,900+VAT with 0% finance over 10 months. CMI membership included. Provides a pathway to Chartered Manager (CMgr) status for those with 3+ years management experience.',      suitedFor:     [
+      description:   'CMI Level 7 is a postgraduate-equivalent qualification developing senior leaders\'s ability to drive organisational strategy, culture and transformation. Typical units include: Strategic Leadership; Developing Organisational Strategy; Strategic Risk Management; Collaboration & Partnerships; Entrepreneurial Practice; and Personal & Professional Development for Strategic Leaders. 6–12 months online delivery. £1,900+VAT with 0% finance over 10 months. CMI membership included. Provides a pathway to Chartered Manager (CMgr) status for those with 3+ years management experience.',
+      suitedFor:     [
         'Senior managers and directors with 7+ years experience',
         'Executives wanting a Masters-level management qualification via CMI',
         'Those seeking Chartered Manager (CMgr) or Fellow CMI status',
@@ -439,7 +407,8 @@ description:   'CMI Level 7 is a postgraduate-equivalent qualification developin
         'learning and development professional', 'aspiring coach'
       ],
       audience:      'Supervisors and first-line managers who want to develop formal coaching and mentoring skills to better support their teams.',
-description:   'CMI Level 3 Coaching & Mentoring develops practical coaching and mentoring skills for supervisors and first-line managers. Typical units include: Principles, Skills and Impact of Coaching and Mentoring; Coaching and Mentoring for Individual and Team Needs; Coaching and Mentoring Processes; Coaching and Mentoring Relationships; Understanding Organisational Culture, Values and Behaviour; Promoting Equality and Diversity; and Understanding Team Dynamics. 3–6 months online delivery. £1,340+VAT with 0% finance over 10 months.',      suitedFor:     [
+      description:   'CMI Level 3 Coaching & Mentoring develops practical coaching and mentoring skills for supervisors and first-line managers. Typical units include: Principles, Skills and Impact of Coaching and Mentoring; Coaching and Mentoring for Individual and Team Needs; Coaching and Mentoring Processes; Coaching and Mentoring Relationships; Understanding Organisational Culture, Values and Behaviour; Promoting Equality and Diversity; and Understanding Team Dynamics. 3–6 months online delivery. £1,340+VAT with 0% finance over 10 months.',
+      suitedFor:     [
         'Supervisors and team leaders wanting coaching skills',
         'First-line managers who support team development',
         'HR or L&D professionals at an operational level',
@@ -463,7 +432,8 @@ description:   'CMI Level 3 Coaching & Mentoring develops practical coaching and
         'people director'
       ],
       audience:      'Senior leaders, managers and coaches who want to develop advanced coaching and mentoring capability at a strategic level.',
-description:   'CMI Level 7 Coaching & Mentoring develops advanced coaching and leadership mentoring skills at a postgraduate level. Typical units include: Coaching and Mentoring Within Organisational Culture; Coaching and Mentoring Policies; Strategic Impact of Coaching and Mentoring; Leadership Coaching and Mentoring Skills; Leading Equality and Diversity; and Embedding Coaching and Mentoring in the Organisation. 6–12 months online delivery. £1,500+VAT with 0% finance over 10 months.',      suitedFor:     [
+      description:   'CMI Level 7 Coaching & Mentoring develops advanced coaching and leadership mentoring skills at a postgraduate level. Typical units include: Coaching and Mentoring Within Organisational Culture; Coaching and Mentoring Policies; Strategic Impact of Coaching and Mentoring; Leadership Coaching and Mentoring Skills; Leading Equality and Diversity; and Embedding Coaching and Mentoring in the Organisation. 6–12 months online delivery. £1,500+VAT with 0% finance over 10 months.',
+      suitedFor:     [
         'Senior leaders wanting to develop as executive coaches',
         'HR, L&D or OD professionals operating at a strategic level',
         'Those building a professional coaching practice',
@@ -516,7 +486,8 @@ description:   'CMI Level 7 Coaching & Mentoring develops advanced coaching and 
         'head of consulting', 'strategy director', 'executive advisor'
       ],
       audience:      'Experienced consultants and senior advisors who want a postgraduate-level CMI qualification in professional consulting.',
-description:   'CMI Level 7 Professional Consulting is a postgraduate-level qualification for experienced consultants wanting advanced accreditation. Typical units include: Principles of Professional Consulting; Leadership in Professional Consulting; Practice of Professional Consulting; Organisational Analysis & Diagnosis; Strategic Client Engagement; and Professional Development in Consulting. 6–12 months online delivery. £1,100+VAT with 0% finance over 10 months.',      suitedFor:     [
+      description:   'CMI Level 7 Professional Consulting is a postgraduate-level qualification for experienced consultants wanting advanced accreditation. Typical units include: Principles of Professional Consulting; Leadership in Professional Consulting; Practice of Professional Consulting; Organisational Analysis & Diagnosis; Strategic Client Engagement; and Professional Development in Consulting. 6–12 months online delivery. £1,100+VAT with 0% finance over 10 months.',
+      suitedFor:     [
         'Senior or experienced management consultants',
         'Those building or leading a consulting practice',
         'Advisors wanting postgraduate-level CMI recognition',
@@ -544,7 +515,8 @@ description:   'CMI Level 7 Professional Consulting is a postgraduate-level qual
         'aspiring project manager', 'team leader managing small projects'
       ],
       audience:      'Those new to project management or in a junior project role who want a CMI-accredited introduction to project management principles.',
-description:   'CMI Level 3 Project Management provides an introduction to project management principles and practice, awarded by CMI. It consists of a single unit — Introduction to Project Management — covering the project lifecycle, key roles and responsibilities, project planning techniques, risk management and how to monitor progress to ensure successful delivery. 2–3 months online delivery. £300+VAT with 0% finance.',      suitedFor:     [
+      description:   'CMI Level 3 Project Management provides an introduction to project management principles and practice, awarded by CMI. It consists of a single unit — Introduction to Project Management — covering the project lifecycle, key roles and responsibilities, project planning techniques, risk management and how to monitor progress to ensure successful delivery. 2–3 months online delivery. £300+VAT with 0% finance.',
+      suitedFor:     [
         'Those new to managing projects',
         'Junior project coordinators wanting a recognised qualification',
         'Those who prefer a CMI-accredited route into project management',
@@ -567,7 +539,8 @@ description:   'CMI Level 3 Project Management provides an introduction to proje
         'delivery manager', 'operations manager managing projects'
       ],
       audience:      'Project managers and leaders with experience who want a CMI-accredited qualification at a practitioner level.',
-description:   'CMI Level 5 Project Management develops project management knowledge and skills at a practitioner level. Typical units include: Managing Projects to Achieve Results (covering project planning, resource management, stakeholder engagement, risk management and performance monitoring); and Conducting a Management Project (applying project management techniques to a real workplace business challenge). 3–5 months online delivery. £600+VAT with 0% finance.',      suitedFor:     [
+      description:   'CMI Level 5 Project Management develops project management knowledge and skills at a practitioner level. Typical units include: Managing Projects to Achieve Results (covering project planning, resource management, stakeholder engagement, risk management and performance monitoring); and Conducting a Management Project (applying project management techniques to a real workplace business challenge). 3–5 months online delivery. £600+VAT with 0% finance.',
+      suitedFor:     [
         'Experienced project managers wanting CMI accreditation',
         'Those progressing from CMI Level 3 Project Management',
         'Project leaders in CMI-focused organisations',
@@ -638,7 +611,7 @@ description:   'CMI Level 5 Project Management develops project management knowl
        NEBOSH — CORE CERTIFICATES
     ═══════════════════════════════════════════════════════════ */
 
- {
+    {
       id:            'nebosh-general',
       title:         'NEBOSH National General Certificate in Occupational Health & Safety',
       category:      'Health & Safety',
@@ -663,7 +636,8 @@ description:   'CMI Level 5 Project Management develops project management knowl
       url:           'https://www.csttraining.co.uk/nebosh-general-certificate-health-safety/',
       benefits:      'The benchmark H&S qualification recognised globally as the gold standard for health and safety. Significantly improves career prospects in health and safety. Accepted as a pathway to CMIOSH membership. CST delivers with flexible formats, a dedicated candidate support portal and ongoing tutor feedback throughout.'
     },
-   {
+
+    {
       id:            'nebosh-construction',
       title:         'NEBOSH Health & Safety Management for Construction (UK)',
       category:      'Health & Safety',
@@ -765,8 +739,7 @@ description:   'CMI Level 5 Project Management develops project management knowl
 
 
     /* ═══════════════════════════════════════════════════════════
-       NEBOSH — HSE CERTIFICATES (focused, shorter qualifications
-       co-developed with the Health & Safety Executive)
+       NEBOSH — HSE CERTIFICATES
     ═══════════════════════════════════════════════════════════ */
 
     {
@@ -869,7 +842,7 @@ description:   'CMI Level 5 Project Management develops project management knowl
 
 
     /* ═══════════════════════════════════════════════════════════
-       NEBOSH — AWARDS (shorter awareness-level qualifications)
+       NEBOSH — AWARDS
     ═══════════════════════════════════════════════════════════ */
 
     {
@@ -975,24 +948,17 @@ description:   'CMI Level 5 Project Management develops project management knowl
      HELPER FUNCTIONS
   ───────────────────────────────────────────────────────────── */
 
-  /** Find a single qualification by its id */
   function getById(id) {
     return qualifications.find(q => q.id === id) || null;
   }
 
-  /** Get all qualifications in a category */
   function getByCategory(category) {
     return qualifications.filter(q => q.category === category);
   }
 
-  /** Get all qualifications at a specific level */
   function getByLevel(level) {
     return qualifications.filter(q => q.level === level);
   }
-
-  /* ─────────────────────────────────────────────────────────────
-     PUBLIC API
-  ───────────────────────────────────────────────────────────── */
 
   return {
     qualifications,
