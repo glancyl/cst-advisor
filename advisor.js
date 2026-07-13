@@ -606,55 +606,30 @@ Keep responses concise. This is a chat interface, not an essay.`;
        submissions go through the same Zapier webhook / HubSpot
        workflow as the page's normal enquiry form.
     ──────────────────────────────────────────────────────────── */
-    _showLeadCapture() {
-      const existingForm = document.querySelector('.wpcf7-form');
-
-      if (!existingForm) {
-        this._addAdvisorMessage("Please call us on <strong>020 3488 4472</strong> or email <strong>enquiries@csttraining.co.uk</strong> and our team will be happy to help.");
-        return;
-      }
-
-      const wrapper = existingForm.closest('.wpcf7');
-
+  _showLeadCapture() {
       const leadEl = document.createElement('div');
       leadEl.className = 'cst-msg cst-msg--advisor';
       leadEl.style.display = 'block';
 
       const card = document.createElement('div');
       card.className = 'cst-lead';
-      card.innerHTML = `<div class="cst-lead__title">Request a callback</div>
-        <div class="cst-lead__sub">Leave your details and our team will be in touch.</div>`;
-
-      const formHolder = document.createElement('div');
-      formHolder.id = 'cst-cf7-holder';
-      card.appendChild(formHolder);
+      card.innerHTML = `
+        <div class="cst-lead__title">Ready to enquire?</div>
+        <div class="cst-lead__sub">Get in touch with our team and we'll help you get started.</div>
+        <div class="cst-lead__actions" style="margin-top:16px;">
+          <a href="/contact/" class="cst-btn cst-btn--orange" target="_blank" rel="noopener">
+            Enquire Now
+          </a>
+        </div>
+        <p style="font-size:0.72rem;color:var(--cst-muted);margin:12px 0 0;">
+          Or call us on <strong>020 3488 4472</strong> or email <strong>enquiries@csttraining.co.uk</strong>
+        </p>
+      `;
 
       leadEl.appendChild(card);
       this.msgEl.appendChild(leadEl);
       this._scrollToBottom();
-
-      // Clone (rather than move) so the original form on the page is untouched
-      const clonedWrapper = wrapper.cloneNode(true);
-      formHolder.appendChild(clonedWrapper);
-
-      // Re-initialise CF7's validation/AJAX behaviour on the cloned form
-      if (typeof wpcf7 !== 'undefined' && wpcf7.init) {
-        wpcf7.init(clonedWrapper.querySelector('.wpcf7-form'));
-      }
-
-      document.addEventListener('wpcf7mailsent', function handler() {
-        formHolder.innerHTML = `
-          <div class="cst-lead__success">
-            <div class="cst-lead__success-icon">
-              <svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-            </div>
-            <h4>Thank you!</h4>
-            <p>One of our advisers will be in touch shortly.</p>
-          </div>`;
-        document.removeEventListener('wpcf7mailsent', handler);
-      });
     }
-
     /* ── RESET ────────────────────────────────────────────── */
     _reset() {
       this.messages  = [];
