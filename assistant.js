@@ -1,9 +1,15 @@
 /**
- * CST Training – Qualification Advisor
- * js/advisor.js
+ * CST Training – Sitewide Assistant
+ * assistant.js
  *
- * Core widget logic: rendering, conversation management, API calls.
- * Depends on: js/knowledge.js
+ * Forked from advisor.js. Differences:
+ *  - Floating launcher bubble instead of an inline [data-cst-advisor] container
+ *  - Self-contained CSS (injected, "cst-asst" prefix) — no shared styles with advisor.js
+ *  - Page context derived automatically from the URL and page title
+ *  - Hard guardrails: never states prices, dates or availability
+ *  - Escalation path for anything about a specific booking
+ *
+ * Depends on: knowledge.js (window.CSTKnowledge)
  */
 
 (function () {
@@ -11,40 +17,189 @@
 
   /* ─────────────────────────────────────────────────────────────
      CONSTANTS
+     >>> LOG_URL: replace with a NEW Apps Script deployment so the
+     sitewide traffic does not land in the advisor's sheet. <<<
   ───────────────────────────────────────────────────────────── */
 
   const API_URL   = 'https://www.csttraining.co.uk/?cst_advisor_proxy=1';
   const API_MODEL = 'claude-sonnet-4-6';
+  const LOG_URL   = 'REPLACE_WITH_NEW_APPS_SCRIPT_URL';
+
+  const PHONE = '020 3488 4472';
+  const EMAIL = 'enquiries@csttraining.co.uk';
+
+  // Pages where the Qualification Advisor already runs.
+  // The assistant will not load on these, so you never get two bots.
+  const EXCLUDE_PATHS = [
+    // '/ilm-vs-cmi/',
+    // '/qualification-advisor/'
+  ];
+
+  const CHIPS = [
+    'Which course do I need?',
+    'Do you run courses near me?',
+    "What's the difference between ILM and CMI?",
+    'How do I get in touch?'
+  ];
 
   /* ─────────────────────────────────────────────────────────────
-     SVG ICONS (inline, lightweight)
+     SVG ICONS
   ───────────────────────────────────────────────────────────── */
 
   const ICONS = {
-    advisor: `<img src="https://www.csttraining.co.uk/wp-content/uploads/2026/06/Screenshot-28.png" style="width:22px;height:22px;object-fit:contain" alt="CST Adviser" />`,
-    user: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
-    </svg>`,
-    send: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-    </svg>`,
-    check: `<path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/>`,
-    infoHigh: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="cst-confidence__icon" aria-hidden="true">
-      <path d="M12 2a10 10 0 1 1 0 20A10 10 0 0 1 12 2zm0 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm0 5v7h2v-7h-2z"/>
-    </svg>`,
+    bot: `<img src="https://www.csttraining.co.uk/wp-content/uploads/2026/06/Screenshot-28.png" style="width:22px;height:22px;object-fit:contain" alt="CST Assistant" />`,
+    user: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>`,
+    send: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>`,
+    chat: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4v4l4-4h8a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/></svg>`,
+    close: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>`,
+    info: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 2a10 10 0 1 1 0 20A10 10 0 0 1 12 2zm0 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm0 5v7h2v-7h-2z"/></svg>`,
     external: `<svg viewBox="0 0 24 24" width="12" height="12" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="margin-left:3px;vertical-align:-1px"><path d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>`
   };
 
   /* ─────────────────────────────────────────────────────────────
-     SYSTEM PROMPT FACTORY
-     Builds the system prompt from the static knowledge base +
-     the page configuration set by the host page.
+     STYLES (injected — self-contained, no dependency on site CSS)
   ───────────────────────────────────────────────────────────── */
 
-  function buildSystemPrompt(pageConfig) {
+  const STYLES = `
+  .cst-asst { --navy:#1C2560; --orange:#FF8A00; --surface:#F4F6FA;
+    --border:#DDE3F0; --body:#3D4665; --muted:#6B7394;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; }
+
+  .cst-asst__launcher { position:fixed; bottom:24px; right:24px; z-index:99998;
+    width:60px; height:60px; border-radius:50%; border:none; cursor:pointer;
+    background:var(--navy); color:#fff; box-shadow:0 4px 20px rgba(28,37,96,.35);
+    display:flex; align-items:center; justify-content:center;
+    transition:transform .18s ease, box-shadow .18s ease; }
+  .cst-asst__launcher:hover { transform:scale(1.06); box-shadow:0 6px 26px rgba(28,37,96,.45); }
+  .cst-asst__launcher svg { width:26px; height:26px; fill:#fff; }
+  .cst-asst__launcher::after { content:''; position:absolute; top:6px; right:6px;
+    width:11px; height:11px; border-radius:50%; background:var(--orange);
+    border:2px solid var(--navy); }
+  .cst-asst__launcher--open::after { display:none; }
+
+  .cst-asst__panel { position:fixed; bottom:96px; right:24px; z-index:99999;
+    width:390px; max-width:calc(100vw - 32px); height:600px; max-height:calc(100vh - 130px);
+    background:#fff; border-radius:14px; box-shadow:0 12px 48px rgba(28,37,96,.28);
+    display:none; flex-direction:column; overflow:hidden; border:1px solid var(--border); }
+  .cst-asst__panel--open { display:flex; }
+
+  .cst-asst__bar { background:var(--navy); color:#fff; padding:14px 16px;
+    display:flex; align-items:center; gap:11px; flex-shrink:0; }
+  .cst-asst__bar-avatar { width:36px; height:36px; border-radius:50%; background:#fff;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .cst-asst__bar-title { font-weight:700; font-size:.92rem; line-height:1.25; }
+  .cst-asst__bar-sub { font-size:.72rem; opacity:.75; }
+  .cst-asst__bar-close { margin-left:auto; background:none; border:none; cursor:pointer;
+    padding:5px; border-radius:6px; display:flex; }
+  .cst-asst__bar-close svg { width:19px; height:19px; fill:#fff; opacity:.8; }
+  .cst-asst__bar-close:hover svg { opacity:1; }
+
+  .cst-asst__messages { flex:1; overflow-y:auto; padding:16px; background:var(--surface); }
+
+  .cst-asst__msg { display:flex; gap:9px; margin-bottom:13px; align-items:flex-start; }
+  .cst-asst__msg--user { flex-direction:row-reverse; }
+  .cst-asst__avatar { width:29px; height:29px; border-radius:50%; background:#fff;
+    border:1px solid var(--border); display:flex; align-items:center; justify-content:center;
+    flex-shrink:0; }
+  .cst-asst__avatar svg { width:16px; height:16px; fill:var(--muted); }
+  .cst-asst__bubble { background:#fff; border:1px solid var(--border); border-radius:12px;
+    padding:10px 13px; font-size:.86rem; line-height:1.5; color:var(--body); max-width:82%; }
+  .cst-asst__msg--user .cst-asst__bubble { background:var(--navy); color:#fff; border-color:var(--navy); }
+  .cst-asst__bubble a { color:var(--navy); font-weight:600; }
+  .cst-asst__msg--user .cst-asst__bubble a { color:#fff; }
+
+  .cst-asst__typing { display:flex; gap:9px; margin-bottom:13px; }
+  .cst-asst__typing-bubble { background:#fff; border:1px solid var(--border);
+    border-radius:12px; padding:13px; display:flex; gap:4px; align-items:center; }
+  .cst-asst__dot { width:7px; height:7px; border-radius:50%; background:var(--muted);
+    animation:cstAsstBounce 1.3s infinite; }
+  .cst-asst__dot:nth-child(2) { animation-delay:.18s; }
+  .cst-asst__dot:nth-child(3) { animation-delay:.36s; }
+  @keyframes cstAsstBounce { 0%,60%,100%{opacity:.3;transform:translateY(0)}
+    30%{opacity:1;transform:translateY(-4px)} }
+
+  .cst-asst__chips { padding:0 16px 10px; display:flex; flex-wrap:wrap; gap:6px;
+    background:var(--surface); flex-shrink:0; }
+  .cst-asst__chip { background:#fff; border:1px solid var(--border); border-radius:16px;
+    padding:6px 11px; font-size:.76rem; color:var(--navy); cursor:pointer; font-weight:600; }
+  .cst-asst__chip:hover { border-color:var(--navy); }
+
+  .cst-asst__input-row { display:flex; gap:8px; padding:11px 12px; border-top:1px solid var(--border);
+    background:#fff; align-items:flex-end; flex-shrink:0; }
+  .cst-asst__input { flex:1; border:1px solid var(--border); border-radius:10px;
+    padding:9px 11px; font-size:.86rem; font-family:inherit; resize:none; max-height:96px;
+    line-height:1.45; color:var(--body); outline:none; }
+  .cst-asst__input:focus { border-color:var(--navy); }
+  .cst-asst__send { width:38px; height:38px; border-radius:9px; border:none; cursor:pointer;
+    background:var(--navy); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .cst-asst__send svg { width:17px; height:17px; fill:#fff; }
+  .cst-asst__send:disabled { opacity:.35; cursor:not-allowed; }
+
+  .cst-asst__footer { padding:0 12px 10px; background:#fff; text-align:center; flex-shrink:0; }
+  .cst-asst__reset { background:none; border:none; font-size:.7rem; color:var(--muted);
+    cursor:pointer; text-decoration:underline; }
+
+  .cst-asst__card { background:#fff; border:1px solid var(--border); border-left:3px solid var(--orange);
+    border-radius:10px; padding:14px; margin-bottom:13px; }
+  .cst-asst__card-label { font-size:.66rem; text-transform:uppercase; letter-spacing:.07em;
+    color:var(--orange); font-weight:700; margin-bottom:5px; }
+  .cst-asst__card-title { font-size:1rem; font-weight:700; color:var(--navy); margin-bottom:7px; }
+  .cst-asst__card-text { font-size:.82rem; line-height:1.5; color:var(--body); margin-bottom:9px; }
+  .cst-asst__card-block { background:var(--surface); border-radius:7px; padding:9px 11px;
+    font-size:.79rem; line-height:1.45; color:var(--body); margin-bottom:9px; }
+  .cst-asst__card-block strong { display:block; color:var(--navy); font-size:.72rem;
+    text-transform:uppercase; letter-spacing:.04em; margin-bottom:3px; }
+
+  .cst-asst__ctas { display:flex; gap:7px; flex-wrap:wrap; margin-top:11px; }
+  .cst-asst__btn { padding:8px 15px; border-radius:7px; font-size:.8rem; font-weight:600;
+    text-decoration:none; border:none; cursor:pointer; display:inline-flex; align-items:center; }
+  .cst-asst__btn--primary { background:var(--navy); color:#fff; }
+  .cst-asst__btn--orange { background:var(--orange); color:#fff; }
+  .cst-asst__btn svg { fill:currentColor; }
+
+  .cst-asst__note { display:flex; gap:7px; align-items:flex-start; background:#FFF7EC;
+    border:1px solid #FFC77F; border-radius:7px; padding:8px 10px; font-size:.75rem;
+    line-height:1.4; color:var(--body); margin-top:11px; }
+  .cst-asst__note svg { width:14px; height:14px; fill:var(--orange); flex-shrink:0; margin-top:1px; }
+
+  .cst-asst__also { margin-top:13px; padding-top:11px; border-top:1px solid var(--border); }
+  .cst-asst__also-label { font-size:.7rem; color:var(--muted); margin-bottom:6px; }
+  .cst-asst__also-item { display:block; width:100%; text-align:left; background:var(--surface);
+    border:1px solid var(--border); border-radius:7px; padding:7px 10px; font-size:.78rem;
+    color:var(--navy); cursor:pointer; margin-bottom:5px; font-weight:600; }
+  .cst-asst__also-item:hover { border-color:var(--navy); }
+
+  @media (max-width:600px) {
+    .cst-asst__panel { bottom:0; right:0; left:0; width:100%; max-width:100%;
+      height:100dvh; max-height:100dvh; border-radius:0; border:none; }
+    .cst-asst__launcher { bottom:18px; right:18px; width:54px; height:54px; }
+    .cst-asst__launcher--open { display:none; }
+  }`;
+
+  /* ─────────────────────────────────────────────────────────────
+     PAGE CONTEXT — derived automatically, no per-page config needed
+  ───────────────────────────────────────────────────────────── */
+
+  function getPageContext() {
+    // If a page has set the advisor's config object, use it.
+    const cfg = window.QualificationAdvisor || window.CSTAssistantConfig || null;
+    return {
+      currentCourse: cfg && cfg.currentCourse ? cfg.currentCourse : null,
+      category:      cfg && cfg.category ? cfg.category : null,
+      title:         document.title || '',
+      path:          window.location.pathname || '',
+      url:           window.location.href || ''
+    };
+  }
+
+  /* ─────────────────────────────────────────────────────────────
+     SYSTEM PROMPT
+  ───────────────────────────────────────────────────────────── */
+
+  function buildSystemPrompt(ctx) {
     const kb = window.CSTKnowledge;
 
-    const qualList = kb.qualifications.map(q =>
+    const qualList = (kb && kb.qualifications ? kb.qualifications : []).map(q =>
       `- ${q.title} (id: ${q.id}, category: ${q.category}, level: ${q.level}, minExperience: ${q.minExperience} years)
    Audience: ${q.audience}
    Suited for: ${q.suitedFor.join('; ')}
@@ -53,113 +208,136 @@
    Benefits: ${q.benefits}`
     ).join('\n\n');
 
-    const pageCtx = pageConfig
-      ? `The visitor is currently on the page for: ${pageConfig.currentCourse || 'unknown'}.
-Category context: ${pageConfig.category || 'unknown'}.
-Other courses listed on this page: ${(pageConfig.alternatives || []).join(', ') || 'none'}.
-IMPORTANT: Use this only as context. Do NOT automatically recommend the current page's course — recommend whichever qualification is genuinely most appropriate for the visitor after conversation.`
-      : 'No specific page context provided.';
+    const pageCtx = `The visitor is currently on: "${ctx.title}" (${ctx.path}).
+${ctx.currentCourse ? `This page is about the ${ctx.currentCourse}.` : 'Infer from the page title what they are looking at, but do not assume it is what they need.'}
+Use this as context only. Never recommend a course simply because they are on its page.`;
 
-    return `You are the Qualification Advisor for CST Training — a UK training provider specialising in professional qualifications including Project Management, Leadership & Management, and Health & Safety.
+    return `You are the CST Training website assistant. You help visitors anywhere on csttraining.co.uk understand our courses, choose the right qualification, and find the right page.
 
-Your role is to have a natural, helpful conversation to understand the visitor's current role, experience, and career goals, then recommend the most appropriate qualification.
+CST Training is a UK construction, health & safety and professional qualifications training provider with 30+ locations nationwide. We deliver CITB courses (SMSTS, SSSTS, HSA, Temporary Works, SEATS, DRHS), construction NVQs, NEBOSH, IOSH, ILM, CMI, PRINCE2, first aid and EUSR SHEA — online via Google Meet and in classrooms nationwide.
 
+CURRENT PAGE
 ${pageCtx}
 
+════════════════════════════════════════
+PRICING AND AVAILABILITY — HARD RULES
+════════════════════════════════════════
+You must NEVER state, estimate, imply or compare:
+- Prices, fees, deposits, instalments or any payment amount
+- Discounts, promotions, offers, sale periods, or the ABSENCE of an offer
+- Course dates, start dates, next available sessions, or seats remaining
+- Whether a course is sold out, filling up, or has space
+
+This applies even if the visitor insists, says they saw a price elsewhere, or asks for a rough idea or a ballpark. Never say a price is "typically" or "usually" anything. Never say "we don't currently have any offers".
+
+Instead: direct them to the relevant course page, where pricing and dates are shown live and are always current. Explain that these change, so the page is the only accurate source.
+
+If asked how CST compares on price with another provider, decline to comment on price and redirect to what the course includes.
+
+════════════════════════════════════════
+SPECIFIC BOOKINGS — HARD RULES
+════════════════════════════════════════
+You have NO access to customer records, orders, bookings or certificates, and must never imply otherwise.
+
+You MAY explain how a CST process works in general.
+You MAY NOT answer anything about a specific person's booking, order, certificate, refund, invoice or account.
+
+If the question is about their particular case, say plainly that you cannot look up bookings, then emit an ESCALATE block (format below). Never speculate about what has happened with their booking.
+
+Refunds and complaints: escalate immediately, however they are phrased. Do not discuss refund policy.
+
+HOW OUR PROCESSES WORK (general answers you may give):
+<<< TO BE COMPLETED — ask admin for the stable answer to each. Until an
+answer is added below, escalate the question instead of guessing. >>>
+- Joining instructions: [when they are sent, and to which address]
+- Certificates after passing: [turnaround, and who issues them]
+- What to bring on the day: [ID requirements, PPE, equipment]
+- Rescheduling or transferring a delegate: [the process, not the fee]
+- Venue access and parking: [general guidance]
+- Resits: [how the process works]
+
+If a process question is not covered above, say you would rather have the team confirm it than give you the wrong answer, and escalate.
+
 AVAILABLE QUALIFICATIONS:
-${qualList}
+${qualList || '(Knowledge base not loaded — do not invent course detail. Direct visitors to the website or the team.)'}
 
-CONVERSATION GUIDELINES:
-- Begin by acknowledging what the user has shared and asking one or two clarifying questions where needed.
-- Do NOT ask multiple questions at once — keep the conversation natural, one question at a time.
-- Be conversational and warm, like a knowledgeable adviser, not a form or a salesperson.
-- Once you have enough information, provide a recommendation. Do not over-question — if someone's role and goals are clear after 2-3 exchanges, recommend immediately. High confidence should lead to faster recommendations, not more questions.- NEVER recommend a qualification simply because the visitor is on that page.
-- If someone describes a level that doesn't match an advanced qualification, recommend the correct starting point.
-- Be honest: if ILM Level 3 is right for a first-line supervisor even if they asked about Level 7, say so kindly.
+CITB COURSES: CST is a leading UK provider of CITB-accredited courses — never say we don't offer these. SMSTS (5 days) for site managers. SSSTS (2 days) for site supervisors, free same-day resit included. HSA (Health & Safety Awareness, 1 day) is required for the CSCS Green Labourer's Card. Temporary Works for both Supervisors and Coordinators. SMSTS Refresher (2 days) and SSSTS Refresher (1 day) for renewals. All available online via Google Meet or in person at 30+ UK locations. CITB Levy payers can claim grants — explain that grants exist, but never state grant amounts.
 
-WHEN YOU HAVE ENOUGH INFORMATION TO RECOMMEND:
-Reply with a JSON block (and ONLY this JSON, no surrounding text) in exactly this format:
+ILM vs CMI GUIDANCE:
+ILM (the practical route): work-based, focuses on "how do I do this in my role?" Credit system with flexible unit selection, good for targeting specific skill gaps. Evidence-based assessment drawing on real workplace situations. Strong with supervisors and first-line managers. If someone says they don't like essays or want something practical, steer toward ILM.
+
+CMI (the strategic route): more academic and reflective, focuses on "why does this work and what is the impact?" Leads to Chartered Manager (CMgr) status, the highest professional recognition for managers in the UK. CMgr MCMI after their name. Access to ManagementDirect. More prestigious within the management sector. If someone wants Director, senior management or board level, steer toward CMI. The CMI Level 5 Diploma or above unlocks the fast-track route to Chartered Manager (requires 3+ years management experience).
+
+When someone asks ILM vs CMI, ask one clarifying question: do they prefer a practical, evidence-based approach (ILM) or the academic weight and Chartered Manager pathway (CMI)? Also weigh seniority — CMI suits middle and senior management, ILM suits supervisors and first-line managers.
+
+AWARD vs CERTIFICATE vs DIPLOMA:
+- Award (1-2 units, weeks): solves one specific skill gap quickly.
+- Certificate (3-5 units, 3-6 months): all-round CV boost without full Diploma commitment.
+- Diploma (6+ units, 6-12 months): comprehensive. Only the Diploma opens the door to Chartered Manager status.
+
+════════════════════════════════════════
+STYLE
+════════════════════════════════════════
+- Plain UK English. Direct, warm, no sales pressure.
+- Short answers — two or three sentences unless they've asked for detail.
+- Ask ONE question at a time, never several at once.
+- Be honest. If ILM Level 3 is right for someone asking about Level 7, say so kindly.
+- Never invent unit names, course content lists, accreditation claims, exam dates or awarding body rules. If you don't have the detail, say so and offer to pass it on.
+- Never guarantee an exam pass.
+- This is a chat window, not an essay.
+
+Contact details you may always give: ${PHONE} or ${EMAIL}.
+
+════════════════════════════════════════
+STRUCTURED OUTPUTS
+════════════════════════════════════════
+When you are ready to make a firm course recommendation, reply with ONLY this block and no surrounding text:
 
 <RECOMMENDATION>
 {
   "type": "recommendation",
   "qualificationId": "the-id-from-knowledge-base",
   "confidence": "high|medium|low",
-  "reason": "One or two sentences explaining why this qualification is right for them",
-  "personalBenefit": "One sentence specific to what they told you about their goals",
+  "reason": "One or two sentences on why this is right for them",
+  "personalBenefit": "One sentence specific to what they told you",
   "alsoConsider": ["id1", "id2"],
-  "confidenceMessage": "The message to show based on confidence level"
+  "confidenceMessage": "The message for that confidence level"
 }
 </RECOMMENDATION>
 
-For high confidence use: "Based on everything you've told me, I'm confident this is the right qualification for you."
-For medium confidence use: "There are a couple of good options here. I'd recommend speaking with our advisers before booking to make sure you choose the best fit."
-For low confidence use: "I'd recommend speaking with our team directly so we can make sure you choose the right qualification for your situation."
+high: "Based on everything you've told me, I'm confident this is the right qualification for you."
+medium: "There are a couple of good options here. I'd recommend speaking with our advisers before booking to make sure you choose the best fit."
+low: "I'd recommend speaking with our team directly so we can make sure you choose the right qualification for your situation."
 
-IMPORTANT: Only output the <RECOMMENDATION>...</RECOMMENDATION> block when you are ready to make a firm recommendation. Before that, respond in plain conversational text only — no JSON, no tags.
+Only output this when ready to recommend. Before that, plain conversational text only — no JSON, no tags.
 
-If the visitor asks for help contacting a person, wants to speak to someone, or asks about enrolment dates, pricing specifics, or anything else only the CST Training team can confirm:
-- If a recommendation has already been given in this conversation, tell them to use the "Enquire Now" button on the recommendation card above to request a callback.
-- Below that, mention they can also call 020 3488 4472 or email enquiries@csttraining.co.uk.
-- If no recommendation has been given yet, tell them you can give them an Enquire Now button as part of a tailored recommendation, but in the meantime they can call 020 3488 4472 or email enquiries@csttraining.co.uk.
+When the visitor asks about a specific booking, order, certificate, refund, invoice or complaint, reply with a short plain sentence explaining you can't look that up, then exactly:
 
-CITB COURSES: CST Training is a leading UK provider of CITB-accredited courses. When a visitor asks about SMSTS, SSSTS, HSA, Temporary Works, SEATS or DRHS, do NOT say CST doesn't offer these — we absolutely do. SMSTS (5 days) is for site managers. SSSTS (2 days) is for site supervisors, with a free same-day resit included. HSA (Health & Safety Awareness) is a 1-day course required for the CSCS Green Labourer's Card. Temporary Works courses are available for both Supervisors and Coordinators. SMSTS Refresher (2 days) and SSSTS Refresher (1 day) are available for renewals. All are delivered online via Google Meet or in-person at 30+ UK locations nationwide. CITB Levy payers can claim grants. Direct visitors to the CST Training website or call 020 3488 4472 for dates and pricing.
+<ESCALATE>
+{"type":"escalate","topic":"short description of what they need, e.g. missing joining instructions"}
+</ESCALATE>
 
-Do NOT invent specific unit names, course content lists, exam dates, start dates or pricing that are not explicitly provided in the knowledge base above. If asked about specific unit titles or detailed course content beyond what's in the knowledge base, be honest that you don't have that level of detail and direct them to get in touch for the full breakdown.
+When someone wants to speak to a person or is ready to enquire, reply with your message then exactly:
 
-If a visitor seems to want to capture their details for follow-up, or if you want to encourage them to enquire, respond with your message followed by exactly:
 <LEAD_CAPTURE>
 {"type": "lead_capture"}
-</LEAD_CAPTURE>
-
-ILM vs CMI GUIDANCE:
-When a visitor asks about the difference between ILM and CMI, or is undecided between the two, use this guidance:
-
-ILM (The Practical Route):
-- More practical and work-based — focuses on "how do I do this in my role?"
-- Uses a credit system with flexible unit selection — great for targeting specific skill gaps
-- Assessment is evidence-based, drawing on real workplace situations
-- Widely recognised, particularly strong with supervisors and first-line managers
-- If a candidate says they don't like writing essays or want something practical, steer toward ILM
-
-CMI (The Strategic Route):
-- More academic and reflective — focuses on "why does this work and what is the impact?"
-- Leads to Chartered Manager (CMgr) status — the highest professional recognition for managers in the UK, equivalent to Chartered Engineer or Chartered Accountant
-- Chartered Managers earn on average £13,000 more within the first few years of achieving status
-- CMgr candidates get to put CMgr MCMI after their name — a major differentiator in interviews and tenders
-- Access to ManagementDirect — widely considered the best management resource portal in the UK
-- More prestigious brand within the management and leadership sector
-- If a candidate wants to reach Director, Senior Management or board level, steer toward CMI
-- The CMI Level 5 Diploma or above unlocks the fast-track route to Chartered Manager status (requires 3+ years management experience)
-
-AWARD vs CERTIFICATE vs DIPLOMA:
-- Award (1-2 units, weeks to complete): Best for solving one specific skill gap quickly. "A surgical strike."
-- Certificate (3-5 units, 3-6 months): Good all-round CV boost without the full commitment of a Diploma.
-- Diploma (6+ units, 6-12 months): The comprehensive qualification. Only the Diploma opens the door to Chartered Manager status. If someone's goal is Director level or Chartered status, recommend the Diploma.
-
-When someone asks about ILM vs CMI, ask one clarifying question: do they prefer a practical, evidence-based approach (ILM) or do they want the academic weight and Chartered Manager pathway (CMI)? Also consider their seniority — CMI is generally more suited to middle and senior management, ILM is more commonly used by supervisors and first-line managers.
-
-Keep responses concise. This is a chat interface, not an essay.`;
+</LEAD_CAPTURE>`;
   }
 
   /* ─────────────────────────────────────────────────────────────
      API CALL
   ───────────────────────────────────────────────────────────── */
 
-  async function callAdvisorAPI(messages, pageConfig) {
-    const systemPrompt = buildSystemPrompt(pageConfig);
-
-    const body = {
-      model: API_MODEL,
-      max_tokens: 1000,
-      system: systemPrompt,
-      messages: messages.map(m => ({ role: m.role, content: m.content }))
-    };
-
+  async function callAPI(messages, ctx) {
     const res = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
+      body: JSON.stringify({
+        model: API_MODEL,
+        max_tokens: 1000,
+        system: buildSystemPrompt(ctx),
+        messages: messages.map(m => ({ role: m.role, content: m.content }))
+      })
     });
 
     if (!res.ok) {
@@ -173,150 +351,136 @@ Keep responses concise. This is a chat interface, not an essay.`;
 
   /* ─────────────────────────────────────────────────────────────
      PARSE RESPONSE
-     Extracts structured recommendation or lead capture trigger
-     from the AI response text.
   ───────────────────────────────────────────────────────────── */
 
   function parseResponse(text) {
-    // Check for recommendation
-    const recMatch = text.match(/<RECOMMENDATION>([\s\S]*?)<\/RECOMMENDATION>/);
-    if (recMatch) {
-      try {
-        const data = JSON.parse(recMatch[1].trim());
-        return { type: 'recommendation', data };
-      } catch (e) {
-        console.warn('CSTAdvisor: Failed to parse recommendation JSON', e);
-      }
+    const rec = text.match(/<RECOMMENDATION>([\s\S]*?)<\/RECOMMENDATION>/);
+    if (rec) {
+      try { return { type: 'recommendation', data: JSON.parse(rec[1].trim()) }; }
+      catch (e) { console.warn('CSTAssistant: bad recommendation JSON', e); }
     }
 
-    // Check for lead capture trigger
-    const leadMatch = text.match(/<LEAD_CAPTURE>([\s\S]*?)<\/LEAD_CAPTURE>/);
-    if (leadMatch) {
-      return { type: 'lead_capture' };
+    const esc = text.match(/<ESCALATE>([\s\S]*?)<\/ESCALATE>/);
+    if (esc) {
+      let topic = '';
+      try { topic = (JSON.parse(esc[1].trim()) || {}).topic || ''; } catch (e) {}
+      return {
+        type: 'escalate',
+        topic,
+        text: text.replace(/<ESCALATE>[\s\S]*?<\/ESCALATE>/, '').trim()
+      };
+    }
+
+    if (/<LEAD_CAPTURE>/.test(text)) {
+      return {
+        type: 'lead_capture',
+        text: text.replace(/<LEAD_CAPTURE>[\s\S]*?<\/LEAD_CAPTURE>/, '').trim()
+      };
     }
 
     return { type: 'text', text: text.trim() };
   }
 
   /* ─────────────────────────────────────────────────────────────
-     WIDGET CLASS
+     WIDGET
   ───────────────────────────────────────────────────────────── */
 
-  class QualificationAdvisor {
+  class CSTAssistant {
 
-    constructor(container, pageConfig) {
-      this.container  = container;
-      this.pageConfig = pageConfig || {};
-      this.messages   = [];       // conversation history for API
-      this.isTyping   = false;
-      this.chips      = [ ];
-      this.conversationId = 'conv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+    constructor() {
+      this.ctx      = getPageContext();
+      this.messages = [];
+      this.isTyping = false;
+      this.isOpen   = false;
+      this.started  = false;
+      this.conversationId = 'asst_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
 
+      this._injectStyles();
       this._render();
       this._bindEvents();
-      this._sendWelcome();
     }
 
-    /* ── BUILD THE WIDGET DOM ──────────────────────────────── */
+    _injectStyles() {
+      if (document.getElementById('cst-asst-styles')) return;
+      const s = document.createElement('style');
+      s.id = 'cst-asst-styles';
+      s.textContent = STYLES;
+      document.head.appendChild(s);
+    }
+
+    /* ── DOM ──────────────────────────────────────────────── */
     _render() {
-      this.container.innerHTML = `
-        <div class="cst-advisor" role="region" aria-label="Qualification Adviser">
+      const root = document.createElement('div');
+      root.className = 'cst-asst';
+      root.innerHTML = `
+        <button class="cst-asst__launcher" id="cst-asst-launcher" type="button"
+                aria-label="Open the CST assistant">${ICONS.chat}</button>
 
-          <div class="cst-advisor__card">
+        <div class="cst-asst__panel" id="cst-asst-panel" role="dialog"
+             aria-label="CST Training assistant">
 
-            <!-- Header bar -->
-            <div class="cst-advisor__bar" role="banner">
-              <div class="cst-advisor__bar-avatar" aria-hidden="true">
-                ${ICONS.advisor}
-              </div>
-              <div>
-                <div class="cst-advisor__bar-title">Qualification Adviser</div>
-                <div class="cst-advisor__bar-subtitle">CST Training</div>
-              </div>
-              <div class="cst-advisor__bar-status" aria-label="Adviser online">
-                <div class="cst-advisor__bar-dot"></div>
-                Online
-              </div>
+          <div class="cst-asst__bar">
+            <div class="cst-asst__bar-avatar" aria-hidden="true">${ICONS.bot}</div>
+            <div>
+              <div class="cst-asst__bar-title">CST Assistant</div>
+              <div class="cst-asst__bar-sub">Here to help you find the right course</div>
             </div>
+            <button class="cst-asst__bar-close" id="cst-asst-close" type="button"
+                    aria-label="Close">${ICONS.close}</button>
+          </div>
 
-            <!-- Message area -->
-            <div class="cst-advisor__messages"
-                 id="cst-messages"
-                 role="log"
-                 aria-live="polite"
-                 aria-label="Conversation">
-            </div>
+          <div class="cst-asst__messages" id="cst-asst-messages"
+               role="log" aria-live="polite"></div>
 
-            <!-- Prompt chips -->
-            <div class="cst-advisor__chips" id="cst-chips" aria-label="Suggested questions">
-              ${this.chips.map(c =>
-                `<button class="cst-chip" type="button" aria-label="Send: ${c}">${c}</button>`
-              ).join('')}
-            </div>
+          <div class="cst-asst__chips" id="cst-asst-chips">
+            ${CHIPS.map(c => `<button class="cst-asst__chip" type="button">${c}</button>`).join('')}
+          </div>
 
-            <!-- Input row -->
-            <div class="cst-advisor__input-row">
-              <label class="sr-only" for="cst-input">Your message</label>
-              <textarea
-                id="cst-input"
-                class="cst-advisor__input"
-                placeholder="Describe your role or ask which qualification is right for you…"
-                rows="1"
-                aria-multiline="true"
-              ></textarea>
-              <button
-                class="cst-advisor__send"
-                id="cst-send"
-                type="button"
-                aria-label="Send message"
-                disabled
-              >
-                ${ICONS.send}
-              </button>
-            </div>
+          <div class="cst-asst__input-row">
+            <textarea id="cst-asst-input" class="cst-asst__input" rows="1"
+                      placeholder="Ask me anything about CST courses…"></textarea>
+            <button class="cst-asst__send" id="cst-asst-send" type="button"
+                    aria-label="Send" disabled>${ICONS.send}</button>
+          </div>
 
-            <!-- Footer -->
-            <div class="cst-advisor__footer">
-              <button class="cst-advisor__reset" id="cst-reset" type="button">
-                Start a new conversation
-              </button>
-            </div>
+          <div class="cst-asst__footer">
+            <button class="cst-asst__reset" id="cst-asst-reset" type="button">
+              Start a new conversation
+            </button>
           </div>
         </div>`;
 
-      // Cache DOM refs
-      this.msgEl    = this.container.querySelector('#cst-messages');
-      this.inputEl  = this.container.querySelector('#cst-input');
-      this.sendBtn  = this.container.querySelector('#cst-send');
-      this.chipsEl  = this.container.querySelector('#cst-chips');
-      this.resetBtn = this.container.querySelector('#cst-reset');
+      document.body.appendChild(root);
+
+      this.root       = root;
+      this.launcherEl = root.querySelector('#cst-asst-launcher');
+      this.panelEl    = root.querySelector('#cst-asst-panel');
+      this.msgEl      = root.querySelector('#cst-asst-messages');
+      this.inputEl    = root.querySelector('#cst-asst-input');
+      this.sendBtn    = root.querySelector('#cst-asst-send');
+      this.chipsEl    = root.querySelector('#cst-asst-chips');
+      this.resetBtn   = root.querySelector('#cst-asst-reset');
+      this.closeBtn   = root.querySelector('#cst-asst-close');
     }
 
-    /* ── BIND EVENTS ──────────────────────────────────────── */
     _bindEvents() {
-      // Send on button click
+      this.launcherEl.addEventListener('click', () => this._toggle());
+      this.closeBtn.addEventListener('click', () => this._toggle(false));
+
       this.sendBtn.addEventListener('click', () => this._handleSend());
 
-      // Send on Enter (not Shift+Enter)
       this.inputEl.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-          e.preventDefault();
-          this._handleSend();
-        }
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this._handleSend(); }
       });
 
-      // Enable/disable send button
       this.inputEl.addEventListener('input', () => {
-        const hasText = this.inputEl.value.trim().length > 0;
-        this.sendBtn.disabled = !hasText;
-        // Auto-resize textarea
+        this.sendBtn.disabled = this.inputEl.value.trim().length === 0;
         this.inputEl.style.height = 'auto';
         this.inputEl.style.height = this.inputEl.scrollHeight + 'px';
       });
 
-      // Chip clicks
       this.chipsEl.addEventListener('click', (e) => {
-        const chip = e.target.closest('.cst-chip');
+        const chip = e.target.closest('.cst-asst__chip');
         if (chip) {
           this.inputEl.value = chip.textContent.trim();
           this.sendBtn.disabled = false;
@@ -324,274 +488,244 @@ Keep responses concise. This is a chat interface, not an essay.`;
         }
       });
 
-      // Reset
       this.resetBtn.addEventListener('click', () => this._reset());
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && this.isOpen) this._toggle(false);
+      });
     }
 
-/* ── WELCOME MESSAGE ──────────────────────────────────── */
-    _sendWelcome() {
-      const course = this.pageConfig.currentCourse;
-      const isMobile = window.innerWidth < 768;
-      let welcome;
+    _toggle(force) {
+      this.isOpen = (typeof force === 'boolean') ? force : !this.isOpen;
+      this.panelEl.classList.toggle('cst-asst__panel--open', this.isOpen);
+      this.launcherEl.classList.toggle('cst-asst__launcher--open', this.isOpen);
+      this.launcherEl.setAttribute('aria-label',
+        this.isOpen ? 'Close the CST assistant' : 'Open the CST assistant');
 
+      if (this.isOpen) {
+        if (!this.started) { this.started = true; this._sendWelcome(); }
+        setTimeout(() => this.inputEl.focus(), 120);
+      }
+    }
+
+    /* ── WELCOME ──────────────────────────────────────────── */
+    _sendWelcome() {
+      const course = this.ctx.currentCourse;
+      const isMobile = window.innerWidth < 768;
+
+      let welcome;
       if (course) {
-        if (isMobile) {
-          welcome = `Hi! I'm the CST Qualification Adviser. You're looking at the <strong>${course}</strong> — tell me about your role and I'll let you know if it's the right fit.`;
-        } else {
-          welcome = `Hello! I'm the CST Training Qualification Adviser. I can see you're looking at the <strong>${course}</strong> — I'm here to help you decide whether it's the right qualification for you, or whether another option might suit you better.\n\nTell me a bit about your current role and what you're hoping to achieve, and I'll give you an honest recommendation.`;
-        }
+        welcome = isMobile
+          ? `Hi! I'm the CST assistant. You're looking at the <strong>${course}</strong> — ask me anything about it, or about any of our other courses.`
+          : `Hello! I'm the CST Training assistant.\n\nI can see you're looking at the <strong>${course}</strong>. Ask me anything about it, or tell me about your role and I'll point you toward the right qualification.`;
       } else {
-        if (isMobile) {
-          welcome = `Hi! I'm the CST Qualification Adviser. Tell me about your role and what you're looking to achieve, and I'll point you toward the right qualification.`;
-        } else {
-          welcome = `Hello! I'm the CST Training Qualification Adviser.\n\nI'm here to help you find the right professional qualification — whether that's in project management, leadership and management, or health and safety.\n\nTell me about your current role and what you're looking to achieve, and I'll point you in the right direction.`;
-        }
+        welcome = isMobile
+          ? `Hi! I'm the CST assistant. Ask me about our courses or tell me what you're looking to achieve.`
+          : `Hello! I'm the CST Training assistant.\n\nI can help you understand our courses, work out which qualification is right for you, and find the right page on the site.\n\nWhat are you looking for?`;
       }
 
-      this._addAdvisorMessage(welcome);
+      this._addBotMessage(welcome);
     }
 
-    /* ── HANDLE USER SEND ─────────────────────────────────── */
+    /* ── SEND ─────────────────────────────────────────────── */
     async _handleSend() {
       const text = this.inputEl.value.trim();
       if (!text || this.isTyping) return;
 
-      // Clear input
       this.inputEl.value = '';
       this.inputEl.style.height = 'auto';
       this.sendBtn.disabled = true;
-
-      // Hide chips after first user message
       this.chipsEl.style.display = 'none';
 
-      // Show user message
       this._addUserMessage(text);
-
-      // Add to conversation history
       this.messages.push({ role: 'user', content: text });
 
-      // Show typing
       this._showTyping();
       this.isTyping = true;
-      this.sendBtn.disabled = true;
 
       try {
-        const rawResponse = await callAdvisorAPI(this.messages, this.pageConfig);
+        const raw = await callAPI(this.messages, this.ctx);
         this._hideTyping();
         this.isTyping = false;
 
-        // Parse and handle
-        const parsed = parseResponse(rawResponse);
+        this.messages.push({ role: 'assistant', content: raw });
+        const parsed = parseResponse(raw);
 
         if (parsed.type === 'recommendation') {
-          // Add assistant response to history (store raw so context is preserved)
-          this.messages.push({ role: 'assistant', content: rawResponse });
           this._showRecommendation(parsed.data);
           const kb = window.CSTKnowledge;
-          const qual = kb.getById(parsed.data.qualificationId);
-          this._logConversation({
-            recommendation: qual ? qual.title : parsed.data.qualificationId,
-            confidence: parsed.data.confidence || 'unknown',
-            alsoConsidered: (parsed.data.alsoConsider || []).join(', ')
+          const qual = kb && kb.getById ? kb.getById(parsed.data.qualificationId) : null;
+          this._log({
+            outcome: 'recommendation',
+            detail: qual ? qual.title : parsed.data.qualificationId,
+            confidence: parsed.data.confidence || 'unknown'
           });
+
+        } else if (parsed.type === 'escalate') {
+          if (parsed.text) this._addBotMessage(parsed.text);
+          this._showEscalate(parsed.topic);
+          this._log({ outcome: 'escalated', detail: parsed.topic });
+
         } else if (parsed.type === 'lead_capture') {
-          this.messages.push({ role: 'assistant', content: rawResponse });
+          if (parsed.text) this._addBotMessage(parsed.text);
           this._showLeadCapture();
-          this._logConversation();
+          this._log({ outcome: 'lead_capture' });
+
         } else {
-          // Normal conversational response
-          this.messages.push({ role: 'assistant', content: rawResponse });
-          this._addAdvisorMessage(parsed.text);
-          this._logConversation();
+          this._addBotMessage(parsed.text);
+          this._log({ outcome: 'conversation' });
         }
 
       } catch (err) {
         this._hideTyping();
         this.isTyping = false;
-        console.error('CSTAdvisor API error:', err);
-        this._addAdvisorMessage(
-          "I'm sorry, I'm having a little trouble connecting at the moment. Please try again, or <a href='/contact/' style='color:var(--cst-navy);font-weight:600'>contact our team directly</a>."
+        console.error('CSTAssistant API error:', err);
+        this._addBotMessage(
+          `I'm having trouble connecting at the moment. Please try again, or contact our team on <strong>${PHONE}</strong>.`
         );
       }
 
-      this.sendBtn.disabled = false;
+      this.sendBtn.disabled = this.inputEl.value.trim().length === 0;
     }
 
-    /* ── RENDER MESSAGES ──────────────────────────────────── */
+    /* ── MESSAGES ─────────────────────────────────────────── */
 
-    _addAdvisorMessage(html) {
-      // Convert markdown bold (**text**) to HTML <strong>
-      html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-      // Convert markdown italic (*text*) to HTML <em>
-      html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
-      // Convert newlines to line breaks
-      html = html.replace(/\n/g, '<br>');
+    _addBotMessage(html) {
+      html = html
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/\n/g, '<br>');
 
       const el = document.createElement('div');
-      el.className = 'cst-msg cst-msg--advisor';
+      el.className = 'cst-asst__msg';
       el.innerHTML = `
-        <div class="cst-msg__avatar" aria-hidden="true">${ICONS.advisor}</div>
-        <div class="cst-msg__bubble">${html}</div>`;
+        <div class="cst-asst__avatar" aria-hidden="true">${ICONS.bot}</div>
+        <div class="cst-asst__bubble">${html}</div>`;
       this.msgEl.appendChild(el);
-      this._scrollToBottom();
+      this._scroll();
     }
 
     _addUserMessage(text) {
-      const el = document.createElement('div');
-      el.className = 'cst-msg cst-msg--user';
-      // Sanitise user text (prevent XSS)
       const safe = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const el = document.createElement('div');
+      el.className = 'cst-asst__msg cst-asst__msg--user';
       el.innerHTML = `
-        <div class="cst-msg__avatar" aria-hidden="true">${ICONS.user}</div>
-        <div class="cst-msg__bubble">${safe}</div>`;
+        <div class="cst-asst__avatar" aria-hidden="true">${ICONS.user}</div>
+        <div class="cst-asst__bubble">${safe}</div>`;
       this.msgEl.appendChild(el);
-      this._scrollToBottom();
+      this._scroll();
     }
 
     _showTyping() {
       if (this.typingEl) return;
       this.typingEl = document.createElement('div');
-      this.typingEl.className = 'cst-typing';
-      this.typingEl.setAttribute('aria-label', 'Adviser is typing');
+      this.typingEl.className = 'cst-asst__typing';
       this.typingEl.innerHTML = `
-        <div class="cst-msg__avatar" aria-hidden="true">${ICONS.advisor}</div>
-        <div class="cst-typing__bubble">
-          <div class="cst-typing__dot"></div>
-          <div class="cst-typing__dot"></div>
-          <div class="cst-typing__dot"></div>
+        <div class="cst-asst__avatar" aria-hidden="true">${ICONS.bot}</div>
+        <div class="cst-asst__typing-bubble">
+          <div class="cst-asst__dot"></div>
+          <div class="cst-asst__dot"></div>
+          <div class="cst-asst__dot"></div>
         </div>`;
       this.msgEl.appendChild(this.typingEl);
-      this._scrollToBottom();
+      this._scroll();
     }
 
     _hideTyping() {
-      if (this.typingEl) {
-        this.typingEl.remove();
-        this.typingEl = null;
-      }
+      if (this.typingEl) { this.typingEl.remove(); this.typingEl = null; }
     }
 
-    _scrollToBottom() {
-      requestAnimationFrame(() => {
-        this.msgEl.scrollTop = this.msgEl.scrollHeight;
-      });
+    _scroll() {
+      requestAnimationFrame(() => { this.msgEl.scrollTop = this.msgEl.scrollHeight; });
     }
 
-    _logConversation(extra) {
+    /* ── LOGGING ──────────────────────────────────────────── */
+    _log(extra) {
+      if (!LOG_URL || LOG_URL.indexOf('REPLACE_WITH') === 0) return;
       try {
-        const conversationLog = this.messages
-          .map(m => (m.role === 'user' ? 'Visitor: ' : 'Adviser: ') + m.content.substring(0, 5000))
+        const transcript = this.messages
+          .map(m => (m.role === 'user' ? 'Visitor: ' : 'Assistant: ') + m.content.substring(0, 5000))
           .join('\n\n');
 
-        fetch('https://script.google.com/macros/s/AKfycbxoMWrFcuDLAqV-BhDbI-QrrmUYtKnfarYJbh_MnUrBqBIXMqWjDHq6LdfJVRxRYg4/exec', {
+        fetch(LOG_URL, {
           method: 'POST',
           mode: 'no-cors',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             conversationId: this.conversationId,
             timestamp:      new Date().toLocaleString('en-GB'),
-            page:           this.pageConfig.currentCourse || window.location.href,
-            recommendation: extra?.recommendation || 'No recommendation yet',
+            page:           this.ctx.url,
+            pageTitle:      this.ctx.title,
+            outcome:        extra?.outcome || 'conversation',
+            detail:         extra?.detail || '',
             confidence:     extra?.confidence || 'n/a',
-            alsoConsidered: extra?.alsoConsidered || '',
-            conversation:   conversationLog
+            conversation:   transcript
           })
         });
-      } catch(e) {
-        console.warn('CSTAdvisor: logging failed', e);
+      } catch (e) {
+        console.warn('CSTAssistant: logging failed', e);
       }
     }
 
     /* ── RECOMMENDATION CARD ──────────────────────────────── */
     _showRecommendation(data) {
-      const kb     = window.CSTKnowledge;
-      const qual   = kb.getById(data.qualificationId);
+      const kb   = window.CSTKnowledge;
+      const qual = kb && kb.getById ? kb.getById(data.qualificationId) : null;
 
       if (!qual) {
-        // Fallback: show as plain text
-        this._addAdvisorMessage(data.reason || "I'd recommend speaking to our team for a personalised recommendation.");
+        this._addBotMessage(data.reason || "I'd suggest speaking to our team for a personalised recommendation.");
         return;
       }
 
-      // Brief intro message
-      this._addAdvisorMessage(`Based on what you've told me, here's my recommendation:`);
+      this._addBotMessage("Based on what you've told me, here's my recommendation:");
 
-      // Build "also consider" list
       const alsoConsider = (data.alsoConsider || [])
-        .map(id => kb.getById(id))
+        .map(id => (kb.getById ? kb.getById(id) : null))
         .filter(Boolean)
         .slice(0, 3);
 
-      // Confidence icon
-      const level = data.confidence || 'medium';
-      const confClass = `cst-confidence--${level}`;
-
-      const recEl = document.createElement('div');
-      recEl.className = 'cst-msg cst-msg--advisor';
-      recEl.style.display = 'block'; // override flex for full-width card
-
       const card = document.createElement('div');
-      card.className = 'cst-rec';
-      card.setAttribute('role', 'region');
-      card.setAttribute('aria-label', `Recommended qualification: ${qual.title}`);
+      card.className = 'cst-asst__card';
       card.innerHTML = `
-        <div class="cst-rec__label">Recommended Qualification</div>
-        <div class="cst-rec__title">${qual.title}</div>
-        <div class="cst-rec__reason">${data.reason}</div>
-        <div class="cst-rec__benefits">
-          <strong>Why this suits you</strong>
-          ${data.personalBenefit}
+        <div class="cst-asst__card-label">Recommended qualification</div>
+        <div class="cst-asst__card-title">${qual.title}</div>
+        <div class="cst-asst__card-text">${data.reason || ''}</div>
+        <div class="cst-asst__card-block">
+          <strong>Why this suits you</strong>${data.personalBenefit || ''}
         </div>
-        <div class="cst-rec__benefits" style="margin-top:-6px;">
-          <strong>Career benefits</strong>
-          ${qual.benefits}
+        <div class="cst-asst__card-block">
+          <strong>Career benefits</strong>${qual.benefits || ''}
         </div>
-
-        <div class="cst-rec__ctas">
-          <a href="${qual.url}" class="cst-btn cst-btn--primary" target="_blank" rel="noopener">
-            View Course ${ICONS.external}
+        <div class="cst-asst__ctas">
+          <a href="${qual.url}" class="cst-asst__btn cst-asst__btn--primary">
+            View course and dates ${ICONS.external}
           </a>
-          <button class="cst-btn cst-btn--orange" type="button" id="cst-speak-adviser">
-            Enquire Now
+          <button class="cst-asst__btn cst-asst__btn--orange" type="button" data-enquire>
+            Enquire now
           </button>
         </div>
-
-        <div class="cst-confidence ${confClass}">
-          ${ICONS.infoHigh}
-          <span>${data.confidenceMessage}</span>
+        <div class="cst-asst__note">
+          ${ICONS.info}<span>${data.confidenceMessage || ''}</span>
         </div>
-
         ${alsoConsider.length ? `
-        <div class="cst-also">
-          <div class="cst-also__label">You may also wish to consider</div>
-          <div class="cst-also__items">
-            ${alsoConsider.map(q => `
-              <button class="cst-also__item" type="button" data-qual-id="${q.id}">
-                ${q.title}
-              </button>`).join('')}
-          </div>
-        </div>` : ''}
-      `;
+          <div class="cst-asst__also">
+            <div class="cst-asst__also-label">You may also wish to consider</div>
+            ${alsoConsider.map(q =>
+              `<button class="cst-asst__also-item" type="button" data-qual-id="${q.id}">${q.title}</button>`
+            ).join('')}
+          </div>` : ''}`;
 
-      recEl.appendChild(card);
-      this.msgEl.appendChild(recEl);
-      this._scrollToBottom();
+      this.msgEl.appendChild(card);
+      this._scroll();
 
-      // Bind "Enquire Now" button — relocates the real CF7 form already on the page
-      const speakBtn = card.querySelector('#cst-speak-adviser');
-      if (speakBtn) {
-        speakBtn.addEventListener('click', () => {
-          this._showLeadCapture();
-        });
-      }
+      const enquire = card.querySelector('[data-enquire]');
+      if (enquire) enquire.addEventListener('click', () => this._showLeadCapture());
 
-      // Bind "also consider" buttons
-      card.querySelectorAll('.cst-also__item').forEach(btn => {
+      card.querySelectorAll('.cst-asst__also-item').forEach(btn => {
         btn.addEventListener('click', () => {
-          const altQual = kb.getById(btn.dataset.qualId);
-          if (altQual) {
-            const msg = `Tell me more about the ${altQual.title}.`;
-            this.inputEl.value = msg;
+          const alt = kb.getById(btn.dataset.qualId);
+          if (alt) {
+            this.inputEl.value = `Tell me more about the ${alt.title}.`;
             this.sendBtn.disabled = false;
             this._handleSend();
           }
@@ -599,74 +733,95 @@ Keep responses concise. This is a chat interface, not an essay.`;
       });
     }
 
-    /* ── LEAD CAPTURE FORM ─────────────────────────────────────
-       Relocates a CLONE of the real Contact Form 7 form already
-       embedded on the current page into the chat window, so
-       submissions go through the same Zapier webhook / HubSpot
-       workflow as the page's normal enquiry form.
-    ──────────────────────────────────────────────────────────── */
-  _showLeadCapture() {
-      const leadEl = document.createElement('div');
-      leadEl.className = 'cst-msg cst-msg--advisor';
-      leadEl.style.display = 'block';
-
+    /* ── ESCALATION CARD ──────────────────────────────────── */
+    _showEscalate(topic) {
+      const subject = encodeURIComponent(topic ? `Website enquiry: ${topic}` : 'Website enquiry');
       const card = document.createElement('div');
-      card.className = 'cst-lead';
+      card.className = 'cst-asst__card';
       card.innerHTML = `
-        <div class="cst-lead__title">Ready to enquire?</div>
-        <div class="cst-lead__sub">Get in touch with our team and we'll help you get started.</div>
-        <div class="cst-lead__actions" style="margin-top:16px;">
-          <a href="/contact/" class="cst-btn cst-btn--orange" target="_blank" rel="noopener">
-            Enquire Now
-          </a>
+        <div class="cst-asst__card-label">Our team can help with this</div>
+        <div class="cst-asst__card-title">Speak to the CST team</div>
+        <div class="cst-asst__card-text">
+          I can't look up individual bookings, but our team can sort this out quickly.
         </div>
-        <p style="font-size:0.72rem;color:var(--cst-muted);margin:12px 0 0;">
-          Or call us on <strong>020 3488 4472</strong> or email <strong>enquiries@csttraining.co.uk</strong>
-        </p>
-      `;
-
-      leadEl.appendChild(card);
-      this.msgEl.appendChild(leadEl);
-      this._scrollToBottom();
+        <div class="cst-asst__card-block">
+          <strong>Please have ready</strong>
+          Your name, the email address used to book, and your booking or order reference if you have one.
+        </div>
+        <div class="cst-asst__ctas">
+          <a href="tel:${PHONE.replace(/\s/g, '')}" class="cst-asst__btn cst-asst__btn--primary">
+            Call ${PHONE}
+          </a>
+          <a href="mailto:${EMAIL}?subject=${subject}" class="cst-asst__btn cst-asst__btn--orange">
+            Email the team
+          </a>
+        </div>`;
+      this.msgEl.appendChild(card);
+      this._scroll();
     }
+
+    /* ── LEAD CAPTURE ─────────────────────────────────────── */
+    _showLeadCapture() {
+      const card = document.createElement('div');
+      card.className = 'cst-asst__card';
+      card.innerHTML = `
+        <div class="cst-asst__card-label">Get in touch</div>
+        <div class="cst-asst__card-title">Ready to enquire?</div>
+        <div class="cst-asst__card-text">
+          Our team will help you get booked onto the right course.
+        </div>
+        <div class="cst-asst__ctas">
+          <a href="/contact/" class="cst-asst__btn cst-asst__btn--orange">Enquire now</a>
+          <a href="tel:${PHONE.replace(/\s/g, '')}" class="cst-asst__btn cst-asst__btn--primary">
+            Call ${PHONE}
+          </a>
+        </div>`;
+      this.msgEl.appendChild(card);
+      this._scroll();
+    }
+
     /* ── RESET ────────────────────────────────────────────── */
     _reset() {
-      this.messages  = [];
-      this.isTyping  = false;
+      this.messages = [];
+      this.isTyping = false;
       this.msgEl.innerHTML = '';
       this.chipsEl.style.display = '';
       this.inputEl.value = '';
       this.inputEl.style.height = 'auto';
       this.sendBtn.disabled = true;
+      this.conversationId = 'asst_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
       this._sendWelcome();
     }
-
-  } // end class QualificationAdvisor
+  }
 
   /* ─────────────────────────────────────────────────────────────
      AUTO-INIT
-     Finds all [data-cst-advisor] containers and initialises one
-     widget per container, using the nearest window.QualificationAdvisor
-     config (or data attributes).
   ───────────────────────────────────────────────────────────── */
 
-  function init() {
-    const containers = document.querySelectorAll('[data-cst-advisor]');
-    containers.forEach(container => {
-      // Read page config
-      const pageConfig = window.QualificationAdvisor || null;
-      new QualificationAdvisor(container, pageConfig);
-    });
+  function shouldLoad() {
+    // Don't run where the Qualification Advisor is already embedded
+    if (document.querySelector('[data-cst-advisor]')) return false;
+
+    const path = window.location.pathname;
+    if (EXCLUDE_PATHS.some(p => p && path.indexOf(p) === 0)) return false;
+
+    // Don't double-mount
+    if (document.querySelector('.cst-asst__launcher')) return false;
+
+    return true;
   }
 
-  // Run after DOM is ready
+  function init() {
+    if (!shouldLoad()) return;
+    window.CSTAssistantInstance = new CSTAssistant();
+  }
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
     init();
   }
 
-  // Expose for manual init (e.g. after WordPress dynamic load)
-  window.CSTAdvisor = { init, QualificationAdvisor };
+  window.CSTAssistant = { init, CSTAssistant };
 
 })();
