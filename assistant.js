@@ -23,7 +23,7 @@
 
   const API_URL   = 'https://www.csttraining.co.uk/?cst_advisor_proxy=1';
   const API_MODEL = 'claude-sonnet-4-6';
-  const LOG_URL   = 'REPLACE_WITH_NEW_APPS_SCRIPT_URL';
+  const LOG_URL   = 'https://script.google.com/macros/s/AKfycbx7UHfMVKmszEdzf-Cl-_CMj_qRmAELzATL0S_x_a8ktbkFHPr8YucpZYckGy0eTMbn/exec';
 
   const PHONE = '020 3488 4472';
   const EMAIL = 'enquiries@csttraining.co.uk';
