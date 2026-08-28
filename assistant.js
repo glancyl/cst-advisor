@@ -299,8 +299,17 @@
   }
 
   /* ── STATIC HALF ─────────────────────────────────────────── */
+  /* Re-apply the knowledge modules if knowledge.js has swapped the object
+     out from under us (it does that every time it loads, whatever the order). */
+  function ensureKnowledge() {
+    const exts = window.CSTKnowledgeExtensions || [];
+    exts.forEach(e => { try { e.apply(); } catch (err) {
+      console.warn('CSTAssistant: could not apply ' + e.name, err); } });
+    return window.CSTKnowledge;
+  }
+
   function buildStaticPrompt() {
-    const kb = window.CSTKnowledge;
+    const kb = ensureKnowledge();
     const quals = (kb && kb.qualifications) ? kb.qualifications : [];
 
     return `You are the CST Training website assistant. You help visitors anywhere on csttraining.co.uk understand our courses, choose the right qualification, and find the right page.
@@ -433,7 +442,7 @@ When someone wants to speak to a person or is ready to enquire, reply with your 
 
   /* ── DYNAMIC HALF ────────────────────────────────────────── */
   function buildDynamicPrompt(ctx, messages, expanded, expandedTrades) {
-    const kb = window.CSTKnowledge;
+    const kb = ensureKnowledge();
     const quals = (kb && kb.qualifications) ? kb.qualifications : [];
     growExpanded(quals, ctx, messages, expanded);
 
@@ -1067,6 +1076,7 @@ ${detail}${tradeBlock}`;
 
   function init() {
     if (!shouldLoad()) return;
+    ensureKnowledge();
     window.CSTAssistantInstance = new CSTAssistant();
     watch();
   }
