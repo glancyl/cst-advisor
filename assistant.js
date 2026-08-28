@@ -698,6 +698,9 @@ ${detail}${tradeBlock}`;
       const onTap = (e) => {
         const t = e.target;
         if (!t || !t.closest) return;
+        if (t.closest('.cst-asst')) {
+          console.log('[CST] tap inside widget ->', t.tagName, t.className || t.id || '');
+        }
         if (t.closest('#cst-asst-close')) {
           e.preventDefault(); e.stopPropagation();
           this._toggle(false);
@@ -744,15 +747,36 @@ ${detail}${tradeBlock}`;
     }
 
     _toggle(force) {
-      // Both the capture listener and the direct listener can fire for one tap;
-      // ignore anything within 250ms of the last toggle.
       const now = Date.now();
       if (typeof force !== 'boolean' && this._lastToggle && now - this._lastToggle < 250) return;
       this._lastToggle = now;
 
       this.isOpen = (typeof force === 'boolean') ? force : !this.isOpen;
+      console.log('[CST] toggle ->', this.isOpen ? 'OPEN' : 'closed');
+
       this.panelEl.classList.toggle('cst-asst__panel--open', this.isOpen);
       this.launcherEl.classList.toggle('cst-asst__launcher--open', this.isOpen);
+
+      // Belt and braces: set the layout inline too, so no stylesheet,
+      // theme rule or plugin can hide the panel once it should be open.
+      const p = this.panelEl;
+      if (this.isOpen) {
+        p.style.setProperty('display', 'flex', 'important');
+        p.style.setProperty('visibility', 'visible', 'important');
+        p.style.setProperty('opacity', '1', 'important');
+        p.style.setProperty('z-index', '2147483647', 'important');
+        p.style.setProperty('position', 'fixed', 'important');
+        if (window.innerWidth > 600) {
+          p.style.setProperty('bottom', '96px', 'important');
+          p.style.setProperty('right', '24px', 'important');
+        }
+        const r = p.getBoundingClientRect();
+        if (r.height < 10 || r.width < 10) {
+          console.warn('[CST] panel is open but has no size —', r);
+        }
+      } else {
+        p.style.setProperty('display', 'none', 'important');
+      }
       this.launcherEl.setAttribute('aria-label',
         this.isOpen ? 'Close the CST assistant' : 'Open the CST assistant');
 
@@ -1078,6 +1102,8 @@ ${detail}${tradeBlock}`;
     if (!shouldLoad()) return;
     ensureKnowledge();
     window.CSTAssistantInstance = new CSTAssistant();
+    console.log('[CST] assistant mounted. Click the bubble, or run ' +
+                'window.CSTAssistantInstance._toggle() to open it manually.');
     watch();
   }
 
