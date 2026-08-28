@@ -677,6 +677,8 @@ ${detail}${tradeBlock}`;
           </div>
         </div>`;
 
+      const previous = document.querySelectorAll('.cst-asst');
+      previous.forEach(n => n.remove());
       document.body.appendChild(root);
 
       // The wrapper must not constrain its fixed-position children.
@@ -759,8 +761,28 @@ ${detail}${tradeBlock}`;
       if (typeof force !== 'boolean' && this._lastToggle && now - this._lastToggle < 250) return;
       this._lastToggle = now;
 
+      // Resolve the panel from the LIVE document every time. Something on this
+      // page detaches our nodes after mount, which left us toggling an element
+      // that was no longer on the page (0x0, empty computed styles).
+      let live = document.getElementById('cst-asst-panel');
+      if (!live || !live.isConnected) {
+        console.warn('[CST] panel was detached — rebuilding widget.');
+        const stale = document.getElementById('cst-asst-styles');
+        if (stale) stale.remove();
+        this._render();
+        this._bindEvents();
+        this._injectStyles();
+        if (this.started) { this.msgEl.innerHTML = ''; this.started = false; }
+        live = document.getElementById('cst-asst-panel');
+        if (!live) { console.error('[CST] rebuild failed'); return; }
+      }
+      this.panelEl = live;
+      this.launcherEl = document.getElementById('cst-asst-launcher') || this.launcherEl;
+
       this.isOpen = (typeof force === 'boolean') ? force : !this.isOpen;
-      console.log('[CST] toggle ->', this.isOpen ? 'OPEN' : 'closed');
+      console.log('[CST] toggle ->', this.isOpen ? 'OPEN' : 'closed',
+                  '| panel connected:', this.panelEl.isConnected,
+                  '| panels on page:', document.querySelectorAll('#cst-asst-panel').length);
 
       this.panelEl.classList.toggle('cst-asst__panel--open', this.isOpen);
       this.launcherEl.classList.toggle('cst-asst__launcher--open', this.isOpen);
@@ -1160,7 +1182,9 @@ ${detail}${tradeBlock}`;
     if (watching) return;
     watching = true;
     setInterval(() => {
-      if (!document.querySelector('#cst-asst-launcher')) {
+      const l = document.getElementById('cst-asst-launcher');
+      const pn = document.getElementById('cst-asst-panel');
+      if (!l || !pn || !l.isConnected || !pn.isConnected) {
         const styles = document.getElementById('cst-asst-styles');
         if (styles) styles.remove();
         console.warn('CSTAssistant: widget was removed from the page — remounting.');
