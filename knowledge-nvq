@@ -1,0 +1,564 @@
+/**
+ * CST Training – NVQ knowledge module
+ * knowledge-nvq.js
+ *
+ * MUST be loaded AFTER knowledge.js and BEFORE assistant.js.
+ *
+ * Does two things:
+ *   1. Strips prices, finance and discount language out of EVERY entry in
+ *      window.CSTKnowledge, including the existing ones. The assistant is
+ *      never allowed to quote a price, and the site's own pages disagree
+ *      with each other on price, so no figure is injected into the prompt.
+ *   2. Adds construction, OH&S and business NVQ entries.
+ *
+ * The Qualification Advisor does not load this file, so advisor.js is
+ * unaffected by either change.
+ *
+ * Built from csttraining.co.uk, August 2026. Course facts (durations, card
+ * outcomes, pathways) are taken from the live pages — check them against
+ * what admin/ops say before going live.
+ */
+
+(function () {
+  'use strict';
+
+  if (!window.CSTKnowledge || !window.CSTKnowledge.qualifications) {
+    console.error('knowledge-nvq.js: knowledge.js must load first.');
+    return;
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     1. PRICE SANITISER
+     Removes anything that reads as a price, instalment, discount
+     or finance offer from the fields that reach the prompt or
+     the recommendation card.
+  ═══════════════════════════════════════════════════════════ */
+
+  // Any sentence containing one of these is dropped whole, rather than
+  // gutted mid-clause and left reading like broken English.
+  const PRICE_SENTENCE = /(£|\bVAT\b|0%\s*finance|payment plan|instal?ment|\bdiscount)/i;
+
+  function stripPrices(text) {
+    if (typeof text !== 'string') return text;
+
+    // 1. Remove parentheticals that carry a price: "(4–8 weeks, £529+VAT)" → "(4–8 weeks)"
+    let out = text.replace(/\(([^()]*)\)/g, (match, inner) => {
+      if (!PRICE_SENTENCE.test(inner)) return match;
+      const kept = inner
+        .split(/\s*,\s*/)
+        .filter(part => !PRICE_SENTENCE.test(part))
+        .join(', ')
+        .trim();
+      return kept ? '(' + kept + ')' : '';
+    });
+
+    // 2. Drop any remaining sentence that mentions money
+    out = out
+      .split(/(?<=[.!?])\s+/)
+      .filter(s => !PRICE_SENTENCE.test(s))
+      .join(' ');
+
+    return out
+      .replace(/\s+([.,;])/g, '$1')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+  }
+
+  function sanitiseEntry(q) {
+    ['description', 'benefits', 'audience', 'notSuitedFor'].forEach(f => {
+      if (q[f]) q[f] = stripPrices(q[f]);
+    });
+    if (Array.isArray(q.suitedFor)) q.suitedFor = q.suitedFor.map(stripPrices);
+    return q;
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     2. SHARED NVQ FACTS
+     Appended to every NVQ entry's description so the bot always
+     has the process context without repeating it per entry.
+  ═══════════════════════════════════════════════════════════ */
+
+  const NVQ_PROCESS =
+    ' Completed remotely through a purpose-built online portfolio with a dedicated assessor. ' +
+    'The process is: induction with your assessor, gathering site evidence such as RAMS, toolbox talks ' +
+    'and programmes, a witness testimony from a competent person, knowledge questions, then a ' +
+    'professional discussion with your assessor. CST covers the whole of the UK and is CITB approved. ' +
+    'NVQs are CITB and Ofqual approved, awarded through NOCN, ProQual, GQA or Qualifications Scotland ' +
+    'Accreditation — an awarding body is assigned, but you can request a specific one.';
+
+  /* Trade list — the 75 Level 2 trade NVQs CST publishes handbooks for.
+     Kept as one list rather than 75 knowledge base entries: the process is
+     identical for all of them, so separate entries would repeat the same
+     text 75 times in every system prompt for no benefit. */
+  const TRADES = [
+    'Access and Rigging','Access Flooring','Acoustic Flooring',
+    'Acoustic Packages and Frames Installer','Architectural Joinery',
+    'Architectural Joinery (Heritage)','Architectural Metalwork','Bench Joinery',
+    'Blinds and Solar Installation','Bricklaying','Brickwork Technicians','Carpentry',
+    'Ceiling Fixing','Cladding','Concrete Finishing','Concrete Repair','Cranes',
+    'Curtain Wall Installation','Demolition','Diamond Drilling','Dry Lining Boarder',
+    'Dry Lining Finishing','Dry Lining Fixing','Facade Preservation',
+    'Fenestration Installation','Fire Stopping','Fitted Interiors','Flat Roof',
+    'Flat Roof (Green Roof Installer)','Floor Coverings','Formwork',
+    'Glass Related Occupations','Glazing','Groundworks','Highway Maintenance',
+    'Industrial Storage Systems Installation','Insulated Enclosures',
+    'Insulation and Building Treatments','Land Drilling','Land Drilling Support Operative',
+    'Mastic','Modular Buildings','Multi-Trade','Painting and Decorating',
+    'Painting and Decorating (Heritage)','Painting and Decorating (Industrial)',
+    'Performing Engineering Operations','Photovoltaic Panels','Piling',
+    'Plant Installation','Plant Maintenance','Plastering','Plastering (Heritage Solid)',
+    'Point of Purchase Installation','Precast Concrete','Protective Components',
+    'Removal of Non-Hazardous Waste','Rendering','Road Building','Roofing',
+    'Scaffolding','Screed Flooring','SFS (Structural Framing Systems)',
+    'Shopfitting Bench Work','Shopfitting Site Work','Site Logistics','Steel Fixing',
+    'Stonemasonry (External)','Stonemasonry (Heritage)','Stonemasonry (Internal)',
+    'Sub-Structure Grouting','Sweeping and Cleaning','Tiling','Timber Frame Erection',
+    'Traffic Marshall'
+  ];
+
+
+  /* The 31 Level 3 trade NVQs. Same process as Level 2, but for advanced
+     craft experience with supervisory responsibility. */
+  const TRADES_L3 = [
+    'Access and Rigging','Architectural Joinery','Bench Joinery','Bricklaying',
+    'Carpentry','Carpentry (Shopfitting)','Cladding (Rainscreen)',
+    'Cladding (Roof and Wall Sheeting and Cladding)','Demolition','Fenestration',
+    'Fenestration Surveying','Floor Coverings','Formwork','Glazing',
+    'Heritage Skills (Roof Slating and Tiling)','Heritage Skills (Stonemasonry)',
+    'Heritage Skills (Wood Occupations)','Insulation','Interior Systems',
+    'Moving Loads','Painting','Plant Installation','Plant Maintenance',
+    'Plastering','Plastering (Fibrous)','Roofing (Slater)','Roofing (Tiler)',
+    'Scaffolding','Steel Fixing','Stonemasonry (Banker Masonry)','Tiling'
+  ];
+
+  /* Entry requirements — as stated on the CST course pages (checked 25 Aug 2026).
+     NOTE: none of the NVQ course pages state a minimum number of years of
+     experience. Eligibility is judged on your current role and your access to
+     site evidence, via CST's eligibility form. Do not assert a years figure. */
+  const NVQ_ENTRY =
+    ' ENTRY REQUIREMENTS: CST does not publish a minimum number of years of experience for this NVQ. ' +
+    'What matters is that you are currently working in the role and have access to the site evidence needed ' +
+    'to demonstrate competence. To start you complete a registration form and, as a minimum, provide a copy ' +
+    'of photo ID. The NVQ can be started on any day. Purchase goes through an eligibility form so CST can ' +
+    'confirm the NVQ is right for your role before you commit. If someone asks whether they have enough ' +
+    'experience, do NOT give a number — explain that it depends on their role and evidence, and point them ' +
+    'to the eligibility form or the team.';
+
+  /* Portfolio and registration detail — from the Level 2 trade NVQ handbooks.
+     True of the NVQ portfolio process generally. */
+  const NVQ_PORTFOLIO =
+    ' Evidence is submitted through an e-portfolio system called Quals Direct — you get login ' +
+    'details by email once registered. An induction with your assessor is booked through the ' +
+    'online booking system and usually happens within 7 working days of registration. At the ' +
+    'induction the assessor discusses your job role and helps you choose the optional units that ' +
+    'best fit the work you actually do. Uploading an up-to-date CV is a mandatory part of the NVQ. ' +
+    'Knowledge questions can be completed either in writing or as a discussion with your assessor, ' +
+    'and there are no right or wrong answers — they are based on your own experience. Your ' +
+    'portfolio then goes for internal and, in some cases, external quality assurance before the ' +
+    'awarding body issues the certificate. You need basic IT skills such as sending email and ' +
+    'uploading documents. The portfolio stays open for 1 year; longer is possible but additional ' +
+    'fees may apply beyond 1 year from registration. An NVQ is not a training course — it ' +
+    'accredits competence you already have.';
+
+  /* ═══════════════════════════════════════════════════════════
+     3. NVQ ENTRIES
+  ═══════════════════════════════════════════════════════════ */
+
+  const nvqs = [
+
+    /* ── TRADE (Level 2 & 3) ─────────────────────────────── */
+    {
+      id:            'nvq-trade-level-2',
+      title:         'Level 2 Construction NVQ (Trade)',
+      category:      'Construction NVQ',
+      level:         2,
+      minExperience: null,
+      roles:         ['bricklayer','carpenter','joiner','plasterer','painter','decorator',
+                      'groundworker','roofer','tiler','plumber','labourer','dryliner',
+                      'steel fixer','scaffolder','general operative'],
+      audience:      'Experienced tradespeople who are already doing the work on site but have no formal qualification for it, and need one to get a Blue CSCS Card.',
+      description:   'A trade-specific Level 2 NVQ that formally recognises the skills you already use on site. Assessment is of your actual work, not classroom study or exams — you evidence what you already do. ' +
+                     'CST offers Level 2 trade NVQs in: ' + TRADES.join(', ') + '.' + NVQ_PROCESS + NVQ_PORTFOLIO + NVQ_ENTRY,
+      suitedFor:     [
+        'Experienced tradespeople with no formal qualification in their trade',
+        'Anyone who needs a Blue CSCS Card and does not yet hold a relevant Level 2 NVQ',
+        'Workers whose employer or main contractor requires proof of competence',
+        'Those who learned on the job rather than through an apprenticeship'
+      ],
+      notSuitedFor:  'Not a course that teaches you a trade from scratch — you must already be working in the role, with access to a site and to evidence. Those supervising others should look at Level 3 or 4 supervision NVQs instead.',
+      progression:   ['nvq-trade-level-3','nvq-l3-occupational-work-supervisor'],
+      url:           'https://www.csttraining.co.uk/trade/',
+      benefits:      'A Level 2 NVQ is what evidences your competence for a Blue CSCS Card — without a relevant Level 2 NVQ you cannot get one. Assessed on the work you already do, completed remotely.'
+    },
+
+    {
+      id:            'nvq-trade-level-3',
+      title:         'Level 3 Construction NVQ (Trade)',
+      category:      'Construction NVQ',
+      level:         3,
+      minExperience: null,
+      roles:         ['advanced craft operative','chargehand','leading hand','experienced tradesperson',
+                      'gang leader','specialist trade operative'],
+      audience:      'Tradespeople with advanced experience in their trade who also carry some supervisory responsibility, and need a Level 3 qualification — typically to move toward a Gold CSCS Card.',
+      description:   'A trade-specific Level 3 NVQ recognising advanced craft competence. Level 3 is designed for those with advanced experience in their trade who also have supervisory responsibility, which is the main thing that separates it from Level 2. ' +
+                     'CST offers Level 3 trade NVQs in: ' + TRADES_L3.join(', ') + '.' + NVQ_PROCESS + NVQ_PORTFOLIO + NVQ_ENTRY,
+      suitedFor:     [
+        'Advanced craft operatives who also supervise or direct others',
+        'Those who already hold a Level 2 NVQ and want to progress',
+        'Workers needing a Level 3 or 4 NVQ for a Gold CSCS Card'
+      ],
+      notSuitedFor:  'Not for those new to a trade — Level 2 is the correct starting point. Those whose role is primarily supervising others may be better suited to the Level 3 Occupational Work Supervisor NVQ.',
+      progression:   ['nvq-l3-occupational-work-supervisor','nvq-l4-site-supervision'],
+      url:           'https://www.csttraining.co.uk/trade/',
+      benefits:      'Recognises advanced craft competence and supports a Gold CSCS Card application. Assessed on real site work, completed remotely alongside the day job.'
+    },
+
+    /* ── SUPERVISION (Level 3 & 4) ───────────────────────── */
+    {
+      id:            'nvq-l3-occupational-work-supervisor',
+      title:         'Level 3 NVQ Occupational Work Supervision',
+      category:      'Construction NVQ',
+      level:         3,
+      minExperience: null,
+      roles:         ['supervisor','chargehand','foreman','gang leader','leading hand',
+                      'working supervisor','site supervisor'],
+      audience:      'Tradespeople who have stepped up to supervise a small team or gang on site and need a supervisory qualification for a Gold CSCS Card.',
+      description:   'The Level 3 NVQ in Occupational Work Supervision recognises competence in supervising construction work and teams on site. Typically takes 4 to 8 weeks from start to finish. CITB approved and completed fully remotely.' + NVQ_PROCESS + NVQ_ENTRY,
+      suitedFor:     [
+        'Working supervisors, chargehands and foremen',
+        'Tradespeople who now supervise a gang or small team',
+        'Those needing a Gold CSCS Card via the supervisory route',
+        'Anyone whose role has moved from doing the work to overseeing it'
+      ],
+      notSuitedFor:  'Not for those who do not supervise anyone — a trade NVQ is the right route for operatives. Those supervising a whole site or larger operation should consider the Level 4 Site Supervision NVQ.',
+      progression:   ['nvq-l4-site-supervision','nvq-l6-site-management'],
+      url:           'https://www.csttraining.co.uk/occupational-work-supervisor-level-3-nvq/',
+      benefits:      'Supports a Gold CSCS Card application. Typically completed in 4 to 8 weeks, fully remotely, with a dedicated assessor. The Gold card also requires an in-date CITB Health, Safety and Environment (HS&E) test.'
+    },
+
+    {
+      id:            'nvq-l3-cco',
+      title:         'Level 3 NVQ Construction Contracting Operations',
+      category:      'Construction NVQ',
+      level:         3,
+      minExperience: null,
+      roles:         ['assistant site manager','trainee quantity surveyor','estimator',
+                      'buyer','planner','contracts assistant','site administrator'],
+      audience:      'Experienced on-site technical staff — estimating, buying, planning, surveying, site technical support or design co-ordination — rather than those in a trade or on the tools.',
+      description:   'The Level 3 NVQ in Construction Contracting Operations recognises competence in the technical and contracting side of construction. Typically takes 4 to 12 weeks. You choose from 7 pathways: General, Estimating, Buying, Planning, Surveying, Site Technical Support and Design Co-ordinator. Evidence gathered relates to the pathway chosen. A written case study may be required, and the assessor may visit site or hold a video call. CITB approved and completed remotely.' + NVQ_PROCESS + NVQ_ENTRY,
+      suitedFor:     [
+        'On-site technical staff in estimating, buying, planning or surveying',
+        'Site technical support and design co-ordination roles',
+        'Anyone in a construction office role needing a Gold CSCS Card'
+      ],
+      notSuitedFor:  'Not for trade operatives or those supervising site work directly — the Occupational Work Supervision NVQ suits those roles better.',
+      progression:   ['nvq-l4-site-supervision','nvq-l6-cco-general'],
+      url:           'https://www.csttraining.co.uk/cco-level-3/',
+      benefits:      'Supports a Gold CSCS Card application for technical and contracting roles, alongside an in-date CITB HS&E test. Seven pathways so the NVQ matches the work you actually do. Typically 4 to 12 weeks, completed remotely.'
+    },
+
+    {
+      id:            'nvq-l4-site-supervision',
+      title:         'Level 4 NVQ Construction Site Supervision',
+      category:      'Construction NVQ',
+      level:         4,
+      minExperience: null,
+      roles:         ['site supervisor','section supervisor','general foreman',
+                      'assistant site manager','sub-agent'],
+      audience:      'Experienced site supervisors responsible for supervising site operations, who need a Level 4 qualification for a Gold CSCS Card.',
+      description:   'The Level 4 NVQ in Construction Site Supervision recognises competence in supervising site operations at a higher level than Level 3. Typically takes 4 to 8 weeks. CITB approved and completed fully remotely. Eligible for ELCAS funding for current and ex-military personnel.' + NVQ_PROCESS + NVQ_ENTRY,
+      suitedFor:     [
+        'Site supervisors and general foremen with real site responsibility',
+        'Those progressing beyond a Level 3 supervisory NVQ',
+        'Anyone needing a Gold CSCS Card via the Level 4 route',
+        'Ex-forces personnel who may be eligible for ELCAS funding'
+      ],
+      notSuitedFor:  'Not for those managing a whole site or project — the Level 6 Site Management NVQ is the Black CSCS Card route. Not for operatives without supervisory responsibility.',
+      progression:   ['nvq-l6-site-management','nvq-l6-cco-general'],
+      url:           'https://www.csttraining.co.uk/site-supervision-level-4/',
+      benefits:      'Supports a Gold CSCS Card application. Typically 4 to 8 weeks, fully remote. One of CST\'s ELCAS-eligible NVQs for service leavers and veterans.'
+    },
+
+    /* ── MANAGEMENT (Level 6 & 7) ────────────────────────── */
+    {
+      id:            'nvq-l6-site-management',
+      title:         'Level 6 NVQ Construction Site Management',
+      category:      'Construction NVQ',
+      level:         6,
+      minExperience: null,
+      roles:         ['site manager','project manager','construction manager','site agent',
+                      'contracts manager','general foreman moving into management'],
+      audience:      'Experienced site managers running sites or projects who need a Level 6 qualification to apply for a Black CSCS Card.',
+      description:   'The Level 6 NVQ in Construction Site Management is the main route to a Black CSCS Card for site managers. Typically takes 8 to 12 weeks. Assessed by CIOB chartered assessors.' + NVQ_PROCESS + NVQ_ENTRY,
+      suitedFor:     [
+        'Site managers and site agents running their own sites',
+        'Construction and contracts managers without a Level 6 qualification',
+        'Those needing a Black CSCS Card',
+        'Experienced supervisors who have moved fully into site management',
+        'Ex-forces personnel who may be eligible for ELCAS funding'
+      ],
+      notSuitedFor:  'Not for supervisors who do not manage a site — Level 3 or 4 supervision NVQs are the correct route. Those in commercial or contracting roles rather than site management should look at the Level 6 Construction Contracting Operations NVQ.',
+      progression:   ['nvq-l7-senior-management'],
+      url:           'https://www.csttraining.co.uk/construction-site-management-level-6/',
+      benefits:      'The recognised route to a Black CSCS Card for site managers. Assessed by CIOB chartered assessors. Typically 8 to 12 weeks, completed remotely alongside the job. You can apply for a temporary CSCS card once enrolled. The Black card also requires the CITB MAP test.'
+    },
+
+    {
+      id:            'nvq-l7-senior-management',
+      title:         'Level 7 NVQ Construction Senior Management',
+      category:      'Construction NVQ',
+      level:         7,
+      minExperience: null,
+      roles:         ['senior site manager','project director','construction director',
+                      'operations manager','senior contracts manager','managing director'],
+      audience:      'Senior construction professionals operating above individual site level who want the highest-level construction management NVQ.',
+      description:   'The Level 7 NVQ in Construction Senior Management is the most senior construction management NVQ. Typically takes 8 to 12 weeks. Assessed by CIOB assessors and offers a short route to MCIOB membership. 6 units are mandatory and a further 13 are optional. The mandatory units are: manage project processes in construction; manage teams in construction; provide advice, judgement and service ethically in construction; develop self and others in construction; control projects in construction; and plan a construction organisation workforce. Approved by Ofqual, CITB, CSCS and CIOB, awarded through NOCN. IMPORTANT: this NVQ is NO LONGER ELIGIBLE for CITB grant funding — do not tell visitors they can claim a CITB grant for it. ELCAS funding for service personnel and service leavers is still available.' + NVQ_PROCESS + NVQ_ENTRY,
+      suitedFor:     [
+        'Senior managers responsible for multiple sites or projects',
+        'Construction and project directors',
+        'Those pursuing MCIOB membership via the short route',
+        'Level 6 NVQ holders progressing to the highest level',
+        'Ex-forces personnel who may be eligible for ELCAS funding'
+      ],
+      notSuitedFor:  'Not appropriate for site managers running a single site — the Level 6 Site Management NVQ is the right level. Not for supervisors.',
+      progression:   [],
+      url:           'https://www.csttraining.co.uk/senior-construction-management-level-7-nvq/',
+      benefits:      'The highest-level construction management NVQ, supporting a Black CSCS Card and offering a short route to MCIOB membership. Assessed by CIOB assessors, typically 8 to 12 weeks.'
+    },
+
+    {
+      id:            'nvq-l6-cco-general',
+      title:         'Level 6 NVQ Construction Contracting Operations – General',
+      category:      'Construction NVQ',
+      level:         6,
+      minExperience: null,
+      roles:         ['technical site manager','operations manager','contracts manager',
+                      'sub-contractor site manager','owner','director','construction manager'],
+      audience:      'Technical site managers, operations managers, specialist sub-contractor site managers, owners and directors who need a Level 6 qualification for a Black CSCS Card.',
+      description:   'The Level 6 NVQ in Construction Contracting Operations (General) covers the commercial and contracting side of construction at a management level. Typically takes 8 to 12 weeks. Assessed by CIOB assessors.' + NVQ_PROCESS + NVQ_ENTRY,
+      suitedFor:     [
+        'Technical site managers and operations managers',
+        'Specialist sub-contractor site managers',
+        'Owners and directors of construction businesses',
+        'Ex-forces personnel who may be eligible for ELCAS funding'
+      ],
+      notSuitedFor:  'Those working in one commercial specialism — estimating, buying, surveying or planning — should take the Specialist pathway version instead. Those running traditional main-contractor sites may be better suited to the Level 6 Site Management NVQ.',
+      progression:   ['nvq-l7-senior-management'],
+      url:           'https://www.csttraining.co.uk/level-6-cco/',
+      benefits:      'Route to a Black CSCS Card for commercial and contracting professionals. Assessed by CIOB assessors, typically 8 to 12 weeks, completed remotely.'
+    },
+
+    {
+      id:            'nvq-l6-cco-specialist',
+      title:         'Level 6 NVQ Construction Contracting Operations – Specialist',
+      category:      'Construction NVQ',
+      level:         6,
+      minExperience: null,
+      roles:         ['quantity surveyor','estimator','planner','buyer','commercial manager',
+                      'procurement manager'],
+      audience:      'Senior professionals working in one specific commercial discipline — planning, estimating, surveying or buying — who need a Level 6 qualification in their specialism.',
+      description:   'The Specialist version of the Level 6 Construction Contracting Operations NVQ, with 4 pathways: Estimating, Buying, Surveying and Planning. Typically takes 8 to 12 weeks. Assessed by CIOB assessors.' + NVQ_PROCESS + NVQ_ENTRY,
+      suitedFor:     [
+        'Quantity surveyors, estimators, planners and buyers',
+        'Those whose role sits within one commercial discipline rather than across all of them',
+        'Professionals needing a Black CSCS Card in a specialist commercial role'
+      ],
+      notSuitedFor:  'Not for those working across the full range of contracting operations — the General pathway is a better fit. Not for site managers.',
+      progression:   ['nvq-l7-senior-management'],
+      url:           'https://www.csttraining.co.uk/construction-contracting-operations-level-6-nvq-specialist/',
+      benefits:      'Recognises competence in a specific commercial discipline and supports a Black CSCS Card. Choose from planning, estimating, surveying or buying pathways.'
+    },
+
+    {
+      id:            'nvq-l6-senior-site-inspection',
+      title:         'Level 6 NVQ Diploma in Senior Site Inspection',
+      category:      'Construction NVQ',
+      level:         6,
+      minExperience: null,
+      roles:         ['clerk of works','site inspector','quality inspector',
+                      'architectural inspector','senior site inspector','building inspector'],
+      audience:      'Site inspectors, quality inspectors, architectural inspectors, clerks of works and other inspection-based roles.',
+      description:   'The Level 6 NVQ Diploma in Senior Site Inspection recognises competence in inspecting construction work and managing quality on site. Typically takes 8 to 12 weeks. Assessed by CIOB assessors.' + NVQ_PROCESS + NVQ_ENTRY,
+      suitedFor:     [
+        'Site inspectors, quality inspectors and architectural inspectors',
+        'Clerks of works and other inspection-based roles',
+        'Inspection professionals needing a Black CSCS Card'
+      ],
+      notSuitedFor:  'Not for site or contracts managers — the Site Management or Contracting Operations NVQs are more appropriate for those roles.',
+      progression:   ['nvq-l7-senior-management'],
+      url:           'https://www.csttraining.co.uk/senior-site-inspection-level-6-nvq/',
+      benefits:      'The senior qualification for site inspection and clerk of works roles. Supports a Black CSCS Card application alongside the CITB MAP test. ProQual and CITB approved. Typically 8 to 12 weeks, completed remotely.'
+    },
+
+    /* ── PLANT, CRANE & ELECTRICAL ───────────────────────── */
+    {
+      id:            'nvq-plant',
+      title:         'Plant and Machine Operations NVQs (Level 2 & 3)',
+      category:      'Construction NVQ',
+      level:         2,
+      minExperience: null,
+      roles:         ['plant operator','excavator operator','dumper driver','roller operator',
+                      'telehandler operator','forklift operator','machine operator'],
+      audience:      'Plant and machine operators who hold a red trainee CPCS or NPORS card and need an NVQ to upgrade to a blue competence card.',
+      description:   'CST offers a wide range of plant and machine operations NVQs at Levels 2 and 3, covering the main categories of construction plant. These are the qualification route from a red CPCS or NPORS trainee card to a blue competence card.' + NVQ_PROCESS + NVQ_ENTRY,
+      suitedFor:     [
+        'Plant operators holding a red trainee CPCS or NPORS card',
+        'Machine operators needing formal recognition of competence',
+        'Operators whose employer requires a blue card'
+      ],
+      notSuitedFor:  'Not for those who do not operate plant. The specific NVQ depends on the machine category you operate — check the plant NVQ page or ask the team which applies to you.',
+      progression:   ['nvq-l3-occupational-work-supervisor'],
+      url:           'https://www.csttraining.co.uk/plant-nvqs/',
+      benefits:      'The route from a red trainee CPCS or NPORS card to a blue competence card. Assessed on the machines you already operate, completed remotely.'
+    },
+
+    {
+      id:            'nvq-crane',
+      title:         'Crane NVQs (Level 2, 4 & 5)',
+      category:      'Construction NVQ',
+      level:         2,
+      minExperience: null,
+      roles:         ['crane operator','slinger signaller','crane supervisor','appointed person',
+                      'lifting supervisor','tower crane operator','mobile crane operator'],
+      audience:      'Those working in lifting operations — crane operators, slinger signallers, crane supervisors and appointed persons — who need an NVQ for a blue CPCS card.',
+      description:   'CST offers NVQs across lifting operations at Levels 2, 4 and 5, covering crane operators, slinger signallers, crane supervisors and appointed persons. These support blue CPCS card applications.' + NVQ_PROCESS + NVQ_ENTRY,
+      suitedFor:     [
+        'Crane operators and slinger signallers',
+        'Crane supervisors and appointed persons',
+        'Anyone in lifting operations needing a blue CPCS card'
+      ],
+      notSuitedFor:  'Not for general construction operatives. The right level depends on your specific lifting role — ask the team which NVQ matches what you do.',
+      progression:   [],
+      url:           'https://www.csttraining.co.uk/crane-nvqs/',
+      benefits:      'Covers the full range of lifting roles and supports a blue CPCS card. Assessed on your actual lifting work, completed remotely.'
+    },
+
+    {
+      id:            'nvq-electrical-level-3',
+      title:         'Level 3 Electrotechnical Experienced Worker NVQ',
+      category:      'Construction NVQ',
+      level:         3,
+      minExperience: null,
+      roles:         ['electrician','electrical installer','maintenance electrician',
+                      'experienced electrical worker'],
+      audience:      'Experienced electricians working without a full formal qualification who need to evidence competence through the experienced worker route.',
+      description:   'The Level 3 Electrotechnical Experienced Worker qualification is the assessment route for electricians with substantial industry experience but no full qualification. It recognises the work you already do rather than teaching from scratch.' + NVQ_PROCESS + NVQ_ENTRY,
+      suitedFor:     [
+        'Practising electricians with several years of experience',
+        'Those who learned on the job and have no formal electrotechnical qualification',
+        'Electricians who need to evidence competence for card or scheme purposes'
+      ],
+      notSuitedFor:  'Not a route into the electrical trade for beginners — it requires substantial existing experience and access to work to evidence.',
+      progression:   [],
+      url:           'https://www.csttraining.co.uk/level-3-electrotechnical-experienced-worker/',
+      benefits:      'The recognised experienced worker assessment route for electricians. Recognises existing competence without returning to college.'
+    },
+
+    /* ── OCCUPATIONAL HEALTH & SAFETY NVQs ───────────────── */
+    {
+      id:            'ohs-nvq-level-3',
+      title:         'Level 3 NVQ Occupational Health & Safety',
+      category:      'Health & Safety',
+      level:         3,
+      minExperience: null,
+      roles:         ['health and safety officer','h&s advisor','safety coordinator',
+                      'site safety officer','h&s administrator'],
+      audience:      'Those working in a health and safety role who want a competence-based NVQ assessed on their actual work rather than an exam-based certificate.',
+      description:   'The Level 3 NVQ in Occupational Health and Safety recognises competence in an H&S role through workplace evidence rather than examination. It is the NVQ alternative to certificate-based routes such as NEBOSH.' + NVQ_PROCESS + NVQ_ENTRY,
+      suitedFor:     [
+        'H&S officers and advisors already doing the role',
+        'Those who prefer evidence-based assessment to exams',
+        'People who need a recognised H&S qualification without classroom study'
+      ],
+      notSuitedFor:  'Not for those new to health and safety with no H&S duties to evidence — NEBOSH or IOSH courses teach the knowledge first. Senior practitioners should consider the Level 6 NVQ.',
+      progression:   ['ohs-nvq-level-6','nebosh-general'],
+      url:           'https://www.csttraining.co.uk/ohs-level-3/',
+      benefits:      'Competence-based H&S qualification assessed on the work you already do, with no exams. Completed remotely with a dedicated assessor.'
+    },
+
+    {
+      id:            'ohs-nvq-level-6',
+      title:         'Level 6 NVQ Occupational Health & Safety',
+      category:      'Health & Safety',
+      level:         6,
+      minExperience: null,
+      roles:         ['health and safety manager','shequ manager','hse manager',
+                      'safety manager','head of health and safety'],
+      audience:      'Experienced health and safety practitioners who want a degree-level qualification assessed through workplace competence, often as a route toward professional IOSH membership.',
+      description:   'The Level 6 NVQ Diploma in Occupational Health and Safety is a degree-level competence qualification for practising H&S professionals. Widely used as a route toward Graduate IOSH and onward Chartered membership. Eligible for ELCAS funding.' + NVQ_PROCESS + NVQ_ENTRY,
+      suitedFor:     [
+        'Practising H&S managers and practitioners',
+        'Those working toward Graduate or Chartered IOSH membership',
+        'NEBOSH General or Construction Certificate holders progressing further',
+        'Ex-forces personnel who may be eligible for ELCAS funding'
+      ],
+      notSuitedFor:  'Not for those new to health and safety — requires a substantial H&S role to evidence. The Level 3 NVQ or NEBOSH Certificates are better starting points.',
+      progression:   ['ohs-nvq-level-7'],
+      url:           'https://www.csttraining.co.uk/ohs-level-6/',
+      benefits:      'Degree-level H&S qualification assessed on real work rather than exams. Commonly used as a route toward professional IOSH membership. One of CST\'s ELCAS-eligible NVQs.'
+    },
+
+    {
+      id:            'ohs-nvq-level-7',
+      title:         'Level 7 Diploma Occupational Health & Safety',
+      category:      'Health & Safety',
+      level:         7,
+      minExperience: null,
+      roles:         ['head of health and safety','hse director','shequ director',
+                      'senior h&s manager','group safety manager'],
+      audience:      'Senior health and safety professionals operating at a strategic level who want the highest-level H&S qualification.',
+      description:   'The Level 7 Diploma in Occupational Health and Safety is a postgraduate-level qualification for senior H&S professionals with strategic responsibility.' + NVQ_PROCESS + NVQ_ENTRY,
+      suitedFor:     [
+        'Heads of health and safety and HSE directors',
+        'Senior practitioners with strategic organisational responsibility',
+        'Level 6 holders progressing to the highest level'
+      ],
+      notSuitedFor:  'Not appropriate without substantial senior H&S experience. Level 6 is the correct level for most practising H&S managers.',
+      progression:   [],
+      url:           'https://www.csttraining.co.uk/occupational-health-and-safety-level-7/',
+      benefits:      'The most senior H&S qualification CST offers, recognising strategic health and safety leadership.'
+    },
+
+    /* ── BUSINESS NVQs ───────────────────────────────────── */
+    {
+      id:            'business-nvqs',
+      title:         'Business NVQs (Management, Administration & Customer Service)',
+      category:      'Leadership & Management',
+      level:         3,
+      minExperience: null,
+      roles:         ['office manager','administrator','team leader','customer service advisor',
+                      'operations coordinator','business support','contact centre manager'],
+      audience:      'People working in business, administration or customer service roles who want a work-based qualification assessed on the job rather than through study and exams.',
+      description:   'CST offers business NVQs across management, business administration and customer service, plus an OTHM Level 4 Diploma in Business Management. Like construction NVQs, these are assessed on evidence from your actual role through an online portfolio.',
+      suitedFor:     [
+        'Administrators and office managers wanting formal recognition',
+        'Customer service staff and team leaders',
+        'Those who prefer work-based assessment to classroom study',
+        'Employers qualifying office-based teams'
+      ],
+      notSuitedFor:  'Not for those wanting a taught management course with a professional body behind it — ILM or CMI qualifications suit that better. Not for construction site roles.',
+      progression:   ['ilm-level-3','cmi-level-3-management'],
+      url:           'https://www.csttraining.co.uk/business-nvqs-courses/',
+      benefits:      'Work-based qualifications for office and customer-facing roles, assessed on evidence from the job. Covers management, business administration and customer service pathways.'
+    }
+
+  ];
+
+  /* ═══════════════════════════════════════════════════════════
+     4. MERGE
+  ═══════════════════════════════════════════════════════════ */
+
+  const kb = window.CSTKnowledge;
+
+  // Sanitise the existing entries (advisor.js is untouched — it never loads this file)
+  kb.qualifications.forEach(sanitiseEntry);
+
+  // Add the NVQs, skipping any id that already exists
+  const existing = new Set(kb.qualifications.map(q => q.id));
+  nvqs.forEach(q => {
+    if (!existing.has(q.id)) kb.qualifications.push(sanitiseEntry(q));
+  });
+
+  console.log('CSTKnowledge: ' + kb.qualifications.length + ' qualifications loaded, prices stripped.');
+
+})();
