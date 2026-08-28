@@ -20,6 +20,12 @@
 (function () {
   'use strict';
 
+  function apply() {
+    if (!window.CSTKnowledge || !window.CSTKnowledge.qualifications) return;
+    if (window.CSTKnowledge.__citbApplied) return;
+    window.CSTKnowledge.__citbApplied = true;
+
+
   if (!window.CSTKnowledge || !window.CSTKnowledge.qualifications) {
     console.error('knowledge-citb.js: knowledge.js must load first.');
     return;
@@ -302,5 +308,19 @@
   });
 
   console.log('CSTKnowledge: +' + added + ' CITB courses (' + kb.qualifications.length + ' total).');
+
+
+  }
+
+  /* ── LOAD-ORDER SAFETY ────────────────────────────────────
+     knowledge.js replaces window.CSTKnowledge wholesale whenever it
+     runs. If it loads after this file, everything added here is lost.
+     So instead of applying once, we register the work and let
+     assistant.js re-apply it whenever it notices the object has been
+     swapped. Applying twice is harmless — every add is guarded.
+  ─────────────────────────────────────────────────────────── */
+  window.CSTKnowledgeExtensions = window.CSTKnowledgeExtensions || [];
+  window.CSTKnowledgeExtensions.push({ name: 'knowledge-citb', apply: apply });
+  if (window.CSTKnowledge && window.CSTKnowledge.qualifications) apply();
 
 })();
