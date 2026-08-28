@@ -29,14 +29,9 @@
   const EMAIL = 'enquiries@csttraining.co.uk';
 
   /* ── TESTING LOCK ─────────────────────────────────────────
-     While ONLY_ON_PATHS has anything in it, the assistant loads on
-     THOSE PAGES ONLY and nowhere else. Empty the array to go sitewide.
-
-     Paths are matched from the start of the URL path, so '/bot-test/'
-     also covers '/bot-test/anything'.
-
-     Example:
-       const ONLY_ON_PATHS = ['/bot-test/'];
+     While ONLY_ON_PATHS has anything in it, the assistant appears on
+     THOSE PAGES ONLY. Empty it to [] to go sitewide.
+     Add more paths one per line, each in quotes with a trailing comma.
   ─────────────────────────────────────────────────────────── */
   const ONLY_ON_PATHS = [
     '/what-does-isep-course-mean/'
@@ -1052,7 +1047,7 @@ ${detail}${tradeBlock}`;
 
   function shouldLoad() {
     // Don't double-mount
-    if (document.querySelector('.cst-asst__launcher')) return false;
+    if (document.querySelector('#cst-asst-launcher')) return false;
 
     const path = window.location.pathname;
 
@@ -1073,6 +1068,26 @@ ${detail}${tradeBlock}`;
   function init() {
     if (!shouldLoad()) return;
     window.CSTAssistantInstance = new CSTAssistant();
+    watch();
+  }
+
+  /* Other scripts on the page (caching plugins, sliders, theme JS) can replace
+     chunks of the DOM after we mount, taking the widget with them. If the
+     launcher disappears, put it back. */
+  let watching = false;
+  function watch() {
+    if (watching) return;
+    watching = true;
+    setInterval(() => {
+      if (!document.querySelector('#cst-asst-launcher')) {
+        const styles = document.getElementById('cst-asst-styles');
+        if (styles) styles.remove();
+        console.warn('CSTAssistant: widget was removed from the page — remounting.');
+        try { window.CSTAssistantInstance = new CSTAssistant(); } catch (e) {
+          console.error('CSTAssistant: remount failed', e);
+        }
+      }
+    }, 2000);
   }
 
   if (document.readyState === 'loading') {
