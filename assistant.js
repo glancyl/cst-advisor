@@ -94,7 +94,9 @@
     width:390px; max-width:calc(100vw - 32px); height:600px; max-height:calc(100vh - 130px);
     background:#fff; border-radius:14px; box-shadow:0 12px 48px rgba(28,37,96,.28);
     display:none; flex-direction:column; overflow:hidden; border:1px solid var(--border); }
-  .cst-asst__panel--open { display:flex; }
+  .cst-asst__panel--open { display:flex !important; }
+  .cst-asst__launcher svg, .cst-asst__launcher img { pointer-events:none; }
+  .cst-asst__launcher { pointer-events:auto !important; }
 
   .cst-asst__bar { background:var(--navy); color:#fff; padding:14px 16px;
     display:flex; align-items:center; gap:11px; flex-shrink:0; }
@@ -685,8 +687,29 @@ ${detail}${tradeBlock}`;
     }
 
     _bindEvents() {
-      this.launcherEl.addEventListener('click', () => this._toggle());
-      this.closeBtn.addEventListener('click', () => this._toggle(false));
+      // Bound on the document in the capture phase: other plugins on the page
+      // (pixels, trackers, browser extensions) attach their own global click
+      // handlers, and one calling stopImmediatePropagation would otherwise
+      // swallow the click before it reached the button.
+      const onTap = (e) => {
+        const t = e.target;
+        if (!t || !t.closest) return;
+        if (t.closest('#cst-asst-close')) {
+          e.preventDefault(); e.stopPropagation();
+          this._toggle(false);
+          return;
+        }
+        if (t.closest('#cst-asst-launcher')) {
+          e.preventDefault(); e.stopPropagation();
+          this._toggle();
+        }
+      };
+      document.addEventListener('click', onTap, true);
+      document.addEventListener('touchend', onTap, true);
+
+      // Direct binding as well, in case the capture listener is removed
+      this.launcherEl.addEventListener('click', (e) => { e.preventDefault(); this._toggle(); });
+      this.closeBtn.addEventListener('click', (e) => { e.preventDefault(); this._toggle(false); });
 
       this.sendBtn.addEventListener('click', () => this._handleSend());
 
@@ -717,6 +740,12 @@ ${detail}${tradeBlock}`;
     }
 
     _toggle(force) {
+      // Both the capture listener and the direct listener can fire for one tap;
+      // ignore anything within 250ms of the last toggle.
+      const now = Date.now();
+      if (typeof force !== 'boolean' && this._lastToggle && now - this._lastToggle < 250) return;
+      this._lastToggle = now;
+
       this.isOpen = (typeof force === 'boolean') ? force : !this.isOpen;
       this.panelEl.classList.toggle('cst-asst__panel--open', this.isOpen);
       this.launcherEl.classList.toggle('cst-asst__launcher--open', this.isOpen);
