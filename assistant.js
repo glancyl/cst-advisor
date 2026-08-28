@@ -193,31 +193,109 @@
   }
 
   /* ─────────────────────────────────────────────────────────────
-     SYSTEM PROMPT
+     SYSTEM PROMPT — built in two parts for prompt caching.
+
+     STATIC: identical on every call, so it is sent with cache_control
+     and billed at 10% after the first call. Contains the rules and a
+     one-line index of every course.
+
+     DYNAMIC: page context plus full detail for only the handful of
+     courses relevant to this conversation. Never cached, but small.
+
+     This is why the page context sits at the BOTTOM. Putting anything
+     that varies near the top would break the cache on every request.
   ───────────────────────────────────────────────────────────── */
 
-  function buildSystemPrompt(ctx) {
+  // How many courses get expanded to full detail per call
+  const DETAIL_LIMIT = 4;    // new courses added per turn
+  const MAX_EXPANDED  = 10;   // ceiling across a whole conversation
+
+  const STOPWORDS = new Set(['the','and','for','with','you','your','are','can',
+    'what','which','how','course','courses','training','level','need','want',
+    'this','that','have','does','about','from','they','there','would','should',
+    'get','got','one','out','not','but','any','all','its','has','was','were']);
+
+  function tokenise(str) {
+    return (str || '').toLowerCase().match(/[a-z0-9]{3,}/g) || [];
+  }
+
+  /* One line per course — enough for the model to know what exists and
+     pick the right one to talk about. Roughly 1,200 tokens for all 29. */
+  function buildIndex(quals) {
+    return quals.map(q =>
+      `${q.id} | ${q.title} | ${q.category}, level ${q.level} | ${q.url}`
+    ).join('\n');
+  }
+
+  /* Pick the courses worth expanding: score each against the page and
+     what the visitor has actually said. */
+  function selectRelevant(quals, ctx, messages) {
+    const said = messages.filter(m => m.role === 'user')
+                         .slice(-4)
+                         .map(m => m.content).join(' ');
+    const haystack = tokenise(said + ' ' + ctx.title + ' ' + ctx.path +
+                              ' ' + (ctx.currentCourse || ''))
+                     .filter(w => !STOPWORDS.has(w));
+    if (!haystack.length) return [];
+
+    const counts = {};
+    haystack.forEach(w => { counts[w] = (counts[w] || 0) + 1; });
+
+    const scored = quals.map(q => {
+      const text = tokenise([q.title, q.category, q.audience,
+                             (q.roles || []).join(' ')].join(' '));
+      const bag = new Set(text);
+      let score = 0;
+      Object.keys(counts).forEach(w => { if (bag.has(w)) score += counts[w]; });
+      return { q, score };
+    }).filter(x => x.score > 0);
+
+    scored.sort((a, b) => b.score - a.score);
+    return scored.slice(0, DETAIL_LIMIT).map(x => x.q);
+  }
+
+  /* The dynamic block is cached too, which only works if it never
+     changes retrospectively. So courses are APPENDED to a stable
+     ordered list and never removed or reordered — each turn adds at
+     most a couple of entries to the end, and everything before that
+     point stays a cache hit. */
+  function growExpanded(quals, ctx, messages, expanded) {
+    const picked = selectRelevant(quals, ctx, messages);
+    picked.forEach(q => {
+      if (expanded.indexOf(q.id) === -1 && expanded.length < MAX_EXPANDED) {
+        expanded.push(q.id);
+      }
+    });
+    return expanded;
+  }
+
+  function clip(str, max) {
+    if (!str || str.length <= max) return str || '';
+    const cut = str.slice(0, max);
+    const stop = cut.lastIndexOf('. ');
+    return (stop > max * 0.5 ? cut.slice(0, stop + 1) : cut) + ' […]';
+  }
+
+  function detailFor(q) {
+    return `${q.title} (id: ${q.id})
+  URL: ${q.url}
+  Category: ${q.category} | Level: ${q.level}${typeof q.minExperience === 'number' ? ' | Min experience: ' + q.minExperience + ' years' : ''}
+  Audience: ${q.audience}
+  Suited for: ${(q.suitedFor || []).slice(0, 3).join('; ')}
+  Not suited for: ${q.notSuitedFor}
+  Progression: ${(q.progression || []).length ? q.progression.join(', ') : 'terminal qualification'}
+  Detail: ${clip(q.description, 900)}
+  Benefits: ${q.benefits}`;
+  }
+
+  /* ── STATIC HALF ─────────────────────────────────────────── */
+  function buildStaticPrompt() {
     const kb = window.CSTKnowledge;
-
-    const qualList = (kb && kb.qualifications ? kb.qualifications : []).map(q =>
-      `- ${q.title} (id: ${q.id}, category: ${q.category}, level: ${q.level}, minExperience: ${q.minExperience} years)
-   Audience: ${q.audience}
-   Suited for: ${q.suitedFor.join('; ')}
-   Not suited for: ${q.notSuitedFor}
-   Progression: ${q.progression.length ? q.progression.join(', ') : 'terminal qualification'}
-   Benefits: ${q.benefits}`
-    ).join('\n\n');
-
-    const pageCtx = `The visitor is currently on: "${ctx.title}" (${ctx.path}).
-${ctx.currentCourse ? `This page is about the ${ctx.currentCourse}.` : 'Infer from the page title what they are looking at, but do not assume it is what they need.'}
-Use this as context only. Never recommend a course simply because they are on its page.`;
+    const quals = (kb && kb.qualifications) ? kb.qualifications : [];
 
     return `You are the CST Training website assistant. You help visitors anywhere on csttraining.co.uk understand our courses, choose the right qualification, and find the right page.
 
-CST Training is a UK construction, health & safety and professional qualifications training provider with 30+ locations nationwide. We deliver CITB courses (SMSTS, SSSTS, HSA, Temporary Works, SEATS, DRHS), construction NVQs, NEBOSH, IOSH, ILM, CMI, PRINCE2, first aid and EUSR SHEA — online via Google Meet and in classrooms nationwide.
-
-CURRENT PAGE
-${pageCtx}
+CST Training is a UK construction, health & safety and professional qualifications training provider with 30+ locations nationwide. We deliver CITB courses (SMSTS, SSSTS, HSA, Temporary Works, SEATS, DRHS, CDM Awareness), construction NVQs, NEBOSH, IOSH, ILM, CMI, PRINCE2, MSP, first aid, mental health and EUSR SHEA — online via Google Meet and in classrooms nationwide.
 
 ════════════════════════════════════════
 PRICING AND AVAILABILITY — HARD RULES
@@ -247,33 +325,52 @@ If the question is about their particular case, say plainly that you cannot look
 Refunds and complaints: escalate immediately, however they are phrased. Do not discuss refund policy.
 
 HOW OUR PROCESSES WORK (general answers you may give):
-<<< TO BE COMPLETED — ask admin for the stable answer to each. Until an
-answer is added below, escalate the question instead of guessing. >>>
-- Joining instructions: [when they are sent, and to which address]
-- Certificates after passing: [turnaround, and who issues them]
-- What to bring on the day: [ID requirements, PPE, equipment]
-- Rescheduling or transferring a delegate: [the process, not the fee]
-- Venue access and parking: [general guidance]
-- Resits: [how the process works]
+These apply to CITB courses (SMSTS, SSSTS, HSA, SEATS, DRHS, Temporary Works, CDM Awareness). If asked about another course type and you are not sure the same applies, say so and escalate rather than guessing.
+
+- Joining instructions: sent by email before the course starts, to the address on the booking. Remote candidates also receive digital CITB resources by email; hard copy resources are provided at the venue for classroom courses. If someone says they have NOT received theirs, escalate — do not guess why.
+- Course times: courses run 08:30 to 17:00, remote and classroom alike.
+- Class sizes: up to 12 candidates on remote courses, up to 20 in a classroom.
+- Certificates: after the trainer marks the exam, the certificate is issued by CITB and sent by email. This can take up to 28 working days. If someone is past that, or is chasing a specific certificate, escalate.
+- Transfers to a different course date: possible but not guaranteed, and a rebooking fee applies. You may say that a fee applies and that at least 14 working days' notice before the start date is needed, but NEVER state the fee amount or percentage — escalate for the actual figures.
+- Refresher eligibility: candidates must hold an IN-DATE certificate to sit any refresher (SMSTS, SSSTS, TWC). Once it has expired the full course is required instead. For the TWC Refresher the certificate must still be in date even at the point of a resit.
+- Resits: many CITB courses include a free same-day resit where the candidate scores close to the pass mark. Thresholds vary by course — do not invent one.
+
+ENTRY REQUIREMENTS: CST does not publish a minimum number of years of experience for its NVQs. NEVER tell a visitor they need a specific number of years, and never say they do or do not have enough experience. Eligibility depends on the role they currently do and the site evidence they can access, and CST confirms it through an eligibility form before purchase. If asked, explain that and point them to the course page or the team.
+
+NVQ EVIDENCE: ${(kb && kb.evidenceSchedule) ? kb.evidenceSchedule : '(not loaded — do not describe evidence requirements)'}
+
+WHICH TRADE NVQs CST ACTUALLY SELLS: only confirm and link a trade NVQ if it appears at the end of this prompt marked PRODUCT (confirmed listed for sale). If a visitor names a trade you have not been given a PRODUCT for, do NOT confirm CST offers it and do NOT invent a page link — say you are not certain that one is available, point them to https://www.csttraining.co.uk/trade/ to search, and offer to have the team confirm. Note that crane and plant NVQs are sold separately at /crane-nvqs/ and /plant-nvqs/.
+
+Card outcomes vary by trade and MUST NOT be assumed. Demolition leads to a CCDO card, Scaffolding to a CISRS card, and the glass trades (Glazing, Curtain Wall) to GQA-awarded cards. Only state a card outcome or a duration when it is given to you below AND the product is not marked unverified. If it is unverified or absent, say the course page has the current detail and link it.
+
+If a visitor names their trade, trade-specific tasks may be supplied at the end of this prompt. Present those as what candidates TYPICALLY need to capture, and always add that the assessor confirms the exact evidence at induction once the units are chosen. Never present them as a fixed checklist, and never invent tasks for a trade you have not been given.
+
+NVQ PROCESS: NVQs are completed remotely through the Quals Direct e-portfolio. Induction with an assessor is usually within 7 working days of registration. The assessor helps choose optional units around the candidate's actual job role. An up-to-date CV upload is mandatory. Knowledge questions can be written or discussed with the assessor. The portfolio stays open for 1 year. An NVQ is not a training course — it accredits competence the candidate already has.
 
 If a process question is not covered above, say you would rather have the team confirm it than give you the wrong answer, and escalate.
 
-AVAILABLE QUALIFICATIONS:
-${qualList || '(Knowledge base not loaded — do not invent course detail. Direct visitors to the website or the team.)'}
+════════════════════════════════════════
+COURSE INDEX — everything CST offers
+════════════════════════════════════════
+${buildIndex(quals)}
 
-CITB COURSES: CST is a leading UK provider of CITB-accredited courses — never say we don't offer these. SMSTS (5 days) for site managers. SSSTS (2 days) for site supervisors, free same-day resit included. HSA (Health & Safety Awareness, 1 day) is required for the CSCS Green Labourer's Card. Temporary Works for both Supervisors and Coordinators. SMSTS Refresher (2 days) and SSSTS Refresher (1 day) for renewals. All available online via Google Meet or in person at 30+ UK locations. CITB Levy payers can claim grants — explain that grants exist, but never state grant amounts.
+Full detail for the most relevant courses is provided at the end of this prompt. If a visitor asks about a course listed above that you have no detail for, you may confirm we offer it and link the URL, but do NOT invent content, unit names, durations or exam formats for it — say you'll get the detail confirmed, or point them to the page.
 
-ILM vs CMI GUIDANCE:
+════════════════════════════════════════
+ILM vs CMI GUIDANCE
+════════════════════════════════════════
 ILM (the practical route): work-based, focuses on "how do I do this in my role?" Credit system with flexible unit selection, good for targeting specific skill gaps. Evidence-based assessment drawing on real workplace situations. Strong with supervisors and first-line managers. If someone says they don't like essays or want something practical, steer toward ILM.
 
-CMI (the strategic route): more academic and reflective, focuses on "why does this work and what is the impact?" Leads to Chartered Manager (CMgr) status, the highest professional recognition for managers in the UK. CMgr MCMI after their name. Access to ManagementDirect. More prestigious within the management sector. If someone wants Director, senior management or board level, steer toward CMI. The CMI Level 5 Diploma or above unlocks the fast-track route to Chartered Manager (requires 3+ years management experience).
+CMI (the strategic route): more academic and reflective, focuses on "why does this work and what is the impact?" Leads to Chartered Manager (CMgr) status, the highest professional recognition for managers in the UK. CMgr MCMI after their name. Access to ManagementDirect. If someone wants Director, senior management or board level, steer toward CMI. The CMI Level 5 Diploma or above unlocks the fast-track route to Chartered Manager (requires 3+ years management experience).
 
-When someone asks ILM vs CMI, ask one clarifying question: do they prefer a practical, evidence-based approach (ILM) or the academic weight and Chartered Manager pathway (CMI)? Also weigh seniority — CMI suits middle and senior management, ILM suits supervisors and first-line managers.
+When someone asks ILM vs CMI, ask one clarifying question: do they prefer a practical, evidence-based approach (ILM) or the academic weight and Chartered Manager pathway (CMI)? Also weigh seniority.
 
 AWARD vs CERTIFICATE vs DIPLOMA:
 - Award (1-2 units, weeks): solves one specific skill gap quickly.
 - Certificate (3-5 units, 3-6 months): all-round CV boost without full Diploma commitment.
 - Diploma (6+ units, 6-12 months): comprehensive. Only the Diploma opens the door to Chartered Manager status.
+
+CITB GRANTS: CITB Levy payers who are up to date on payments can claim grants toward many courses and NVQ achievements. The Level 7 NVQ in Construction Senior Management is NO LONGER eligible for CITB funding. If unsure whether a specific course qualifies, say so rather than assuming. Explain that grants exist and point to the CITB funding page — NEVER state a grant amount. ELCAS funding is available for current and ex-military personnel on some NVQs.
 
 ════════════════════════════════════════
 STYLE
@@ -282,7 +379,7 @@ STYLE
 - Short answers — two or three sentences unless they've asked for detail.
 - Ask ONE question at a time, never several at once.
 - Be honest. If ILM Level 3 is right for someone asking about Level 7, say so kindly.
-- Never invent unit names, course content lists, accreditation claims, exam dates or awarding body rules. If you don't have the detail, say so and offer to pass it on.
+- Never invent unit names, course content, accreditation claims, exam dates or awarding body rules.
 - Never guarantee an exam pass.
 - This is a chat window, not an essay.
 
@@ -291,12 +388,12 @@ Contact details you may always give: ${PHONE} or ${EMAIL}.
 ════════════════════════════════════════
 STRUCTURED OUTPUTS
 ════════════════════════════════════════
-When you are ready to make a firm course recommendation, reply with ONLY this block and no surrounding text:
+When ready to make a firm course recommendation, reply with ONLY this block and no surrounding text:
 
 <RECOMMENDATION>
 {
   "type": "recommendation",
-  "qualificationId": "the-id-from-knowledge-base",
+  "qualificationId": "the-id-from-the-course-index",
   "confidence": "high|medium|low",
   "reason": "One or two sentences on why this is right for them",
   "personalBenefit": "One sentence specific to what they told you",
@@ -309,12 +406,12 @@ high: "Based on everything you've told me, I'm confident this is the right quali
 medium: "There are a couple of good options here. I'd recommend speaking with our advisers before booking to make sure you choose the best fit."
 low: "I'd recommend speaking with our team directly so we can make sure you choose the right qualification for your situation."
 
-Only output this when ready to recommend. Before that, plain conversational text only — no JSON, no tags.
+Only output this when ready to recommend. Before that, plain conversational text only.
 
 When the visitor asks about a specific booking, order, certificate, refund, invoice or complaint, reply with a short plain sentence explaining you can't look that up, then exactly:
 
 <ESCALATE>
-{"type":"escalate","topic":"short description of what they need, e.g. missing joining instructions"}
+{"type":"escalate","topic":"short description of what they need"}
 </ESCALATE>
 
 When someone wants to speak to a person or is ready to enquire, reply with your message then exactly:
@@ -324,21 +421,121 @@ When someone wants to speak to a person or is ready to enquire, reply with your 
 </LEAD_CAPTURE>`;
   }
 
+  /* ── DYNAMIC HALF ────────────────────────────────────────── */
+  function buildDynamicPrompt(ctx, messages, expanded, expandedTrades) {
+    const kb = window.CSTKnowledge;
+    const quals = (kb && kb.qualifications) ? kb.qualifications : [];
+    growExpanded(quals, ctx, messages, expanded);
+
+    const byId = {};
+    quals.forEach(q => { byId[q.id] = q; });
+    const relevant = expanded.map(id => byId[id]).filter(Boolean);
+
+    const detail = relevant.length
+      ? relevant.map(detailFor).join('\n\n')
+      : '(Nothing specific identified yet — ask the visitor about their role or what they are looking for.)';
+
+    // Trade evidence: look up only the trade actually mentioned
+    let tradeBlock = '';
+    if (kb && typeof kb.findTradeEvidence === 'function') {
+      const said = messages.filter(m => m.role === 'user').map(m => m.content).join(' ');
+      const prod = (typeof kb.findTradeProduct === 'function')
+        ? kb.findTradeProduct(said + ' ' + ctx.title) : null;
+      if (prod && expandedTrades.indexOf('P:' + prod.name + prod.level) === -1) {
+        expandedTrades.push('P:' + prod.name + prod.level);
+      }
+      const hit = kb.findTradeEvidence(said + ' ' + ctx.title);
+      if (hit && expandedTrades.indexOf(hit.name + hit.level) === -1) {
+        expandedTrades.push(hit.name + hit.level);
+      }
+      if (expandedTrades.length) {
+        const lines = expandedTrades.map(key => {
+          if (key.indexOf('P:') === 0) {
+            const lv = parseInt(key.slice(-1), 10);
+            const nm = key.slice(2, -1);
+            const p  = (kb.tradeProducts || []).find(x => x.name === nm && x.level === lv);
+            if (!p) return '';
+            var out = `PRODUCT (confirmed listed for sale): ${p.name} — Level ${p.level}`;
+            if (p.card) out += `\n  Card: ${p.card}`;
+            if (p.duration) out += `\n  Duration: ${p.duration}`;
+            if (p.note) out += `\n  Note: ${p.note}`;
+            if (!p.verified) out += `\n  (Card and duration NOT verified against this product's own page — ` +
+              `do not state a card outcome or duration for it; point to the page instead.)`;
+            out += `\n  Page: ${p.url}`;
+            return out;
+          }
+          const lvl = key.slice(-6);
+          const nm  = key.slice(0, -6);
+          const t   = kb.tradeEvidence[lvl] && kb.tradeEvidence[lvl][nm];
+          return t ? `EVIDENCE — ${nm} (${lvl === 'level3' ? 'Level 3' : 'Level 2'}): ${t}` : '';
+        }).filter(Boolean);
+        if (lines.length) {
+          tradeBlock = `
+
+════════════════════════════════════════
+TRADE-SPECIFIC EVIDENCE (typical — assessor confirms at induction)
+════════════════════════════════════════
+${lines.join('\n\n')}`;
+        }
+      }
+    }
+
+    return `════════════════════════════════════════
+CURRENT PAGE
+════════════════════════════════════════
+The visitor is on: "${ctx.title}" (${ctx.path}).
+${ctx.currentCourse ? `This page is about the ${ctx.currentCourse}.` : 'Infer from the page title what they are looking at, but do not assume it is what they need.'}
+Use this as context only. Never recommend a course simply because they are on its page.
+
+════════════════════════════════════════
+COURSE DETAIL — most relevant to this conversation
+════════════════════════════════════════
+${detail}${tradeBlock}`;
+  }
+
   /* ─────────────────────────────────────────────────────────────
      API CALL
   ───────────────────────────────────────────────────────────── */
 
-  async function callAPI(messages, ctx) {
-    const res = await fetch(API_URL, {
+  async function callAPI(messages, ctx, expanded, expandedTrades) {
+    const body = {
+      model: API_MODEL,
+      max_tokens: 1000,
+      system: [
+        {
+          type: 'text',
+          text: buildStaticPrompt(),
+          cache_control: { type: 'ephemeral' }
+        },
+        {
+          type: 'text',
+          text: buildDynamicPrompt(ctx, messages, expanded, expandedTrades),
+          cache_control: { type: 'ephemeral' }
+        }
+      ],
+      messages: messages.map(m => ({ role: m.role, content: m.content }))
+    };
+
+    let res = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: API_MODEL,
-        max_tokens: 1000,
-        system: buildSystemPrompt(ctx),
-        messages: messages.map(m => ({ role: m.role, content: m.content }))
-      })
+      body: JSON.stringify(body)
     });
+
+    // Fallback: if the proxy can't handle a structured system block,
+    // retry once with the two halves flattened into a plain string.
+    if (!res.ok && res.status >= 400 && res.status < 500) {
+      const flat = Object.assign({}, body, {
+        system: body.system.map(b => b.text).join('\n\n')
+      });
+      res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(flat)
+      });
+      if (res.ok) console.warn('CSTAssistant: proxy rejected cached system block, ' +
+                               'fell back to plain string. Caching is NOT active.');
+    }
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
@@ -346,8 +543,17 @@ When someone wants to speak to a person or is ready to enquire, reply with your 
     }
 
     const data = await res.json();
+
+    if (data.usage) {
+      console.log('CSTAssistant tokens — cache write:', data.usage.cache_creation_input_tokens || 0,
+                  '| cache read:', data.usage.cache_read_input_tokens || 0,
+                  '| uncached in:', data.usage.input_tokens || 0,
+                  '| out:', data.usage.output_tokens || 0);
+    }
+
     return data.content?.map(b => b.text || '').join('') || '';
   }
+
 
   /* ─────────────────────────────────────────────────────────────
      PARSE RESPONSE
@@ -392,6 +598,8 @@ When someone wants to speak to a person or is ready to enquire, reply with your 
       this.messages = [];
       this.isTyping = false;
       this.isOpen   = false;
+      this.expanded = [];
+      this.expandedTrades = [];
       this.started  = false;
       this.conversationId = 'asst_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
 
@@ -544,7 +752,7 @@ When someone wants to speak to a person or is ready to enquire, reply with your 
       this.isTyping = true;
 
       try {
-        const raw = await callAPI(this.messages, this.ctx);
+        const raw = await callAPI(this.messages, this.ctx, this.expanded, this.expandedTrades);
         this._hideTyping();
         this.isTyping = false;
 
@@ -783,6 +991,8 @@ When someone wants to speak to a person or is ready to enquire, reply with your 
     /* ── RESET ────────────────────────────────────────────── */
     _reset() {
       this.messages = [];
+      this.expanded = [];
+      this.expandedTrades = [];
       this.isTyping = false;
       this.msgEl.innerHTML = '';
       this.chipsEl.style.display = '';
@@ -799,14 +1009,11 @@ When someone wants to speak to a person or is ready to enquire, reply with your 
   ───────────────────────────────────────────────────────────── */
 
   function shouldLoad() {
-    // Don't run where the Qualification Advisor is already embedded
-    if (document.querySelector('[data-cst-advisor]')) return false;
+    // Don't double-mount
+    if (document.querySelector('.cst-asst__launcher')) return false;
 
     const path = window.location.pathname;
     if (EXCLUDE_PATHS.some(p => p && path.indexOf(p) === 0)) return false;
-
-    // Don't double-mount
-    if (document.querySelector('.cst-asst__launcher')) return false;
 
     return true;
   }
