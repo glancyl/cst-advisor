@@ -28,11 +28,24 @@
   const PHONE = '020 3488 4472';
   const EMAIL = 'enquiries@csttraining.co.uk';
 
-  // Pages where the Qualification Advisor already runs.
-  // The assistant will not load on these, so you never get two bots.
+  /* ── TESTING LOCK ─────────────────────────────────────────
+     While ONLY_ON_PATHS has anything in it, the assistant loads on
+     THOSE PAGES ONLY and nowhere else. Empty the array to go sitewide.
+
+     Paths are matched from the start of the URL path, so '/bot-test/'
+     also covers '/bot-test/anything'.
+
+     Example:
+       const ONLY_ON_PATHS = ['/bot-test/'];
+  ─────────────────────────────────────────────────────────── */
+  const ONLY_ON_PATHS = [
+    '/what-does-isep-course-mean/'
+  ];
+
+  // Pages to skip once you HAVE gone sitewide (ignored while ONLY_ON_PATHS is set).
   const EXCLUDE_PATHS = [
-    // '/ilm-vs-cmi/',
-    // '/qualification-advisor/'
+    // '/checkout/',
+    // '/basket/'
   ];
 
   const CHIPS = [
@@ -1013,6 +1026,16 @@ ${detail}${tradeBlock}`;
     if (document.querySelector('.cst-asst__launcher')) return false;
 
     const path = window.location.pathname;
+
+    // Testing lock: if set, run ONLY on these paths.
+    // Trailing slashes are ignored on both sides so /page and /page/ both match.
+    const trim = p => p.replace(/\/+$/, '');
+    const here = trim(path);
+    const only = ONLY_ON_PATHS.filter(Boolean).map(trim);
+    if (only.length) {
+      return only.some(p => here === p || here.indexOf(p + '/') === 0);
+    }
+
     if (EXCLUDE_PATHS.some(p => p && path.indexOf(p) === 0)) return false;
 
     return true;
