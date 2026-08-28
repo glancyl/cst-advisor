@@ -679,6 +679,14 @@ ${detail}${tradeBlock}`;
 
       document.body.appendChild(root);
 
+      // The wrapper must not constrain its fixed-position children.
+      root.style.setProperty('position', 'static', 'important');
+      root.style.setProperty('overflow', 'visible', 'important');
+      root.style.setProperty('display', 'block', 'important');
+      root.style.setProperty('transform', 'none', 'important');
+      root.style.setProperty('filter', 'none', 'important');
+      root.style.setProperty('contain', 'none', 'important');
+
       this.root       = root;
       this.launcherEl = root.querySelector('#cst-asst-launcher');
       this.panelEl    = root.querySelector('#cst-asst-panel');
@@ -766,13 +774,50 @@ ${detail}${tradeBlock}`;
         p.style.setProperty('opacity', '1', 'important');
         p.style.setProperty('z-index', '2147483647', 'important');
         p.style.setProperty('position', 'fixed', 'important');
-        if (window.innerWidth > 600) {
+        p.style.setProperty('flex-direction', 'column', 'important');
+        p.style.setProperty('overflow', 'hidden', 'important');
+        p.style.setProperty('background', '#fff', 'important');
+
+        // Size it inline. The stylesheet rule was being lost somewhere on the
+        // page, leaving the panel at 0x0 — visible in the DOM but with no box.
+        const mobile = window.innerWidth <= 600;
+        if (mobile) {
+          p.style.setProperty('inset', '0', 'important');
+          p.style.setProperty('width', '100%', 'important');
+          p.style.setProperty('height', '100%', 'important');
+          p.style.setProperty('max-width', 'none', 'important');
+          p.style.setProperty('max-height', 'none', 'important');
+          p.style.setProperty('border-radius', '0', 'important');
+        } else {
+          p.style.setProperty('top', 'auto', 'important');
+          p.style.setProperty('left', 'auto', 'important');
           p.style.setProperty('bottom', '96px', 'important');
           p.style.setProperty('right', '24px', 'important');
+          p.style.setProperty('width', '390px', 'important');
+          p.style.setProperty('max-width', 'calc(100vw - 32px)', 'important');
+          p.style.setProperty('height', '600px', 'important');
+          p.style.setProperty('max-height', 'calc(100vh - 130px)', 'important');
+          p.style.setProperty('border-radius', '14px', 'important');
+          p.style.setProperty('box-shadow', '0 12px 48px rgba(28,37,96,.28)', 'important');
         }
+
+        // The children need their boxes forcing too, for the same reason.
+        const bar = p.querySelector('.cst-asst__bar');
+        const msg = p.querySelector('.cst-asst__messages');
+        const row = p.querySelector('.cst-asst__input-row');
+        if (bar) bar.style.setProperty('flex', '0 0 auto', 'important');
+        if (row) row.style.setProperty('flex', '0 0 auto', 'important');
+        if (msg) {
+          msg.style.setProperty('flex', '1 1 auto', 'important');
+          msg.style.setProperty('overflow-y', 'auto', 'important');
+          msg.style.setProperty('min-height', '0', 'important');
+        }
+
         const r = p.getBoundingClientRect();
+        console.log('[CST] panel size:', Math.round(r.width) + 'x' + Math.round(r.height));
         if (r.height < 10 || r.width < 10) {
-          console.warn('[CST] panel is open but has no size —', r);
+          console.warn('[CST] still no size. Parent:', p.parentElement,
+                       '| computed:', getComputedStyle(p).width, getComputedStyle(p).height);
         }
       } else {
         p.style.setProperty('display', 'none', 'important');
