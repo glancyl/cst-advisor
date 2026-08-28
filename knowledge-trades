@@ -22,6 +22,12 @@
 (function () {
   'use strict';
 
+  function apply() {
+    if (!window.CSTKnowledge || !window.CSTKnowledge.qualifications) return;
+    if (window.CSTKnowledge.__tradesApplied) return;
+    window.CSTKnowledge.__tradesApplied = true;
+
+
   if (!window.CSTKnowledge) {
     console.error('knowledge-trades.js: knowledge.js must load first.');
     return;
@@ -360,5 +366,19 @@
   console.log('CSTKnowledge: trade evidence loaded (' +
     Object.keys(window.CSTKnowledge.tradeEvidence.level2).length + ' L2, ' +
     Object.keys(window.CSTKnowledge.tradeEvidence.level3).length + ' L3).');
+
+
+  }
+
+  /* ── LOAD-ORDER SAFETY ────────────────────────────────────
+     knowledge.js replaces window.CSTKnowledge wholesale whenever it
+     runs. If it loads after this file, everything added here is lost.
+     So instead of applying once, we register the work and let
+     assistant.js re-apply it whenever it notices the object has been
+     swapped. Applying twice is harmless — every add is guarded.
+  ─────────────────────────────────────────────────────────── */
+  window.CSTKnowledgeExtensions = window.CSTKnowledgeExtensions || [];
+  window.CSTKnowledgeExtensions.push({ name: 'knowledge-trades', apply: apply });
+  if (window.CSTKnowledge && window.CSTKnowledge.qualifications) apply();
 
 })();
