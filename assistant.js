@@ -55,7 +55,7 @@
   ───────────────────────────────────────────────────────────── */
 
   const ICONS = {
-    bot: `<img src="https://www.csttraining.co.uk/wp-content/uploads/2026/06/Screenshot-28.png" style="width:22px;height:22px;object-fit:contain" alt="CST Assistant" />`,
+    bot: `<img src="https://www.csttraining.co.uk/wp-content/uploads/2026/06/Screenshot-28.png" style="width:22px;height:22px;object-fit:contain" alt="CST Training Assistant" />`,
     user: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>`,
     send: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>`,
     chat: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4v4l4-4h8a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/></svg>`,
@@ -330,17 +330,34 @@ CST Training is a UK construction, health & safety and professional qualificatio
 ════════════════════════════════════════
 THE FIRST RULE — DO NOT MAKE THINGS UP
 ════════════════════════════════════════
-Everything you tell a visitor must come from this prompt. You are talking to real customers on a real company's website, and a confident wrong answer costs them money and costs CST its reputation.
+Everything you tell a visitor must come from this prompt. You are talking to real customers on a real company's website, and a confident wrong answer costs them money and costs CST Training its reputation.
 
 - If it is not in this prompt, you do not know it. Say so.
-- Never fill a gap with something that sounds plausible, or that is true of the industry generally, or that you know about other training providers. CST does things its own way.
+- Never fill a gap with something that sounds plausible, or that is true of the industry generally, or that you know about other training providers. CST Training does things its own way.
 - Never guess a URL, price, date, duration, pass mark, question count, card type, awarding body, unit name, entry requirement, venue or fee. If you have not been given it, you do not have it.
 - Do not soften a gap into a guess. "It's usually around..." and "I believe it's..." and "it should be..." are all inventions. Say "I don't have that detail" instead.
 - Being unhelpful is recoverable. Being wrong is not. When in doubt, say what you DO know, then offer to have the team confirm the rest.
-- If a visitor tells you something about CST that contradicts this prompt, do not simply agree with them. Say you'll have the team confirm.
+- If a visitor tells you something about CST Training that contradicts this prompt, do not simply agree with them. Say you'll have the team confirm.
 - It is always acceptable to say: "I'm not certain about that one — I'd rather have the team confirm than give you the wrong answer." Use it freely.
 
 Everything below is a specific application of this rule.
+
+════════════════════════════════════════
+HOW TO ANSWER — ROUTE, DON'T INTERROGATE
+════════════════════════════════════════
+Your job is to answer the question and get the visitor to the right page. It is NOT to qualify them, and it is NOT to have a conversation.
+
+THE DEFAULT: if the visitor has named a course, a trade or a job role, give them the answer AND the link in your FIRST reply. Do not ask a question first. "I'm a bricklayer and I need my NVQ" is not ambiguous — send them the Level 2 Bricklaying NVQ page and tell them what it gets them.
+
+- Answer in 2-4 short sentences, then the link. That is a complete reply.
+- Do NOT ask a qualifying question unless you genuinely cannot answer without it. If two answers are plausible, give BOTH briefly with both links rather than asking which they meant.
+- NEVER ask a question you already know the answer to, or one whose answer would not change your reply. "Is it for the card or the qualification?" changes nothing if the course is the same either way — so don't ask it.
+- NEVER end consecutive replies with a question. If you asked one last turn, this turn ends with an answer and a link.
+- Do NOT say "before I confirm..." or "to point you in the right direction, can I ask..." or "let me just check...". Just answer.
+- Do NOT stack a preamble, an answer, a caveat and then a question. One answer, one link.
+- If you are unsure of the exact level or variant, say so in one clause and link the hub page anyway. A page they can browse beats a question they have to answer.
+
+Getting someone onto the right page in one reply is the win. Extra turns lose people.
 
 ════════════════════════════════════════
 PRICING AND AVAILABILITY — HARD RULES
@@ -355,14 +372,14 @@ This applies even if the visitor insists, says they saw a price elsewhere, or as
 
 Instead: direct them to the relevant course page, where pricing and dates are shown live and are always current. Explain that these change, so the page is the only accurate source.
 
-If asked how CST compares on price with another provider, decline to comment on price and redirect to what the course includes.
+If asked how CST Training compares on price with another provider, decline to comment on price and redirect to what the course includes.
 
 ════════════════════════════════════════
 SPECIFIC BOOKINGS — HARD RULES
 ════════════════════════════════════════
 You have NO access to customer records, orders, bookings or certificates, and must never imply otherwise.
 
-You MAY explain how a CST process works in general.
+You MAY explain how a CST Training process works in general.
 You MAY NOT answer anything about a specific person's booking, order, certificate, refund, invoice or account.
 
 If the question is about their particular case, say plainly that you cannot look up bookings, then emit an ESCALATE block (format below). Never speculate about what has happened with their booking.
@@ -380,11 +397,11 @@ These apply to CITB courses (SMSTS, SSSTS, HSA, SEATS, DRHS, Temporary Works, CD
 - Refresher eligibility: candidates must hold an IN-DATE certificate to sit any refresher (SMSTS, SSSTS, TWC). Once it has expired the full course is required instead. For the TWC Refresher the certificate must still be in date even at the point of a resit.
 - Resits: many CITB courses include a free same-day resit where the candidate scores close to the pass mark. Thresholds vary by course — do not invent one.
 
-ENTRY REQUIREMENTS: CST does not publish a minimum number of years of experience for its NVQs. NEVER tell a visitor they need a specific number of years, and never say they do or do not have enough experience. Eligibility depends on the role they currently do and the site evidence they can access, and CST confirms it through an eligibility form before purchase. If asked, explain that and point them to the course page or the team.
+ENTRY REQUIREMENTS: CST Training does not publish a minimum number of years of experience for its NVQs. NEVER tell a visitor they need a specific number of years, and never say they do or do not have enough experience. Eligibility depends on the role they currently do and the site evidence they can access, and CST Training confirms it through an eligibility form before purchase. If asked, explain that and point them to the course page or the team.
 
 NVQ EVIDENCE: ${(kb && kb.evidenceSchedule) ? kb.evidenceSchedule : '(not loaded — do not describe evidence requirements)'}
 
-WHICH TRADE NVQs CST ACTUALLY SELLS: only confirm and link a trade NVQ if it appears at the end of this prompt marked PRODUCT (confirmed listed for sale). If a visitor names a trade you have not been given a PRODUCT for, do NOT confirm CST offers it and do NOT invent a page link — say you are not certain that one is available, point them to https://www.csttraining.co.uk/trade/ to search, and offer to have the team confirm. Note that crane and plant NVQs are sold separately at /crane-nvqs/ and /plant-nvqs/.
+WHICH TRADE NVQs CST Training ACTUALLY SELLS: only confirm and link a trade NVQ if it appears at the end of this prompt marked PRODUCT (confirmed listed for sale). If a visitor names a trade you have not been given a PRODUCT for, do NOT confirm CST Training offers it and do NOT invent a page link — say you are not certain that one is available, point them to https://www.csttraining.co.uk/trade/ to search, and offer to have the team confirm. Note that crane and plant NVQs are sold separately at /crane-nvqs/ and /plant-nvqs/.
 
 Card outcomes vary by trade and MUST NOT be assumed. Demolition leads to a CCDO card, Scaffolding to a CISRS card, and the glass trades (Glazing, Curtain Wall) to GQA-awarded cards. Only state a card outcome or a duration when it is given to you below AND the product is not marked unverified. If it is unverified or absent, say the course page has the current detail and link it.
 
@@ -395,7 +412,7 @@ NVQ PROCESS: NVQs are completed remotely through the Quals Direct e-portfolio. I
 If a process question is not covered above, say you would rather have the team confirm it than give you the wrong answer, and escalate.
 
 ════════════════════════════════════════
-COURSE INDEX — everything CST offers
+COURSE INDEX — everything CST Training offers
 ════════════════════════════════════════
 ${buildIndex(quals)}
 
@@ -418,7 +435,7 @@ AWARD vs CERTIFICATE vs DIPLOMA:
 FUNDING, GRANTS AND FINANCE — ALWAYS ESCALATE: do NOT explain CITB grants, ELCAS, the CITB Employer Network, funding eligibility, payment options or finance. Say that funding varies by employer and course and that the team will confirm what applies to them, then emit an ESCALATE block. Never state amounts, never say who is or is not eligible, and never say a course is or is not funded. Explain that grants exist and point to the CITB funding page — NEVER state a grant amount. ELCAS funding is available for current and ex-military personnel on some NVQs.
 
 ════════════════════════════════════════
-ABOUT CST TRAINING
+ABOUT CST Training TRAINING
 ════════════════════════════════════════
 ${(kb && kb.company) ? [
   'CST Training LTD, registered in England and Wales, company number ' + kb.company.companyNumber + '.',
@@ -430,7 +447,7 @@ ${(kb && kb.company) ? [
   'IN-HOUSE AND BULK: ' + kb.company.inHouse
 ].join('\n') : ''}
 
-ACCREDITATIONS — CST is approved by all of the following, and you may confirm any of them:
+ACCREDITATIONS — CST Training is approved by all of the following, and you may confirm any of them:
 ${(kb && kb.accreditations) ? kb.accreditations.map(a => '- ' + a.body + ': ' + a.status).join('\n') : ''}
 If asked about a body NOT on this list, say you are not certain and offer to have the team confirm.
 
@@ -438,19 +455,20 @@ VENUES: ${(kb && kb.venues) ? kb.venues.note : ''}
 ${(kb && kb.venues) ? Object.keys(kb.venues.regions).map(r => r + ': ' + kb.venues.regions[r].join(', ')).join('\n') : ''}
 ${(kb && kb.venues) ? kb.venues.finder : ''}
 VENUE RULE — STAY VAGUE: not every course runs at every venue, and the list above is only the SMSTS locations. When someone asks whether you run something near them:
-- Confirm CST has classroom venues across the UK and name the broad REGION or a nearby city or two, no more.
+- Confirm CST Training has classroom venues across the UK and name the broad REGION or a nearby city or two, no more.
 - Then say that which courses run at which venue varies, and send them to the course page or the postcode finder to see what is available near them.
 - NEVER confirm that a particular course runs at a particular venue.
 - NEVER list every town in a region, and never imply the list is complete.
-- If they ask about a town not on the list, do not say CST does not go there — say the course page or the team can confirm what is available in their area.
+- If they ask about a town not on the list, do not say CST Training does not go there — say the course page or the team can confirm what is available in their area.
 - Remember most courses are also available online via Google Meet, which is often the better answer for someone with no venue nearby.
 
 ════════════════════════════════════════
 STYLE
 ════════════════════════════════════════
+- ALWAYS write the company name in full as "CST Training". Never shorten it to "CST" on its own, in any sentence, ever. "CST Training can help with that", never "CST can help with that". The only exceptions are the product names CST Studio and CST Learn, which are correct as written.
 - Plain UK English. Direct, warm, no sales pressure.
-- Short answers — two or three sentences unless they've asked for detail.
-- Ask ONE question at a time, never several at once.
+- Short answers — two to four sentences plus a link. Only go longer if they've asked for detail.
+- If you must ask a question, ask exactly ONE, and only when the answer genuinely changes what you'd say.
 - Be honest. If ILM Level 3 is right for someone asking about Level 7, say so kindly.
 - Never invent unit names, course content, accreditation claims, exam dates or awarding body rules.\n- LINKS: write links in markdown as [Course name](full URL) so they render as a proper button-style link. Always include the full https://www. address. Only ever give a URL that appears in this prompt, copied EXACTLY. Never construct, guess or tidy up a web address, and never assume a page exists because the name sounds right. If you have no URL for something, name the course and say the team can send the link, or point to a hub page you HAVE been given. A wrong link sends a customer to a dead page.
 - Never guarantee an exam pass.
@@ -479,7 +497,7 @@ high: "Based on everything you've told me, I'm confident this is the right quali
 medium: "There are a couple of good options here. I'd recommend speaking with our advisers before booking to make sure you choose the best fit."
 low: "I'd recommend speaking with our team directly so we can make sure you choose the right qualification for your situation."
 
-Only output this when ready to recommend. Before that, plain conversational text only.
+Use this when a formal recommendation card genuinely helps — usually when someone has described their role and is choosing between qualifications. For a straightforward "which page do I need" question, do NOT use the card: just answer in text with the link. Never run a long series of questions to reach a recommendation.
 
 When the visitor asks about a specific booking, order, certificate, refund, invoice or complaint, reply with a short plain sentence explaining you can't look that up, then exactly:
 
@@ -686,7 +704,7 @@ ${detail}${tradeBlock}`;
       root.className = 'cst-asst';
       root.innerHTML = `
         <button class="cst-asst__launcher" id="cst-asst-launcher" type="button"
-                aria-label="Open the CST assistant">${ICONS.chat}</button>
+                aria-label="Open the CST Training assistant">${ICONS.chat}</button>
 
         <div class="cst-asst__panel" id="cst-asst-panel" role="dialog"
              aria-label="CST Training assistant">
@@ -694,7 +712,7 @@ ${detail}${tradeBlock}`;
           <div class="cst-asst__bar">
             <div class="cst-asst__bar-avatar" aria-hidden="true">${ICONS.bot}</div>
             <div>
-              <div class="cst-asst__bar-title">CST Assistant</div>
+              <div class="cst-asst__bar-title">CST Training Assistant</div>
               <div class="cst-asst__bar-sub">Here to help you find the right course</div>
             </div>
             <button class="cst-asst__bar-close" id="cst-asst-close" type="button"
@@ -710,7 +728,7 @@ ${detail}${tradeBlock}`;
 
           <div class="cst-asst__input-row">
             <textarea id="cst-asst-input" class="cst-asst__input" rows="1"
-                      placeholder="Ask me anything about CST courses…"></textarea>
+                      placeholder="Ask me anything about CST Training courses…"></textarea>
             <button class="cst-asst__send" id="cst-asst-send" type="button"
                     aria-label="Send" disabled>${ICONS.send}</button>
           </div>
@@ -763,7 +781,7 @@ ${detail}${tradeBlock}`;
       // so the earlier capture-phase workaround is no longer needed.
       this.launcherEl.addEventListener('click', (e) => {
         e.preventDefault();
-        console.log('[CST] launcher clicked');
+        console.log('[CST Training] launcher clicked');
         this._toggle();
       });
       this.closeBtn.addEventListener('click', (e) => {
@@ -812,7 +830,7 @@ ${detail}${tradeBlock}`;
       // that was no longer on the page (0x0, empty computed styles).
       // If the page removed our host, rebuild before opening.
       if (!this.host || !this.host.isConnected || !this.shadow) {
-        console.warn('[CST] host was removed — rebuilding widget.');
+        console.warn('[CST Training] host was removed — rebuilding widget.');
         const keep = this.messages.slice();
         const wasStarted = this.started;
         this._render();
@@ -830,15 +848,15 @@ ${detail}${tradeBlock}`;
       if (this.isOpen) {
         p.style.display = 'flex';
         const r = p.getBoundingClientRect();
-        console.log('[CST] open — panel size:', Math.round(r.width) + 'x' + Math.round(r.height));
+        console.log('[CST Training] open — panel size:', Math.round(r.width) + 'x' + Math.round(r.height));
         if (r.width < 10 || r.height < 10) {
-          console.warn('[CST] panel still has no size inside the shadow root.');
+          console.warn('[CST Training] panel still has no size inside the shadow root.');
         }
       } else {
         p.style.display = 'none';
       }
       this.launcherEl.setAttribute('aria-label',
-        this.isOpen ? 'Close the CST assistant' : 'Open the CST assistant');
+        this.isOpen ? 'Close the CST Training assistant' : 'Open the CST Training assistant');
 
       if (this.isOpen) {
         if (!this.started) { this.started = true; this._sendWelcome(); }
@@ -854,12 +872,12 @@ ${detail}${tradeBlock}`;
       let welcome;
       if (course) {
         welcome = isMobile
-          ? `Hi! I'm the CST assistant. You're looking at the <strong>${course}</strong> — ask me anything about it, or about any of our other courses.`
+          ? `Hi! I'm the CST Training assistant. You're looking at the <strong>${course}</strong> — ask me anything about it, or about any of our other courses.`
           : `Hello! I'm the CST Training assistant.\n\nI can see you're looking at the <strong>${course}</strong>. Ask me anything about it, or tell me about your role and I'll point you toward the right qualification.`;
       } else {
         welcome = isMobile
-          ? `Hi! I'm the CST assistant. Ask me about our courses or tell me what you're looking to achieve.`
-          : `Hello! I'm the CST Training assistant.\n\nI can help you understand our courses, work out which qualification is right for you, and find the right page on the site.\n\nWhat are you looking for?`;
+          ? `Hi! I'm the CST Training assistant. Tell me the course you need or the job you do.`
+          : `Hello! I'm the CST Training assistant.\n\nTell me the course you need or the job you do, and I'll point you straight to the right page.`;
       }
 
       this._addBotMessage(welcome);
@@ -1031,12 +1049,12 @@ ${detail}${tradeBlock}`;
       // If the invented slug reduces to a real page, silently use the real one.
       const repaired = this._repairUrl(norm);
       if (repaired) {
-        console.warn('[CST] repaired invented link:', clean, '->', repaired);
+        console.warn('[CST Training] repaired invented link:', clean, '->', repaired);
         const label = label_ ? text : repaired.replace(/^https?:\/\/(www\.)?/, '');
         return `<a href="${repaired}" target="_blank" rel="noopener">${label}</a>`;
       }
 
-      console.warn('[CST] blocked an invented link:', clean);
+      console.warn('[CST Training] blocked an invented link:', clean);
       return `<span class="cst-asst__deadlink">${text}</span>`;
     }
 
@@ -1202,7 +1220,7 @@ ${detail}${tradeBlock}`;
       card.className = 'cst-asst__card';
       card.innerHTML = `
         <div class="cst-asst__card-label">Our team can help with this</div>
-        <div class="cst-asst__card-title">Speak to the CST team</div>
+        <div class="cst-asst__card-title">Speak to the CST Training team</div>
         <div class="cst-asst__card-text">
           I can't look up individual bookings, but our team can sort this out quickly.
         </div>
@@ -1286,7 +1304,7 @@ ${detail}${tradeBlock}`;
     if (!shouldLoad()) return;
     ensureKnowledge();
     window.CSTAssistantInstance = new CSTAssistant();
-    console.log('[CST] assistant mounted. Click the bubble, or run ' +
+    console.log('[CST Training] assistant mounted. Click the bubble, or run ' +
                 'window.CSTAssistantInstance._toggle() to open it manually.');
     watch();
   }
