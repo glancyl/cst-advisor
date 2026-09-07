@@ -121,7 +121,10 @@
   .cst-asst__bubble { background:#fff; border:1px solid var(--border); border-radius:12px;
     padding:10px 13px; font-size:.86rem; line-height:1.5; color:var(--body); max-width:82%; }
   .cst-asst__msg--user .cst-asst__bubble { background:var(--navy); color:#fff; border-color:var(--navy); }
-  .cst-asst__bubble a { color:var(--navy); font-weight:600; }
+  .cst-asst__bubble a { color:var(--navy); font-weight:600; text-decoration:underline;
+    text-underline-offset:2px; word-break:break-word; }
+  .cst-asst__bubble a:hover { color:var(--orange); }
+  .cst-asst__deadlink { color:var(--muted); }
   .cst-asst__msg--user .cst-asst__bubble a { color:#fff; }
 
   .cst-asst__typing { display:flex; gap:9px; margin-bottom:13px; }
@@ -432,7 +435,7 @@ STYLE
 - Short answers — two or three sentences unless they've asked for detail.
 - Ask ONE question at a time, never several at once.
 - Be honest. If ILM Level 3 is right for someone asking about Level 7, say so kindly.
-- Never invent unit names, course content, accreditation claims, exam dates or awarding body rules.
+- Never invent unit names, course content, accreditation claims, exam dates or awarding body rules.\n- LINKS: only ever give a URL that appears in this prompt, copied EXACTLY. Never construct, guess or tidy up a web address, and never assume a page exists because the name sounds right. If you have no URL for something, name the course and say the team can send the link, or point to a hub page you HAVE been given. A wrong link sends a customer to a dead page.
 - Never guarantee an exam pass.
 - This is a chat window, not an essay.
 
@@ -911,8 +914,17 @@ ${detail}${tradeBlock}`;
     _addBotMessage(html) {
       html = html
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(/\n/g, '<br>');
+        .replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+      // Markdown links -> anchors, validated against the real URL list
+      html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,
+        (m, label, url) => this._link(url, label));
+
+      // Bare URLs -> anchors, same validation
+      html = html.replace(/(^|[\s>(])(https?:\/\/[^\s<)]+)/g,
+        (m, pre, url) => pre + this._link(url, null));
+
+      html = html.replace(/\n/g, '<br>');
 
       const el = document.createElement('div');
       el.className = 'cst-asst__msg';
@@ -921,6 +933,66 @@ ${detail}${tradeBlock}`;
         <div class="cst-asst__bubble">${html}</div>`;
       this.msgEl.appendChild(el);
       this._scroll();
+    }
+
+    /* Build the set of URLs the bot is actually allowed to link to. */
+    _knownUrls() {
+      if (typeof ensureKnowledge === 'function') ensureKnowledge();
+      if (this._urlSet) return this._urlSet;
+      const kb = window.CSTKnowledge || {};
+      const set = new Set();
+      const norm = u => String(u).replace(/[#?].*$/, '').replace(/\/+$/, '').toLowerCase();
+      (kb.qualifications || []).forEach(q => { if (q.url) set.add(norm(q.url)); });
+      (kb.tradeProducts || []).forEach(p => { if (p.url) set.add(norm(p.url)); });
+      // Hub and utility pages the bot may legitimately point at
+      ['','/trade','/nvqs','/supervision','/management','/crane-nvqs','/plant-nvqs',
+       '/ohs-nvqs','/business-nvqs-courses','/citb-courses','/nebosh-courses-online',
+       '/iosh-courses','/ilm-courses-nvqs','/cmi-courses','/prince2-courses',
+       '/eusr-shea-courses','/first-aid-at-work','/mental-health-courses','/isep-courses',
+       '/e-learning','/team-training','/contact','/our-venues','/accreditations',
+       '/faqs','/reviews','/temporary-works','/smsts-online-page-locations',
+       // NEBOSH and IOSH, in case knowledge.js loads after this runs
+       '/nebosh-health-safety-management-construction',
+       '/nebosh-general-certificate-health-safety',
+       '/nebosh-hse-certificate-in-leadership-excellence',
+       '/nebosh-certificate-in-fire-safety-course',
+       '/nebosh-environmental-management-certificate-course',
+       '/nebosh-hse-certificate-in-managing-stress-at-work',
+       '/nebosh-award-environmental-awareness',
+       '/nebosh-hse-manual-handling-risk-assessment',
+       '/nebosh-hse-cert-process-safety-management',
+       '/nebosh-hse-managing-risks-at-work',
+       '/nebosh-course-incident-investigation',
+       '/health-and-safety-nebosh-award',
+       '/working-with-wellbeing-nebosh',
+       '/iosh-managing-safely','/iosh-working-safely',
+       // Other real pages the bot may reference
+       '/smsts','/sssts','/smsts-r-classroom-page','/sssts-r-classroom-page',
+       '/hsa-courses','/seats','/cdm-awareness','/drhs-course-remote',
+       '/citb-leadership-management-course','/tws','/temporary-works-coordinator-course',
+       '/temporary-works-refresher-remote-course','/building-safety-act-elearning',
+       '/electrical-installations-18th-edition','/level-1-health-safety-construction-environment',
+       '/level-3-electrotechnical-experienced-worker','/bulk-buy-nvqs','/compliance-control'
+      ].forEach(p => set.add(norm('https://www.csttraining.co.uk' + p)));
+      this._urlSet = set;
+      return set;
+    }
+
+    /* Only link URLs we know exist. Anything invented is rendered as plain
+       text, so a made-up address can never become a clickable 404. */
+    _link(url, label) {
+      const clean = url.replace(/[.,;:)]+$/, '');
+      const norm  = clean.replace(/[#?].*$/, '').replace(/\/+$/, '').toLowerCase();
+      const text  = label || clean.replace(/^https?:\/\/(www\.)?/, '');
+
+      if (!/csttraining\.co\.uk/i.test(clean)) {
+        return `<a href="${clean}" target="_blank" rel="noopener">${text}</a>`;
+      }
+      if (this._knownUrls().has(norm)) {
+        return `<a href="${clean}" target="_blank" rel="noopener">${text}</a>`;
+      }
+      console.warn('[CST] blocked an invented link:', clean);
+      return `<span class="cst-asst__deadlink">${text}</span>`;
     }
 
     _addUserMessage(text) {
