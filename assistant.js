@@ -121,9 +121,11 @@
   .cst-asst__bubble { background:#fff; border:1px solid var(--border); border-radius:12px;
     padding:10px 13px; font-size:.86rem; line-height:1.5; color:var(--body); max-width:82%; }
   .cst-asst__msg--user .cst-asst__bubble { background:var(--navy); color:#fff; border-color:var(--navy); }
-  .cst-asst__bubble a { color:var(--navy); font-weight:600; text-decoration:underline;
-    text-underline-offset:2px; word-break:break-word; }
-  .cst-asst__bubble a:hover { color:var(--orange); }
+  .cst-asst__bubble a { display:inline-block; background:var(--navy); color:#fff !important;
+    font-weight:600; text-decoration:none; padding:6px 12px; border-radius:6px;
+    margin:3px 0; font-size:.82rem; word-break:break-word; }
+  .cst-asst__bubble a:hover { background:var(--orange); }
+  .cst-asst__msg--user .cst-asst__bubble a { background:#fff; color:var(--navy) !important; }
   .cst-asst__deadlink { color:var(--muted); }
   .cst-asst__msg--user .cst-asst__bubble a { color:#fff; }
 
@@ -450,7 +452,7 @@ STYLE
 - Short answers — two or three sentences unless they've asked for detail.
 - Ask ONE question at a time, never several at once.
 - Be honest. If ILM Level 3 is right for someone asking about Level 7, say so kindly.
-- Never invent unit names, course content, accreditation claims, exam dates or awarding body rules.\n- LINKS: only ever give a URL that appears in this prompt, copied EXACTLY. Never construct, guess or tidy up a web address, and never assume a page exists because the name sounds right. If you have no URL for something, name the course and say the team can send the link, or point to a hub page you HAVE been given. A wrong link sends a customer to a dead page.
+- Never invent unit names, course content, accreditation claims, exam dates or awarding body rules.\n- LINKS: write links in markdown as [Course name](full URL) so they render as a proper button-style link. Always include the full https://www. address. Only ever give a URL that appears in this prompt, copied EXACTLY. Never construct, guess or tidy up a web address, and never assume a page exists because the name sounds right. If you have no URL for something, name the course and say the team can send the link, or point to a hub page you HAVE been given. A wrong link sends a customer to a dead page.
 - Never guarantee an exam pass.
 - This is a chat window, not an essay.
 
@@ -935,8 +937,15 @@ ${detail}${tradeBlock}`;
       html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,
         (m, label, url) => this._link(url, label));
 
-      // Bare URLs -> anchors, same validation
-      html = html.replace(/(^|[\s>(])(https?:\/\/[^\s<)]+)/g,
+      // Bare URLs -> anchors. Matches with OR without a scheme, because the
+      // model often writes "csttraining.co.uk/sssts" rather than the full
+      // https:// form, and those were rendering as dead plain text.
+      html = html.replace(
+        /(^|[\s>(\u{1F300}-\u{1FAFF}])((?:https?:\/\/)?(?:www\.)?csttraining\.co\.uk[^\s<)]*)/gu,
+        (m, pre, url) => pre + this._link(url, null));
+
+      // Any other full URL
+      html = html.replace(/(^|[\s>(])(https?:\/\/(?!.*csttraining)[^\s<)]+)/g,
         (m, pre, url) => pre + this._link(url, null));
 
       html = html.replace(/\n/g, '<br>');
@@ -996,7 +1005,16 @@ ${detail}${tradeBlock}`;
     /* Only link URLs we know exist. Anything invented is rendered as plain
        text, so a made-up address can never become a clickable 404. */
     _link(url, label) {
-      const clean = url.replace(/[.,;:)]+$/, '');
+      let clean = url.replace(/[.,;:!?)]+$/, '').trim();
+
+      // Add the scheme if the model left it off, and normalise to www.
+      if (/^(www\.)?csttraining\.co\.uk/i.test(clean)) {
+        clean = 'https://www.' + clean.replace(/^www\./i, '');
+      }
+      if (/^https?:\/\/csttraining\.co\.uk/i.test(clean)) {
+        clean = clean.replace(/^https?:\/\//i, 'https://www.');
+      }
+
       const norm  = clean.replace(/[#?].*$/, '').replace(/\/+$/, '').toLowerCase();
       const text  = label || clean.replace(/^https?:\/\/(www\.)?/, '');
 
