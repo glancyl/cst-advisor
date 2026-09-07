@@ -12,7 +12,7 @@
  *      Building Safety Act, 18th Edition, ISEP (x2), Mental Health (x3),
  *      First Aid (x2), EUSR SHEA (x5), PRINCE2 + MSP bundles
  *
- * Sources: CST learner handbooks (various, 2024-2026), /accreditations/,
+ * Sources: CST Training learner handbooks (various, 2024-2026), /accreditations/,
  * /smsts-online-page-locations/, site footer. No prices — the sanitiser in
  * knowledge-nvq.js strips anything that slips through.
  */
@@ -37,11 +37,11 @@
       vatNumber: '349 5015 92',
       vatRate: 'VAT charged at 20%',
       phone: '020 3488 4472',
-      email: 'admin@csttraining.co.uk',
+      email: 'enquiries@csttraining.co.uk',
       callsRecorded: 'Calls are recorded for training and monitoring purposes.',
       reviews: 'Over 10,000 five-star reviews. Rated 5 stars on Trustpilot and Google.',
       managingDirector: 'Cohan Tyler',
-      inHouse: 'CST delivers in-house and on-site training — we can come to you. ' +
+      inHouse: 'CST Training delivers in-house and on-site training — we can come to you. ' +
                'Bulk discounts are available on orders of 5 or more courses, and content ' +
                'can be tailored to a company\u2019s needs. Bulk order and in-house enquiries ' +
                'go to the team.',
@@ -133,14 +133,14 @@
         roles: ['site manager','supervisor','operative','director','duty holder',
                 'principal designer','principal contractor','compliance manager'],
         audience: 'Construction organisations that need their workforce to understand the Building Safety Act and the competence standards it demands. Available in three tiers matched to level of responsibility.',
-        description: 'CST\u2019s own e-learning course on the Building Safety Act, developed in-house. Delivered in three tiers: Practitioner (2 hours), Supervisor (4 hours) and Manager (6 hours), each pitched at that level of legal accountability. Modules cover why the Act was created, key issues behind systems failures in construction, the consequences of non-compliance, which buildings fall under the Act, the bodies providing oversight, what counts as a competent worker, duty holder roles and responsibilities, the Gateway stages, and the purpose of the Golden Thread. Completed through CST\u2019s learner management system with login details issued by email. Assessed by multiple choice exam: 10 questions at Practitioner, 20 at Supervisor, 30 at Manager. Certificate issued by CST Training via the e-learning portal.',
+        description: 'CST Training\u2019s own e-learning course on the Building Safety Act, developed in-house. Delivered in three tiers: Practitioner (2 hours), Supervisor (4 hours) and Manager (6 hours), each pitched at that level of legal accountability. Modules cover why the Act was created, key issues behind systems failures in construction, the consequences of non-compliance, which buildings fall under the Act, the bodies providing oversight, what counts as a competent worker, duty holder roles and responsibilities, the Gateway stages, and the purpose of the Golden Thread. Completed through CST Training\u2019s learner management system with login details issued by email. Assessed by multiple choice exam: 10 questions at Practitioner, 20 at Supervisor, 30 at Manager. Certificate issued by CST Training via the e-learning portal.',
         suitedFor: ['Organisations needing workforce-wide Building Safety Act competence',
                     'Duty holders under the Act',
                     'Employers who want tiered training matched to staff responsibility'],
         notSuitedFor: 'Not a CITB card course and not a replacement for SMSTS, SSSTS or CDM Awareness.',
         progression: ['citb-cdm-awareness'],
         url: 'https://www.csttraining.co.uk/building-safety-act-elearning/',
-        benefits: 'CST\u2019s own course, built in-house, covering the Golden Thread, the Gateways and the Act\u2019s definition of a competent person. Three tiers so a whole team can be trained at the right depth. Self-paced e-learning with the certificate issued through the portal.'
+        benefits: 'CST Training\u2019s own course, built in-house, covering the Golden Thread, the Gateways and the Act\u2019s definition of a competent person. Three tiers so a whole team can be trained at the right depth. Self-paced e-learning with the certificate issued through the portal.'
       },
 
       /* ── 18th EDITION ────────────────────────────────── */
@@ -151,8 +151,8 @@
         roles: ['electrician','electrical installer','maintenance electrician',
                 'electrical contractor','electrical engineer','sparky','tradesperson'],
         audience: 'Tradespeople and qualified electricians working in the electrical industry who need to meet the requirements for electrical installations to BS 7671:2018+A4:2026. You should already be working to the latest amendment and have a reasonable knowledge of the BS 7671 Requirements for Electrical Installations.',
-        description: 'A City & Guilds approved qualification covering BS 7671:2018+A4:2026, delivered over 20 GUIDED LEARNING HOURS entirely remotely through CST Studio, CST\u2019s own e-learning platform. Worked through at your own pace. Concludes with an ONLINE OPEN BOOK multiple choice exam, invigilated remotely by City & Guilds: 60 questions over 2 hours, pass mark 60%. '
-                   + 'How it works: sign up online or by invoice, CST sets you up on CST Studio and emails your login details, and registers you with City & Guilds as the awarding body. Work through the modules at your own pace, tell CST when you are ready, sign a declaration confirming you have completed the course element, and choose an exam time. Exam slots are usually available around 2 to 3 weeks after you finish the guided learning hours, at 08:00, 11:30 or 16:00. City & Guilds email the instructions directly. On passing, the certificate is sent by POST. '
+        description: 'A City & Guilds approved qualification covering BS 7671:2018+A4:2026, delivered over 20 GUIDED LEARNING HOURS entirely remotely through CST Studio, CST Training\u2019s own e-learning platform. Worked through at your own pace. Concludes with an ONLINE OPEN BOOK multiple choice exam, invigilated remotely by City & Guilds: 60 questions over 2 hours, pass mark 60%. '
+                   + 'How it works: sign up online or by invoice, CST Training sets you up on CST Studio and emails your login details, and registers you with City & Guilds as the awarding body. Work through the modules at your own pace, tell CST Training when you are ready, sign a declaration confirming you have completed the course element, and choose an exam time. Exam slots are usually available around 2 to 3 weeks after you finish the guided learning hours, at 08:00, 11:30 or 16:00. City & Guilds email the instructions directly. On passing, the certificate is sent by POST. '
                    + 'AMENDMENT 4: this is the largest update to the 18th Edition since 2018. It brings in requirements for battery energy storage, power over Ethernet and medical locations, changes around earthing, and folds Amendment 3 into the main document. BS 7671 is not law in itself, but it is the recognised UK standard and it is how you demonstrate compliance with the Electricity at Work Regulations and Building Regulations. An existing 2382 certificate does not expire, but most electricians find they need current Amendment 4 evidence when they renew with their competent person scheme or their JIB card. '
                    + 'NOTE: the IET Wiring Regulations book (BS 7671:2018+A4:2026) is NOT included with the course and must be bought separately from a retailer.',
         suitedFor: ['Qualified electricians needing current Amendment 4 evidence',
@@ -179,7 +179,7 @@
         notSuitedFor: 'May not be relevant if you do not work, and are not looking to work, in an environmental or sustainability position. Managers wanting a shorter, more strategic course should consider ISEP Environmental Sustainability Skills for Managers.',
         progression: ['nebosh-environmental-management'],
         url: 'https://www.csttraining.co.uk/isep-courses/',
-        benefits: 'Open-book exam, a free resit included, and eligibility for ISEP Associate membership (AISEP) on completion. CST is an ISEP approved training organisation and an IEMA training centre.'
+        benefits: 'Open-book exam, a free resit included, and eligibility for ISEP Associate membership (AISEP) on completion. CST Training is an ISEP approved training organisation and an IEMA training centre.'
       },
       {
         id: 'isep-sustainability-skills-managers',
@@ -389,7 +389,7 @@
         notSuitedFor: 'For Practitioner you must hold PRINCE2 7 Foundation, PRINCE2 6th Edition, PMQ, PPQ, PMP, CAPM or IPMA Level A to D. PRINCE2 5th Edition is NO LONGER accepted for the 7th Edition Practitioner.',
         progression: ['msp-foundation'],
         url: 'https://www.csttraining.co.uk/prince2-7bundle-course/',
-        benefits: 'Both PRINCE2 7 qualifications in a 4 day block, or self-paced. Official manual included and yours to keep, free exam resit, and an exam voucher valid for a year so you sit it when you are ready. CST is a PeopleCert Accredited Training Organisation.'
+        benefits: 'Both PRINCE2 7 qualifications in a 4 day block, or self-paced. Official manual included and yours to keep, free exam resit, and an exam voucher valid for a year so you sit it when you are ready. CST Training is a PeopleCert Accredited Training Organisation.'
       },
       {
         id: 'prince2-agile-bundle',
@@ -414,7 +414,7 @@
         roles: ['programme manager','programme director','senior project manager',
                 'portfolio manager','transformation manager'],
         audience: 'Those managing or moving into programme management who want both MSP qualifications together.',
-        description: 'Both MSP 5th Edition qualifications together, delivered by CST as self-paced e-learning. An All Inclusive Bundle is also available. Certification is through PeopleCert.',
+        description: 'Both MSP 5th Edition qualifications together, delivered by CST Training as self-paced e-learning. An All Inclusive Bundle is also available. Certification is through PeopleCert.',
         suitedFor: ['Senior project managers moving into programme management',
                     'Those overseeing multiple inter-related projects',
                     'Change and transformation leaders'],
