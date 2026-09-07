@@ -69,9 +69,15 @@
   ───────────────────────────────────────────────────────────── */
 
   const STYLES = `
+  :host { --navy:#1C2560; --orange:#FF8A00; --surface:#F4F6FA;
+    --border:#DDE3F0; --body:#3D4665; --muted:#6B7394; }
+
   .cst-asst { --navy:#1C2560; --orange:#FF8A00; --surface:#F4F6FA;
     --border:#DDE3F0; --body:#3D4665; --muted:#6B7394;
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; }
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    font-size:16px; line-height:1.5; box-sizing:border-box; }
+
+  .cst-asst *, .cst-asst *::before, .cst-asst *::after { box-sizing:border-box; }
 
   .cst-asst__launcher { position:fixed; bottom:24px; right:24px; z-index:99998;
     width:60px; height:60px; border-radius:50%; border:none; cursor:pointer;
@@ -389,7 +395,35 @@ AWARD vs CERTIFICATE vs DIPLOMA:
 - Certificate (3-5 units, 3-6 months): all-round CV boost without full Diploma commitment.
 - Diploma (6+ units, 6-12 months): comprehensive. Only the Diploma opens the door to Chartered Manager status.
 
-CITB GRANTS: CITB Levy payers who are up to date on payments can claim grants toward many courses and NVQ achievements. The Level 7 NVQ in Construction Senior Management is NO LONGER eligible for CITB funding. If unsure whether a specific course qualifies, say so rather than assuming. Explain that grants exist and point to the CITB funding page — NEVER state a grant amount. ELCAS funding is available for current and ex-military personnel on some NVQs.
+FUNDING, GRANTS AND FINANCE — ALWAYS ESCALATE: do NOT explain CITB grants, ELCAS, the CITB Employer Network, funding eligibility, payment options or finance. Say that funding varies by employer and course and that the team will confirm what applies to them, then emit an ESCALATE block. Never state amounts, never say who is or is not eligible, and never say a course is or is not funded. Explain that grants exist and point to the CITB funding page — NEVER state a grant amount. ELCAS funding is available for current and ex-military personnel on some NVQs.
+
+════════════════════════════════════════
+ABOUT CST TRAINING
+════════════════════════════════════════
+${(kb && kb.company) ? [
+  'CST Training LTD, registered in England and Wales, company number ' + kb.company.companyNumber + '.',
+  'Registered office: ' + kb.company.registeredOffice + '.',
+  'VAT number ' + kb.company.vatNumber + ', ' + kb.company.vatRate + '.',
+  'Phone ' + kb.company.phone + ', email ' + kb.company.email + '. ' + kb.company.callsRecorded,
+  kb.company.reviews,
+  'Managing Director: ' + kb.company.managingDirector + '.',
+  'IN-HOUSE AND BULK: ' + kb.company.inHouse
+].join('\n') : ''}
+
+ACCREDITATIONS — CST is approved by all of the following, and you may confirm any of them:
+${(kb && kb.accreditations) ? kb.accreditations.map(a => '- ' + a.body + ': ' + a.status).join('\n') : ''}
+If asked about a body NOT on this list, say you are not certain and offer to have the team confirm.
+
+VENUES: ${(kb && kb.venues) ? kb.venues.note : ''}
+${(kb && kb.venues) ? Object.keys(kb.venues.regions).map(r => r + ': ' + kb.venues.regions[r].join(', ')).join('\n') : ''}
+${(kb && kb.venues) ? kb.venues.finder : ''}
+VENUE RULE — STAY VAGUE: not every course runs at every venue, and the list above is only the SMSTS locations. When someone asks whether you run something near them:
+- Confirm CST has classroom venues across the UK and name the broad REGION or a nearby city or two, no more.
+- Then say that which courses run at which venue varies, and send them to the course page or the postcode finder to see what is available near them.
+- NEVER confirm that a particular course runs at a particular venue.
+- NEVER list every town in a region, and never imply the list is complete.
+- If they ask about a town not on the list, do not say CST does not go there — say the course page or the team can confirm what is available in their area.
+- Remember most courses are also available online via Google Meet, which is often the better answer for someone with no venue nearby.
 
 ════════════════════════════════════════
 STYLE
@@ -622,17 +656,8 @@ ${detail}${tradeBlock}`;
       this.started  = false;
       this.conversationId = 'asst_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
 
-      this._injectStyles();
       this._render();
       this._bindEvents();
-    }
-
-    _injectStyles() {
-      if (document.getElementById('cst-asst-styles')) return;
-      const s = document.createElement('style');
-      s.id = 'cst-asst-styles';
-      s.textContent = STYLES;
-      document.head.appendChild(s);
     }
 
     /* ── DOM ──────────────────────────────────────────────── */
@@ -677,27 +702,36 @@ ${detail}${tradeBlock}`;
           </div>
         </div>`;
 
-      const previous = document.querySelectorAll('.cst-asst');
-      previous.forEach(n => n.remove());
-      document.body.appendChild(root);
+      // Remove any previous host, then mount into a SHADOW ROOT.
+      // The page's stylesheets and scripts cannot reach inside a shadow root,
+      // which is what finally stops this page's CSS collapsing the panel to 0x0.
+      document.querySelectorAll('#cst-asst-host').forEach(n => n.remove());
 
-      // The wrapper must not constrain its fixed-position children.
-      root.style.setProperty('position', 'static', 'important');
-      root.style.setProperty('overflow', 'visible', 'important');
-      root.style.setProperty('display', 'block', 'important');
-      root.style.setProperty('transform', 'none', 'important');
-      root.style.setProperty('filter', 'none', 'important');
-      root.style.setProperty('contain', 'none', 'important');
+      const host = document.createElement('div');
+      host.id = 'cst-asst-host';
+      // Nothing about the host matters except that it exists and sits on top.
+      host.setAttribute('style',
+        'all:initial;position:fixed;z-index:2147483647;bottom:0;right:0;' +
+        'width:0;height:0;overflow:visible;');
+      document.body.appendChild(host);
 
+      const shadow = host.attachShadow({ mode: 'open' });
+      const style = document.createElement('style');
+      style.textContent = STYLES;
+      shadow.appendChild(style);
+      shadow.appendChild(root);
+
+      this.host       = host;
+      this.shadow     = shadow;
       this.root       = root;
-      this.launcherEl = root.querySelector('#cst-asst-launcher');
-      this.panelEl    = root.querySelector('#cst-asst-panel');
-      this.msgEl      = root.querySelector('#cst-asst-messages');
-      this.inputEl    = root.querySelector('#cst-asst-input');
-      this.sendBtn    = root.querySelector('#cst-asst-send');
-      this.chipsEl    = root.querySelector('#cst-asst-chips');
-      this.resetBtn   = root.querySelector('#cst-asst-reset');
-      this.closeBtn   = root.querySelector('#cst-asst-close');
+      this.launcherEl = shadow.getElementById('cst-asst-launcher');
+      this.panelEl    = shadow.getElementById('cst-asst-panel');
+      this.msgEl      = shadow.getElementById('cst-asst-messages');
+      this.inputEl    = shadow.getElementById('cst-asst-input');
+      this.sendBtn    = shadow.getElementById('cst-asst-send');
+      this.chipsEl    = shadow.getElementById('cst-asst-chips');
+      this.resetBtn   = shadow.getElementById('cst-asst-reset');
+      this.closeBtn   = shadow.getElementById('cst-asst-close');
     }
 
     _bindEvents() {
@@ -705,28 +739,17 @@ ${detail}${tradeBlock}`;
       // (pixels, trackers, browser extensions) attach their own global click
       // handlers, and one calling stopImmediatePropagation would otherwise
       // swallow the click before it reached the button.
-      const onTap = (e) => {
-        const t = e.target;
-        if (!t || !t.closest) return;
-        if (t.closest('.cst-asst')) {
-          console.log('[CST] tap inside widget ->', t.tagName, t.className || t.id || '');
-        }
-        if (t.closest('#cst-asst-close')) {
-          e.preventDefault(); e.stopPropagation();
-          this._toggle(false);
-          return;
-        }
-        if (t.closest('#cst-asst-launcher')) {
-          e.preventDefault(); e.stopPropagation();
-          this._toggle();
-        }
-      };
-      document.addEventListener('click', onTap, true);
-      document.addEventListener('touchend', onTap, true);
-
-      // Direct binding as well, in case the capture listener is removed
-      this.launcherEl.addEventListener('click', (e) => { e.preventDefault(); this._toggle(); });
-      this.closeBtn.addEventListener('click', (e) => { e.preventDefault(); this._toggle(false); });
+      // Bound inside the shadow root. Page scripts cannot intercept events here,
+      // so the earlier capture-phase workaround is no longer needed.
+      this.launcherEl.addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log('[CST] launcher clicked');
+        this._toggle();
+      });
+      this.closeBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this._toggle(false);
+      });
 
       this.sendBtn.addEventListener('click', () => this._handleSend());
 
@@ -754,6 +777,9 @@ ${detail}${tradeBlock}`;
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && this.isOpen) this._toggle(false);
       });
+
+      // Expose a manual opener for debugging
+      window.CSTAssistantOpen = () => this._toggle(true);
     }
 
     _toggle(force) {
@@ -764,85 +790,32 @@ ${detail}${tradeBlock}`;
       // Resolve the panel from the LIVE document every time. Something on this
       // page detaches our nodes after mount, which left us toggling an element
       // that was no longer on the page (0x0, empty computed styles).
-      let live = document.getElementById('cst-asst-panel');
-      if (!live || !live.isConnected) {
-        console.warn('[CST] panel was detached — rebuilding widget.');
-        const stale = document.getElementById('cst-asst-styles');
-        if (stale) stale.remove();
+      // If the page removed our host, rebuild before opening.
+      if (!this.host || !this.host.isConnected || !this.shadow) {
+        console.warn('[CST] host was removed — rebuilding widget.');
+        const keep = this.messages.slice();
+        const wasStarted = this.started;
         this._render();
         this._bindEvents();
-        this._injectStyles();
-        if (this.started) { this.msgEl.innerHTML = ''; this.started = false; }
-        live = document.getElementById('cst-asst-panel');
-        if (!live) { console.error('[CST] rebuild failed'); return; }
+        this.messages = keep;
+        this.started = wasStarted;
       }
-      this.panelEl = live;
-      this.launcherEl = document.getElementById('cst-asst-launcher') || this.launcherEl;
 
       this.isOpen = (typeof force === 'boolean') ? force : !this.isOpen;
-      console.log('[CST] toggle ->', this.isOpen ? 'OPEN' : 'closed',
-                  '| panel connected:', this.panelEl.isConnected,
-                  '| panels on page:', document.querySelectorAll('#cst-asst-panel').length);
 
       this.panelEl.classList.toggle('cst-asst__panel--open', this.isOpen);
       this.launcherEl.classList.toggle('cst-asst__launcher--open', this.isOpen);
 
-      // Belt and braces: set the layout inline too, so no stylesheet,
-      // theme rule or plugin can hide the panel once it should be open.
       const p = this.panelEl;
       if (this.isOpen) {
-        p.style.setProperty('display', 'flex', 'important');
-        p.style.setProperty('visibility', 'visible', 'important');
-        p.style.setProperty('opacity', '1', 'important');
-        p.style.setProperty('z-index', '2147483647', 'important');
-        p.style.setProperty('position', 'fixed', 'important');
-        p.style.setProperty('flex-direction', 'column', 'important');
-        p.style.setProperty('overflow', 'hidden', 'important');
-        p.style.setProperty('background', '#fff', 'important');
-
-        // Size it inline. The stylesheet rule was being lost somewhere on the
-        // page, leaving the panel at 0x0 — visible in the DOM but with no box.
-        const mobile = window.innerWidth <= 600;
-        if (mobile) {
-          p.style.setProperty('inset', '0', 'important');
-          p.style.setProperty('width', '100%', 'important');
-          p.style.setProperty('height', '100%', 'important');
-          p.style.setProperty('max-width', 'none', 'important');
-          p.style.setProperty('max-height', 'none', 'important');
-          p.style.setProperty('border-radius', '0', 'important');
-        } else {
-          p.style.setProperty('top', 'auto', 'important');
-          p.style.setProperty('left', 'auto', 'important');
-          p.style.setProperty('bottom', '96px', 'important');
-          p.style.setProperty('right', '24px', 'important');
-          p.style.setProperty('width', '390px', 'important');
-          p.style.setProperty('max-width', 'calc(100vw - 32px)', 'important');
-          p.style.setProperty('height', '600px', 'important');
-          p.style.setProperty('max-height', 'calc(100vh - 130px)', 'important');
-          p.style.setProperty('border-radius', '14px', 'important');
-          p.style.setProperty('box-shadow', '0 12px 48px rgba(28,37,96,.28)', 'important');
-        }
-
-        // The children need their boxes forcing too, for the same reason.
-        const bar = p.querySelector('.cst-asst__bar');
-        const msg = p.querySelector('.cst-asst__messages');
-        const row = p.querySelector('.cst-asst__input-row');
-        if (bar) bar.style.setProperty('flex', '0 0 auto', 'important');
-        if (row) row.style.setProperty('flex', '0 0 auto', 'important');
-        if (msg) {
-          msg.style.setProperty('flex', '1 1 auto', 'important');
-          msg.style.setProperty('overflow-y', 'auto', 'important');
-          msg.style.setProperty('min-height', '0', 'important');
-        }
-
+        p.style.display = 'flex';
         const r = p.getBoundingClientRect();
-        console.log('[CST] panel size:', Math.round(r.width) + 'x' + Math.round(r.height));
-        if (r.height < 10 || r.width < 10) {
-          console.warn('[CST] still no size. Parent:', p.parentElement,
-                       '| computed:', getComputedStyle(p).width, getComputedStyle(p).height);
+        console.log('[CST] open — panel size:', Math.round(r.width) + 'x' + Math.round(r.height));
+        if (r.width < 10 || r.height < 10) {
+          console.warn('[CST] panel still has no size inside the shadow root.');
         }
       } else {
-        p.style.setProperty('display', 'none', 'important');
+        p.style.display = 'none';
       }
       this.launcherEl.setAttribute('aria-label',
         this.isOpen ? 'Close the CST assistant' : 'Open the CST assistant');
@@ -1147,7 +1120,7 @@ ${detail}${tradeBlock}`;
 
   function shouldLoad() {
     // Don't double-mount
-    if (document.querySelector('#cst-asst-launcher')) return false;
+    if (document.getElementById('cst-asst-host')) return false;
 
     const path = window.location.pathname;
 
@@ -1182,11 +1155,8 @@ ${detail}${tradeBlock}`;
     if (watching) return;
     watching = true;
     setInterval(() => {
-      const l = document.getElementById('cst-asst-launcher');
-      const pn = document.getElementById('cst-asst-panel');
-      if (!l || !pn || !l.isConnected || !pn.isConnected) {
-        const styles = document.getElementById('cst-asst-styles');
-        if (styles) styles.remove();
+      const host = document.getElementById('cst-asst-host');
+      if (!host || !host.isConnected || !host.shadowRoot) {
         console.warn('CSTAssistant: widget was removed from the page — remounting.');
         try { window.CSTAssistantInstance = new CSTAssistant(); } catch (e) {
           console.error('CSTAssistant: remount failed', e);
