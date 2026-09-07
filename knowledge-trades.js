@@ -5,7 +5,7 @@
  * Load AFTER knowledge-nvq.js, BEFORE assistant.js.
  *
  * The trade-specific tasks a candidate needs to capture on video/photo for
- * each Level 2 and Level 3 trade NVQ, taken from CST's own learner handbooks
+ * each Level 2 and Level 3 trade NVQ, taken from CST Training's own learner handbooks
  * (Level 2 v2, Level 3 v2, June 2026).
  *
  * This map is ~13,000 tokens. It is NOT sent to the model wholesale —
@@ -56,7 +56,7 @@
 
   /* Trade NVQ products actually listed for sale on csttraining.co.uk/trade/
      (read 25 August 2026). This is the AUTHORITY for what the bot may
-     confirm CST offers. The handbook-derived evidence map below covers some
+     confirm CST Training offers. The handbook-derived evidence map below covers some
      trades that are NOT listed here — see RECONCILIATION notes. */
   var TRADE_PRODUCTS = [
     { name: "Access Flooring", level: 2, url: "https://www.csttraining.co.uk/access-flooring-level-2/" },
