@@ -4,7 +4,7 @@
  *
  * Load AFTER knowledge.js (and knowledge-nvq.js), BEFORE assistant.js.
  *
- * Built from CST's own learner handbooks (SMSTS v1.3, SSSTS v1.2, HSA v1.2,
+ * Built from CST Training's own learner handbooks (SMSTS v1.3, SSSTS v1.2, HSA v1.2,
  * SEATS v1.2, DRHS v1.2, Temporary Works v1.2, CDM Awareness v1.1,
  * CITB Leadership & Management v1) plus the live site navigation.
  *
@@ -31,10 +31,10 @@
     return;
   }
 
-  /* Shared delivery facts — true of all CITB courses at CST */
+  /* Shared delivery facts — true of all CITB courses at CST Training */
   const CITB_DELIVERY =
     ' Delivered by CITB-approved tutors either in a virtual classroom via Google Meet or in ' +
-    'a physical classroom at CST venues across the UK. Remote courses run with up to 12 ' +
+    'a physical classroom at CST Training venues across the UK. Remote courses run with up to 12 ' +
     'candidates, classroom courses with up to 20. Courses run 08:30 to 17:00.';
 
   const citb = [
