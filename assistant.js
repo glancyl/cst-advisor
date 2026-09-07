@@ -1005,6 +1005,7 @@ ${detail}${tradeBlock}`;
     /* Only link URLs we know exist. Anything invented is rendered as plain
        text, so a made-up address can never become a clickable 404. */
     _link(url, label) {
+      const label_ = label;
       let clean = url.replace(/[.,;:!?)]+$/, '').trim();
 
       // Add the scheme if the model left it off, and normalise to www.
@@ -1024,8 +1025,46 @@ ${detail}${tradeBlock}`;
       if (this._knownUrls().has(norm)) {
         return `<a href="${clean}" target="_blank" rel="noopener">${text}</a>`;
       }
+
+      // Near-miss repair. The model reliably invents slugs by tacking
+      // "-course" or similar onto a real one (/sssts/ becomes /sssts-course/).
+      // If the invented slug reduces to a real page, silently use the real one.
+      const repaired = this._repairUrl(norm);
+      if (repaired) {
+        console.warn('[CST] repaired invented link:', clean, '->', repaired);
+        const label = label_ ? text : repaired.replace(/^https?:\/\/(www\.)?/, '');
+        return `<a href="${repaired}" target="_blank" rel="noopener">${label}</a>`;
+      }
+
       console.warn('[CST] blocked an invented link:', clean);
       return `<span class="cst-asst__deadlink">${text}</span>`;
+    }
+
+    /* Reduce a slug to its core, then see if that matches a real page. */
+    _repairUrl(norm) {
+      const strip = s => s
+        .replace(/^https?:\/\/(www\.)?csttraining\.co\.uk/, '')
+        .replace(/^\/|\/$/g, '')
+        .replace(/-(course|courses|page|training|info|details|qualification)s?$/g, '')
+        .replace(/^(course|courses)-/, '');
+
+      const want = strip(norm);
+      if (!want) return null;
+
+      if (!this._slugMap) {
+        this._slugMap = new Map();
+        this._knownUrls().forEach(u => {
+          const s = strip(u);
+          if (s && !this._slugMap.has(s)) this._slugMap.set(s, u);
+        });
+      }
+
+      // exact match once both are reduced
+      if (this._slugMap.has(want)) {
+        const hit = this._slugMap.get(want);
+        return hit.indexOf('http') === 0 ? hit : 'https://www.csttraining.co.uk/' + hit;
+      }
+      return null;
     }
 
     _addUserMessage(text) {
