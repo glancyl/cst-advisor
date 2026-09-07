@@ -1,22 +1,22 @@
 /**
- * CST Training – NVQ knowledge module
- * knowledge-nvq.js
+ * CST Training – trade NVQ evidence requirements
+ * knowledge-trades.js
  *
- * MUST be loaded AFTER knowledge.js and BEFORE assistant.js.
+ * Load AFTER knowledge-nvq.js, BEFORE assistant.js.
  *
- * Does two things:
- *   1. Strips prices, finance and discount language out of EVERY entry in
- *      window.CSTKnowledge, including the existing ones. The assistant is
- *      never allowed to quote a price, and the site's own pages disagree
- *      with each other on price, so no figure is injected into the prompt.
- *   2. Adds construction, OH&S and business NVQ entries.
+ * The trade-specific tasks a candidate needs to capture on video/photo for
+ * each Level 2 and Level 3 trade NVQ, taken from CST's own learner handbooks
+ * (Level 2 v2, Level 3 v2, June 2026).
  *
- * The Qualification Advisor does not load this file, so advisor.js is
- * unaffected by either change.
+ * This map is ~13,000 tokens. It is NOT sent to the model wholesale —
+ * assistant.js looks up only the trade the visitor has actually mentioned
+ * and injects that one entry. Everything else stays out of the prompt.
  *
- * Built from csttraining.co.uk, August 2026. Course facts (durations, card
- * outcomes, pathways) are taken from the live pages — check them against
- * what admin/ops say before going live.
+ * IMPORTANT: these lists are indicative. The handbooks are explicit that the
+ * assessor confirms the exact evidence based on the units chosen at induction,
+ * and some Level 3 lists use a grid layout that does not extract perfectly.
+ * The assistant is instructed to present them as "typically" and to defer to
+ * the assessor. Do not present them as a definitive checklist.
  */
 
 (function () {
@@ -24,548 +24,348 @@
 
   function apply() {
     if (!window.CSTKnowledge || !window.CSTKnowledge.qualifications) return;
-    if (window.CSTKnowledge.__nvqApplied) return;
-    window.CSTKnowledge.__nvqApplied = true;
+    if (window.CSTKnowledge.__tradesApplied) return;
+    window.CSTKnowledge.__tradesApplied = true;
 
 
-  if (!window.CSTKnowledge || !window.CSTKnowledge.qualifications) {
-    console.error('knowledge-nvq.js: knowledge.js must load first.');
+  if (!window.CSTKnowledge) {
+    console.error('knowledge-trades.js: knowledge.js must load first.');
     return;
   }
 
-  /* ═══════════════════════════════════════════════════════════
-     1. PRICE SANITISER
-     Removes anything that reads as a price, instalment, discount
-     or finance offer from the fields that reach the prompt or
-     the recommendation card.
-  ═══════════════════════════════════════════════════════════ */
+  /* Evidence every trade NVQ candidate needs regardless of trade. */
+  window.CSTKnowledge.evidenceSchedule =
+    'Standard evidence schedule for trade NVQs (the assessor confirms how many of each ' +
+    'is needed, based on your level and units): E1 full method statement including the ' +
+    'sign-off page; E2 two toolbox talks; E3 two briefings; E4 drawings (as many as you ' +
+    'have); E5 photos of your work; E6 photos of you working; E7 induction record; ' +
+    'E8 videos of you working. ' +
+    'Evidence must be no more than 2 years old, gathered in a professional workplace ' +
+    'setting, and uploaded to the online portfolio, labelled correctly with a detailed ' +
+    'description explaining how it relates to your role. Document evidence should be an ' +
+    'electronic copy, scanned copy or a good quality photo. ' +
+    'Assessment methods available: video and photo evidence, live observations by video ' +
+    'call, recorded professional discussions with your assessor, site documentation, ' +
+    'recorded witness testimony from a qualified colleague, and in some cases a site visit ' +
+    '(the site visit is the last stage, subject to site rules, and may incur further costs). ' +
+    'For video, 2-3 minute clips of the start, middle and end of a task work best, or a ' +
+    'timelapse covering the whole task. The assessor must be able to see it is you doing ' +
+    'the work and that you are wearing the correct PPE. ' +
+    'All trades also need to evidence moving and handling materials, wearing PPE, and ' +
+    'using, maintaining and cleaning tools.';
 
-  // Any sentence containing one of these is dropped whole, rather than
-  // gutted mid-clause and left reading like broken English.
-  const PRICE_SENTENCE = /(£|\bVAT\b|0%\s*finance|payment plan|instal?ment|\bdiscount)/i;
-
-  function stripPrices(text) {
-    if (typeof text !== 'string') return text;
-
-    // 1. Remove parentheticals that carry a price: "(4–8 weeks, £529+VAT)" → "(4–8 weeks)"
-    let out = text.replace(/\(([^()]*)\)/g, (match, inner) => {
-      if (!PRICE_SENTENCE.test(inner)) return match;
-      const kept = inner
-        .split(/\s*,\s*/)
-        .filter(part => !PRICE_SENTENCE.test(part))
-        .join(', ')
-        .trim();
-      return kept ? '(' + kept + ')' : '';
-    });
-
-    // 2. Drop any remaining sentence that mentions money
-    out = out
-      .split(/(?<=[.!?])\s+/)
-      .filter(s => !PRICE_SENTENCE.test(s))
-      .join(' ');
-
-    return out
-      .replace(/\s+([.,;])/g, '$1')
-      .replace(/\s{2,}/g, ' ')
-      .trim();
-  }
-
-  function sanitiseEntry(q) {
-    ['description', 'benefits', 'audience', 'notSuitedFor'].forEach(f => {
-      if (q[f]) q[f] = stripPrices(q[f]);
-    });
-    if (Array.isArray(q.suitedFor)) q.suitedFor = q.suitedFor.map(stripPrices);
-    return q;
-  }
-
-  /* ═══════════════════════════════════════════════════════════
-     2. SHARED NVQ FACTS
-     Appended to every NVQ entry's description so the bot always
-     has the process context without repeating it per entry.
-  ═══════════════════════════════════════════════════════════ */
-
-  const NVQ_PROCESS =
-    ' Completed remotely through a purpose-built online portfolio with a dedicated assessor. ' +
-    'The process is: induction with your assessor, gathering site evidence such as RAMS, toolbox talks ' +
-    'and programmes, a witness testimony from a competent person, knowledge questions, then a ' +
-    'professional discussion with your assessor. CST covers the whole of the UK and is CITB approved. ' +
-    'NVQs are CITB and Ofqual approved, awarded through NOCN, ProQual, GQA or Qualifications Scotland ' +
-    'Accreditation — an awarding body is assigned, but you can request a specific one.';
-
-  /* Trade list — the 75 Level 2 trade NVQs CST publishes handbooks for.
-     Kept as one list rather than 75 knowledge base entries: the process is
-     identical for all of them, so separate entries would repeat the same
-     text 75 times in every system prompt for no benefit. */
-  const TRADES = [
-    'Access and Rigging','Access Flooring','Acoustic Flooring',
-    'Acoustic Packages and Frames Installer','Architectural Joinery',
-    'Architectural Joinery (Heritage)','Architectural Metalwork','Bench Joinery',
-    'Blinds and Solar Installation','Bricklaying','Brickwork Technicians','Carpentry',
-    'Ceiling Fixing','Cladding','Concrete Finishing','Concrete Repair','Cranes',
-    'Curtain Wall Installation','Demolition','Diamond Drilling','Dry Lining Boarder',
-    'Dry Lining Finishing','Dry Lining Fixing','Facade Preservation',
-    'Fenestration Installation','Fire Stopping','Fitted Interiors','Flat Roof',
-    'Flat Roof (Green Roof Installer)','Floor Coverings','Formwork',
-    'Glass Related Occupations','Glazing','Groundworks','Highway Maintenance',
-    'Industrial Storage Systems Installation','Insulated Enclosures',
-    'Insulation and Building Treatments','Land Drilling','Land Drilling Support Operative',
-    'Mastic','Modular Buildings','Multi-Trade','Painting and Decorating',
-    'Painting and Decorating (Heritage)','Painting and Decorating (Industrial)',
-    'Performing Engineering Operations','Photovoltaic Panels','Piling',
-    'Plant Installation','Plant Maintenance','Plastering','Plastering (Heritage Solid)',
-    'Point of Purchase Installation','Precast Concrete','Protective Components',
-    'Removal of Non-Hazardous Waste','Rendering','Road Building','Roofing',
-    'Scaffolding','Screed Flooring','SFS (Structural Framing Systems)',
-    'Shopfitting Bench Work','Shopfitting Site Work','Site Logistics','Steel Fixing',
-    'Stonemasonry (External)','Stonemasonry (Heritage)','Stonemasonry (Internal)',
-    'Sub-Structure Grouting','Sweeping and Cleaning','Tiling','Timber Frame Erection',
-    'Traffic Marshall'
+  /* Trade NVQ products actually listed for sale on csttraining.co.uk/trade/
+     (read 25 August 2026). This is the AUTHORITY for what the bot may
+     confirm CST offers. The handbook-derived evidence map below covers some
+     trades that are NOT listed here — see RECONCILIATION notes. */
+  var TRADE_PRODUCTS = [
+    { name: "Access Flooring", level: 2, url: "https://www.csttraining.co.uk/access-flooring-level-2/" },
+    { name: "Access & Rigging", level: 2, url: "https://www.csttraining.co.uk/accessing-operations-and-rigging-level-2/" },
+    { name: "Access & Rigging (Offshore)", level: 3, url: "https://www.csttraining.co.uk/accessing-operations-and-rigging-level-3/" },
+    { name: "Architectural Metalwork", level: 2, url: "https://www.csttraining.co.uk/architectural-metalwork-level-2/" },
+    { name: "Bricklaying", level: 2, url: "https://www.csttraining.co.uk/bricklaying-level-2/", card: "Blue CSCS Card", duration: "4–8 weeks", verified: true },
+    { name: "Bricklaying", level: 3, url: "https://www.csttraining.co.uk/bricklaying-level-3/" },
+    { name: "Brickwork Technicians", level: 2, url: "https://www.csttraining.co.uk/brickwork-technicians-level-2/", card: "Blue CSCS Card", duration: "4–8 weeks", verified: true },
+    { name: "Carpentry", level: 2, url: "https://www.csttraining.co.uk/carpentry-level-2/", card: "Blue CSCS Card", duration: "4–8 weeks", verified: true },
+    { name: "Carpentry", level: 3, url: "https://www.csttraining.co.uk/carpentry-level-3/" },
+    { name: "Cladding", level: 2, url: "https://www.csttraining.co.uk/cladding-level-2/" },
+    { name: "Cladding", level: 3, url: "https://www.csttraining.co.uk/cladding-level-3/", card: "Gold CSCS Card", duration: "4–8 weeks", verified: true },
+    { name: "Concrete Finishing", level: 2, url: "https://www.csttraining.co.uk/concrete-finishing-level-2/", card: "Blue CSCS Card", duration: "4–8 weeks", verified: true },
+    { name: "Curtain Wall Installation", level: 2, url: "https://www.csttraining.co.uk/curtain-wall-installation-level-2-nvq/", card: "GQA CSCS Blue Card", duration: "6–10 weeks", verified: true, note: "Awarding body is GQA. The page header says 4–8 weeks but the body says 6–10 — treat the duration as approximate and let the team confirm." },
+    { name: "Demolition", level: 2, url: "https://www.csttraining.co.uk/demolition-level-2/", card: "Blue CCDO Card", duration: "4–8 weeks", verified: true, note: "This is an upgrade to a blue CCDO card, not a CSCS card." },
+    { name: "Demolition", level: 3, url: "https://www.csttraining.co.uk/demolition-level-3/", card: "CCDO Card", duration: "4–8 weeks", verified: true, note: "CCDO, not CSCS." },
+    { name: "Diamond Drilling", level: 2, url: "https://www.csttraining.co.uk/diamond-drilling-level-2-nvq/" },
+    { name: "Dry-Lining Finishing", level: 2, url: "https://www.csttraining.co.uk/dry-lining-finishing-level-2/" },
+    { name: "Dry-Lining Fixing", level: 2, url: "https://www.csttraining.co.uk/dry-lining-fixing-level-2/" },
+    { name: "Dry-Lining Boarder", level: 2, url: "https://www.csttraining.co.uk/dry-lining-boarder-level-2/" },
+    { name: "Engineering Surveying", level: 3, url: "https://www.csttraining.co.uk/engineering-surveying-level-3/" },
+    { name: "Fenestration Installation", level: 2, url: "https://www.csttraining.co.uk/fenestration-installation-level-2-nvq/" },
+    { name: "Fenestration Installation", level: 3, url: "https://www.csttraining.co.uk/fenestration-installation-level-3-nvq/" },
+    { name: "Fenestration Surveying", level: 3, url: "https://www.csttraining.co.uk/fenestration-surveying-level-3-nvq/" },
+    { name: "Fire Stopping", level: 2, url: "https://www.csttraining.co.uk/fire-stopping-level-2-nvq/", card: "Blue CSCS Card", duration: "4–8 weeks", verified: true },
+    { name: "Floorcoverings", level: 3, url: "https://www.csttraining.co.uk/floor-coverings-level-3" },
+    { name: "Acoustic Flooring", level: 2, url: "https://www.csttraining.co.uk/acoustic-flooring-level-2/" },
+    { name: "Formwork", level: 2, url: "https://www.csttraining.co.uk/formwork-level-2/", card: "Blue CSCS Card", duration: "4–8 weeks", verified: true },
+    { name: "Formwork", level: 3, url: "https://www.csttraining.co.uk/formwork-level-3/" },
+    { name: "Fitted Interiors", level: 2, url: "https://www.csttraining.co.uk/fitted-interiors-level-2/" },
+    { name: "Glass Related Occupations", level: 2, url: "https://www.csttraining.co.uk/glass-related-occupations-level-2-nvq/" },
+    { name: "Glazing", level: 2, url: "https://www.csttraining.co.uk/glazing-level-2-nvq/" },
+    { name: "Glazing", level: 3, url: "https://www.csttraining.co.uk/glazing-level-3-nvq/", card: "Gold CSCS Card", duration: "10 weeks", verified: true, note: "Awarding body is GQA. Accepts either the CITB HS&E test or the GQA Health and Safety Test taken within the last 2 years." },
+    { name: "Groundworks", level: 2, url: "https://www.csttraining.co.uk/groundworks-level-2/" },
+    { name: "Heritage Architectural Joinery", level: 2, url: "https://www.csttraining.co.uk/heritage-architectural-joinery-level-2/" },
+    { name: "Insulation & Building Treatments", level: 2, url: "https://www.csttraining.co.uk/nvq-level-2-insulation-building-treatments/" },
+    { name: "Insulation & Building Treatments", level: 3, url: "https://www.csttraining.co.uk/level-3-insulation/" },
+    { name: "Interior Systems", level: 3, url: "https://www.csttraining.co.uk/interior-systems-level-3/" },
+    { name: "Land Drilling", level: 2, url: "https://www.csttraining.co.uk/land-drilling-level-2/" },
+    { name: "Mastic", level: 2, url: "https://www.csttraining.co.uk/mastic-level-2/" },
+    { name: "Modular Building", level: 2, url: "https://www.csttraining.co.uk/modular-building-level-2/" },
+    { name: "Multi-trade", level: 2, url: "https://www.csttraining.co.uk/multitrade-level-2/", card: "Blue CSCS Card", duration: "4–8 weeks", verified: true },
+    { name: "Plastering", level: 2, url: "https://www.csttraining.co.uk/plastering-level-2/", card: "Blue CSCS Card", duration: "4–8 weeks", verified: true },
+    { name: "Plastering", level: 3, url: "https://www.csttraining.co.uk/plastering-level-3/", card: "Gold CSCS Card", duration: "4–8 weeks", verified: true },
+    { name: "Painting & Decorating", level: 2, url: "https://www.csttraining.co.uk/painting-decorating-level-2/" },
+    { name: "Painting & Decorating", level: 3, url: "https://www.csttraining.co.uk/painting-decorating-level-3/" },
+    { name: "Precast Concrete", level: 2, url: "https://www.csttraining.co.uk/precast-concrete-level-2/" },
+    { name: "Piling", level: 2, url: "https://www.csttraining.co.uk/piling-level-2/" },
+    { name: "Rendering", level: 2, url: "https://www.csttraining.co.uk/rendering-level-2/" },
+    { name: "Road Building", level: 2, url: "https://www.csttraining.co.uk/road-building-level-2/" },
+    { name: "Roofing", level: 2, url: "https://www.csttraining.co.uk/roofing-level-2/" },
+    { name: "Roofing", level: 3, url: "https://www.csttraining.co.uk/roofing-level-3/", card: "Gold CSCS Card", duration: "4–8 weeks", verified: true },
+    { name: "Scaffolding", level: 2, url: "https://www.csttraining.co.uk/scaffolding-level-2/", card: "Blue CISRS Card", duration: "4–8 weeks", verified: true, note: "CISRS, not CSCS." },
+    { name: "Scaffolding", level: 3, url: "https://www.csttraining.co.uk/scaffolding-level-3/", card: "Gold CISRS Card", duration: "4–8 weeks", verified: true, note: "CISRS, not CSCS." },
+    { name: "Shopfitting", level: 2, url: "https://www.csttraining.co.uk/shopfitting-level-2/" },
+    { name: "Shopfitting", level: 3, url: "https://www.csttraining.co.uk/shopfitting-level-3/" },
+    { name: "Solar Panels", level: 2, url: "https://www.csttraining.co.uk/solar-panels-level-2/" },
+    { name: "Specialist Installation Occupations", level: 2, url: "https://www.csttraining.co.uk/level-2-specialist-installations-nvq/" },
+    { name: "Steel Fixing", level: 2, url: "https://www.csttraining.co.uk/steel-fixing-level-2/", card: "Blue CSCS Card", duration: "4–8 weeks", verified: true },
+    { name: "Steel Fixing", level: 3, url: "https://www.csttraining.co.uk/steel-fixing-level-3/" },
+    { name: "Site Logistics", level: 2, url: "https://www.csttraining.co.uk/site-logistics-level-2/" },
+    { name: "Stonemason", level: 2, url: "https://www.csttraining.co.uk/stonemason-level-2/", card: "Blue CSCS Card", duration: "4–8 weeks", verified: true },
+    { name: "SFS", level: 2, url: "https://www.csttraining.co.uk/sfs-level-2/" },
+    { name: "Tiling", level: 2, url: "https://www.csttraining.co.uk/tiling-level-2/" },
+    { name: "Tiling", level: 3, url: "https://www.csttraining.co.uk/tiling-level-3/", card: "Gold CSCS Card", duration: "4–8 weeks", verified: true },
+    { name: "Flat Roof", level: 2, url: "https://www.csttraining.co.uk/waterproofing-level-2-2/" }
   ];
 
+  window.CSTKnowledge.tradeProducts = TRADE_PRODUCTS;
 
-  /* The 31 Level 3 trade NVQs. Same process as Level 2, but for advanced
-     craft experience with supervisory responsibility. */
-  const TRADES_L3 = [
-    'Access and Rigging','Architectural Joinery','Bench Joinery','Bricklaying',
-    'Carpentry','Carpentry (Shopfitting)','Cladding (Rainscreen)',
-    'Cladding (Roof and Wall Sheeting and Cladding)','Demolition','Fenestration',
-    'Fenestration Surveying','Floor Coverings','Formwork','Glazing',
-    'Heritage Skills (Roof Slating and Tiling)','Heritage Skills (Stonemasonry)',
-    'Heritage Skills (Wood Occupations)','Insulation','Interior Systems',
-    'Moving Loads','Painting','Plant Installation','Plant Maintenance',
-    'Plastering','Plastering (Fibrous)','Roofing (Slater)','Roofing (Tiler)',
-    'Scaffolding','Steel Fixing','Stonemasonry (Banker Masonry)','Tiling'
-  ];
-
-  /* Entry requirements — as stated on the CST course pages (checked 25 Aug 2026).
-     NOTE: none of the NVQ course pages state a minimum number of years of
-     experience. Eligibility is judged on your current role and your access to
-     site evidence, via CST's eligibility form. Do not assert a years figure. */
-  const NVQ_ENTRY =
-    ' ENTRY REQUIREMENTS: CST does not publish a minimum number of years of experience for this NVQ. ' +
-    'What matters is that you are currently working in the role and have access to the site evidence needed ' +
-    'to demonstrate competence. To start you complete a registration form and, as a minimum, provide a copy ' +
-    'of photo ID. The NVQ can be started on any day. Purchase goes through an eligibility form so CST can ' +
-    'confirm the NVQ is right for your role before you commit. If someone asks whether they have enough ' +
-    'experience, do NOT give a number — explain that it depends on their role and evidence, and point them ' +
-    'to the eligibility form or the team.';
-
-  /* Portfolio and registration detail — from the Level 2 trade NVQ handbooks.
-     True of the NVQ portfolio process generally. */
-  const NVQ_PORTFOLIO =
-    ' Evidence is submitted through an e-portfolio system called Quals Direct — you get login ' +
-    'details by email once registered. An induction with your assessor is booked through the ' +
-    'online booking system and usually happens within 7 working days of registration. At the ' +
-    'induction the assessor discusses your job role and helps you choose the optional units that ' +
-    'best fit the work you actually do. Uploading an up-to-date CV is a mandatory part of the NVQ. ' +
-    'Knowledge questions can be completed either in writing or as a discussion with your assessor, ' +
-    'and there are no right or wrong answers — they are based on your own experience. Your ' +
-    'portfolio then goes for internal and, in some cases, external quality assurance before the ' +
-    'awarding body issues the certificate. You need basic IT skills such as sending email and ' +
-    'uploading documents. The portfolio stays open for 1 year; longer is possible but additional ' +
-    'fees may apply beyond 1 year from registration. An NVQ is not a training course — it ' +
-    'accredits competence you already have.';
-
-  /* ═══════════════════════════════════════════════════════════
-     3. NVQ ENTRIES
-  ═══════════════════════════════════════════════════════════ */
-
-  const nvqs = [
-
-    /* ── TRADE (Level 2 & 3) ─────────────────────────────── */
-    {
-      id:            'nvq-trade-level-2',
-      title:         'Level 2 Construction NVQ (Trade)',
-      category:      'Construction NVQ',
-      level:         2,
-      minExperience: null,
-      roles:         ['bricklayer','carpenter','joiner','plasterer','painter','decorator',
-                      'groundworker','roofer','tiler','plumber','labourer','dryliner',
-                      'steel fixer','scaffolder','general operative'],
-      audience:      'Experienced tradespeople who are already doing the work on site but have no formal qualification for it, and need one to get a Blue CSCS Card.',
-      description:   'A trade-specific Level 2 NVQ that formally recognises the skills you already use on site. Assessment is of your actual work, not classroom study or exams — you evidence what you already do. ' +
-                     'CST offers Level 2 trade NVQs in: ' + TRADES.join(', ') + '.' + NVQ_PROCESS + NVQ_PORTFOLIO + NVQ_ENTRY,
-      suitedFor:     [
-        'Experienced tradespeople with no formal qualification in their trade',
-        'Anyone who needs a Blue CSCS Card and does not yet hold a relevant Level 2 NVQ',
-        'Workers whose employer or main contractor requires proof of competence',
-        'Those who learned on the job rather than through an apprenticeship'
-      ],
-      notSuitedFor:  'Not a course that teaches you a trade from scratch — you must already be working in the role, with access to a site and to evidence. Those supervising others should look at Level 3 or 4 supervision NVQs instead.',
-      progression:   ['nvq-trade-level-3','nvq-l3-occupational-work-supervisor'],
-      url:           'https://www.csttraining.co.uk/trade/',
-      benefits:      'A Level 2 NVQ is what evidences your competence for a Blue CSCS Card — without a relevant Level 2 NVQ you cannot get one. Assessed on the work you already do, completed remotely.'
+  /* Trade-specific tasks, keyed by trade name as used in the course index. */
+  window.CSTKnowledge.tradeEvidence = {
+    level2: {
+      "Access Flooring": "Installing, removing and relocating raised; access flooring systems:; - Proprietary raised access flooring systems; (including fire barriers, ramps, steps, handrails); - Mouldings",
+      "Access and Rigging": "Maintaining & Cleaning Tools; PATHWAYS; 1. Scaffolding; Erecting and Dismantling Independent and Birdcage Scaffolds; Erecting and Dismantling Mobile or Static Scaffold Towers; Erecting and Dismantling Cantilever Scaffolds; Erecting and Dismantling Pedestrian Access Lift or Roof Saddle; Utilising the Provision of Fall Protection Systems; or; 6. Safety Net Rigging; Installing and Removing Safety Net Rigging; Utilising the Provision of Fall Protection Systems within your own work area; PLUS Preparing and Operating ONE OF:; Boom-type MEWPs, Master Climber-type MEWPs; or Scissor-type Elevating MEWPs; or; 7. Fall Protection Systems; Installing and Setting Up Fall Protection Systems; Utilising the Provision of Fall Protection Systems within your own work area; PLUS TWO OF:; Scaffold/Rigging, Secured Steelwork Structures, Wire and Rope Systems; Permanently Installed Anchorage Points, Temporary Anchorage Points; Track Systems, Proprietary System; If you require specific lists of photo and video evidence for any of the optional units please get in touch.",
+      "Acoustic Flooring": "Preparing the work area and installing acoustic; flooring:; - Cradle or support systems; - Perimeter strips; - Overlay(s); - Underlay(s); - Quilt insulation",
+      "Acoustic Packages and Frames Installer": "Installing acoustic packages and; support frames in the workplace; FIVE of :; Louvres; Enclosures; Openings (doors and/or windows); Panel screens; Attenuators (silencer); Complete audiology rooms (floor, wall, ceiling, internal; finish, door(s) and window(s)",
+      "Architectural Joinery": "Manufacturing routine architectural joinery products; TWO of:; Units and/or; Windows with; Doors; opening lights fitments; Panelling; Staircases; and Cladding; Marking out from setting out details for; routine architectural joinery products, TWO of:; Windows with Units and/or; Doors; fitments; opening lights; Panelling; Staircases; and Cladding; Setting up and using transportable cutting and; shaping machines",
+      "Architectural Joinery (Heritage)": "Conserving or Restoring Timber-based Products; EIGHT of:; Load bearing components, Non-load bearing components, Walls; Floors, Roofs, Joist coverings, Frames (including windows), Panelling/; cladding, Units and fitments, Doors, Mouldings, Staircases; Manufacturing routine architectural joinery products; ONE of:; Architectural Joinery, Wheelwrighting group OR; Shopfitting products; Plus one of the following optional units; Marking out from Producing setting out Setting up and; setting out details for details for routine using transportable; routine architectural architectural joinery cutting and shaping; joinery products products machines",
+      "Architectural Metalwork": "- Installing architectural metalwork and; secondary steelwork demonstrating:; Measuring, marking, drilling, alining, adjusting; levelling, plumb, fixing, fitting and securing",
+      "Bench Joinery": "Marking out from setting out details for routine; architectural joinery products, TWO of:; Doors, Windows with opening lights, Units and/; or fitments, Panelling and Cladding, Staircases; Manufacturing routine architectural joinery; products, TWO of :; Doors, Windows with opening lights, Units and/; or fitments, Panelling and Cladding, Staircases",
+      "Blinds and Solar Installation": "OPTIONAL UNITS- choose TWO:; Servicing and maintaining blinds, screens or solar; shading systems; Installing internal blinds or solar shading systems; THREE of:; Standard internal blinds; Drapery Motorised Systems; Cassetted Blinds Solar Shading Systems Plantation Shutters; Conservatory or Solar Powered Window Smoke Curtains; Rooflight Blinds Covering Systems; Installing external blinds or solar shading systems; THREE of:; Awnings and Canopies External Blinds Solar Shading; Shop Blinds Fixed Shades; Motorised; Solar Powered; External Shading",
+      "Bricklaying": "Set Out Brick & Block Work; Erect Brick & Block Work; e.g: cavity wall structures, blockwork structures; solid wall structures, form openings,joint; finishes, cills, capping and copings.; Repairing and Maintaining Masonry Structures",
+      "Brickwork Technicians": "Erect, use, remove and store two of the following; access equipment up to six metres:; Ladders, Stepladders/platform steps, Proprietary; towers, Podiums, Mobile scaffold towers.; Determine dimensions and positions using line, level; depth, area, height and angle to at least four of:; Straight (180 degrees), Right angles (90 degrees), Obtuse angles; (between 90- and 180-degrees including batters); Acute angles (between 0 and 90 degrees), Curves on plan; Curves in elevation, Openings.; Install and/or form fire barriers and/or breaks and; support angles plus at least two of:; Brick soffit systems, Channel systems, Wind posts, Vapour and/; or moisture barriers, Wall starter kits..",
+      "Carpentry": "3 different types of First Fix from:; Door/Window Frames, Door Linings; Floor Joist Coverings, Partitions, Stairs, Roofs; 5 different types of Second Fix from:; Architraves, Skirtings, Ironmongery, Cladding; Prefabricated Units e.g. kitchens, Hanging A Door; Service Encasement, Stair Components",
+      "Ceiling Fixing": "OPTIONAL UNITS- choose at least FOUR; Proprietary suspended ceilings, including repairs; Specialist proprietary suspended ceilings; for ambient temperature controlled and/or passive fire controlled areas; Proprietary metal furring (MF) ceiling; Concealed and exposed grid ceilings; \u2013 mineral and/or metal; Metal and/or mineral plank ceilings; Rafts and/or baffles acoustic sections",
+      "Cladding": "Preparing resources and installing Sheeting and; Cladding Materials on Roofs and Walls, ONE of:; Built up systems , Standing seam systems, Secret fix systems; Composite panel systems, Fibre-cement systems; Installing Rainwater Goods on Sheeting; and Cladding on Roofs and Walls; OPTIONAL UNITS- of:; ONE; Installing Solar; Refurbishing or Repairing Sheeting; Collectors to Roofs:; Sheeting and Cladding; Photo voltaic OR; and Cladding on Systems on Roofs; Solar Thermal; Roofs or Walls and Walls; Preparing and Operating; Preparing and Operating; Scissor, Boom or MEWP Elevating; Manipulating Machines; work platforms 7",
+      "Concrete Finishing": "Installing, maintaining and removing work area; protection and safety equipment in relation; to in situ flooring; Preparing areas for concrete flooring, THREE of:; Substrate preparation, Timber formwork erection, Proprietary formwork; erection, Reinforcement installation, Membranes installation; Applying surface finishes to concrete flooring, THREE of:; Tamped Brushed, Hand-float; Pedestrian power float, Ride-on power float",
+      "Concrete Repair": "Surveying degraded concrete structures, TWO of::; Electro; Mechanical; Visuals Chemical; Chemical; Means; Preparing substrate and applying materials to repair; concrete, FIVE of:; Prepare; Apply primers, Replace steel; bonding agents and; substrates and; reinforcement; repair compounds; reinforcement; Erect and Protect and Record and; dismantle; cure; report; formwork",
+      "Cranes": "IN RELATION TO THE CRANE TYPE; Demonstrate the following work skills using your; specific crane type:; Checking, adjusting, communicating, operating; manoeuvring, positioning, lifting, transferring; and setting down; Shutting down and securing your; specific crane type",
+      "Curtain Wall Installation": "Optional Units Group 1; Minimum of 11 credits; Installing curtain walling systems 11; credits; Assemble & weatherproof mullion joints & transom to mullion joints.; Plumb, level and square the assembled curtain walling; Installing facetted, structurally glazed; credits; or unitised curtain walling systems; Preparing the site, equipment and 4; credits; tools for fenestration installation; Prepare/mark out the work area and dispose of vulnerable objects; Optional Units Group 1; Minimum of 3 credits; Installing infill units into curtain walling systems 4; credits; 2 of: Glass, Panels, Windows, Doors; And finish off the work, using pressure plate caps, trims or flashings; Post curtain walling activities 3; credits; Check system is installed and functioning correctly; remove surplus materials/rubbish; Knowledge of curtain walling systems; credits; This unit will all be completed via knowledge questions; and discussions 7",
+      "Demolition": "PATHWAYS; Demolition and; Plant; Refurbishment; Operative; Operative; Operating ONE of:; and maintain demolition; tools, equipment and; Plant or machinery to; consumables.; dismantle and/or demolish; structures up to 15 metres; established exclusion; remove and segregate; Remote and/or pedestrian controlled; components and materials; plant or machinery to dismantle; and/or demolish structures; Dismantle and/or; demonlish ONE of:; Demolition skid steer to; Roofs demolish structure; Masonry; and/or and/or; concrete cladding; Demolition rigged plant for; Timber Metal materials processing; structures structures",
+      "Diamond Drilling": "Installing, maintaining and removing work area; protection and safety equipment in relation to; concrete drilling and sawing; Reshaping using hand sawing techniques:; Angle Grinder; plus ONE of:; Chasing; Power saw Ring saw Chainsaw; Machine; Form saw cuts in ONE of:; Concrete Masonry Stone Asphalt; Forming drill holes or core in the structural fabric; (diamond core bits), TWO of:; Hand held; Static drill rig Trailer rig Percussive; diamond core; diamond core diamond core drill; or drill 7",
+      "Dry Lining Boarder": "Install plasterboard linings to ONE of following; including forming openings and carrying out repairs:; Timber and/or metal (tacking); or; Solid backgrounds by direct bonding; (dot and dab)",
+      "Dry Lining Finishing": "Mixing Plaster; Applying finishing plaster to prepared surfaces; Demonstrate the following work skills when; finishing dry lining walls and ceilings -; measuring, fitting, applying, finishing, positioning and securing.; and pick THREE:; Tape and Joint; Form Internal and Priming/Protection Skim Plaster; by hand and/or External Angles Finish; /top coat; mechanical methods 7",
+      "Dry Lining Fixing": "Use and maintain hand tools, portable power tools; and ancillary equipment; Fix Plasterboard to timber and/or metal (tacking); Demonstrate the following work skills -; measuring, marking out, fitting, finishing, positioning and securing.",
+      "Facade Preservation": "Cleaning fa\u00e7ade surfaces, ONE of:; Masonry or Non-masonry; Restoring fa\u00e7ade surfaces:; Flat, textured and moulded natural stone; Burnt clay, art stone and concrete",
+      "Fenestration Installation": "Optional units- to be taken from all groups; Group One- Minimum of 11 credits; 5 4 8; Prepare & Shape credits credits Remove Existing credits; Prepare the Site; Fenestration Equipment and Tools Windows and; Products for Fenestration Doors and Prepare; & Materials Installation Apertures; 3 4; Prepare and Positioncr edits credits; Install Glass; Window and Door; and/or Panels into; Units Ready for; Windows and Doors; Installation; Group Two- Choose 1; Install Windows; Install Conservatories; and Doors; Group Three- Choose 1; Maintain / Repair Post Windows, Doors; Windows and Doors or Conservatories; Installation Activity; or Conservatories; Group Four- Choose 1; Understanding the; Knowledge of Building; Building Regulations in Regulations in the Installation; the Fenestration Industry of Windows and Doors",
+      "Fire Stopping": "Erecting and dismantling access/working platforms; TWO of:; Ladders/crawler boards, Step ladders/platform steps; Proprietary towers, Trestle platforms, Mobile scaffold towers; Proprietary staging/podiums; Optional units- choose TWO; Installing dry Applying thin Installing; to protect film reactive fire resisting; structural steel coatings ductwork systems; Installing fire Installing flexible Erecting fire resisting; stopping and walls and; (non-mechanical); penetration seals wall linings; cavity barriers; Erecting fire Applying non-; Installing fire; resisting reactive spray; resisting timber; ceiling systems coatings; door assemblies and; doorsets",
+      "Fitted Interiors": "Installing fitted furniture, for ONE of:; kitchen, bathroom, educational furniture; bedroom, commercial kitchen equipment",
+      "Flat Roof": "Clean, dry and prepare surfaces for membrane roofing; Apply systems, for ONE of:; Reinforced Bitumen Membrane Roofing; or; Single Ply Membrane Roofing; or; Liquid Applied Membrane Roofing Systems; Repairing membrane roofing systems, ONE of:; Penetrations; Damaged Edges and Perimeters; pipes & vents rainwater outlets; upstands",
+      "Flat Roof (Green Roof Installer)": "Installing support systems for green roofs FOUR of:; Root/rhizome Irrigation; Protection; resistant layer layer system; Drainage; Filter; Substrate; system; layer; Establishing plants on a green roof; Prepare a green roof for planting",
+      "Floor Coverings": "Plus choose 1 of the following:; Installing textile floorcoverings; or; Installing resilient floorcoverings; or; Installing timber-based floorcoverings",
+      "Formwork": "Erecting and striking timber and proprietary; formwork; Carpenter: Fabricating and maintaining timber; and proprietary formwork systems; Erector & Striker: Maintaining timber and; proprietary formwork systems",
+      "Glass Related Occupations": "PATHWAYS; 1. Installation of glass splackbacks and panels; 2. Film/graphics applications; 3. In-situ glass surface restoration; 4. Installation of secondary glazing systems; 5. Installation of window control systems; 6. Window and Door maintenance; 7. Overhead/Modular Glazing; 8. Site Surveyor of Glass Related Activities",
+      "Glazing": "Preparing the surrounding area for glazing work; Confirming the glazing requirements; Installing glass into glazing systems; OPTIONAL UNITS- choose ONE; -; Maintaining glazing systems; following manufacturing and company guidelines; Cutting glass for glazing; cutting machinery, hand tools and measuring equipment; Carrying out temporary work for glazing installation; protective materials, structural supports, disposing of unwanted materials",
+      "Groundworks": "PATHWAYS; 1. Modular Pavement Construction; 2: Laying Kerbs and Channels; 3. General Building Operations; 4. Drainage Construction; 5: Structural Concreting; 6: Non Structural Concreting; 7: General Construction; 8: Excavation and Reinstatement",
+      "Highway Maintenance": "Segregate and Protect the Work Area; PATHWAYS; 1. Strutural Concreting; 2: Non-Strutural Concreting; 3: Laying Kerbs and Channels; 4: General Building Operations",
+      "Industrial Storage Systems Installation": "Installing industrial pallet racking systems; TWO of:; Dynamic storage; Mobile Mini load; Cantilever Rack clad Multi-tier; High bay Drive in/drive through; (over 12 metres) APR above 6 metres; Installing industrial shelving systems; TWO of:; Carton live Single tier Multi-tier; Long span Mobile",
+      "Insulated Enclosures": "Installing and repairing ceilings in insulated; enclosures, TWO of:; Suspended proprietary, Composite panel, Bespoke; Installing floor insulation, thermal and vapour; barriers of a temperature controlled; storage enclosure; Install the framework and the insulation sandwich; panels/cladding for the walls of an; ambient/temperature controlled area",
+      "Insulation and Building Treatments": "your Evidence is a valued form of submission for an; NVQ to demonstrate a candidates competency and; and, understanding.; in order Below is a general list of the standard evidence that; you will need to start to gather.; Your evidence should be no more than 2 year old.; Your Assessor will outline how many copies of each; trade. of the below will be required based on your NVQ; the; level and units; eludehcS; call; The evidence should be submitted to your online; portfolio. The evidence needs to be labelled; are; correctly and you must provide a detailed; middle; description for each piece of evidence referencing; how it relates to you and how you utilise it as part of; your role on site.; about; and E1 - Full Method Statement, including Sign Off page; E2 - Tool Box Talk x 2; ecnedivE; E3 - Briefings x 2; E4 - Drawings (as many as you have); worked; E5 - Photos of your work; will be a; E6 - Photos of you working; E7- Induction Record; E8 - Videos of you working; Please ensure that the document based evidence; be; that you include, is an electronic copy, scanned copy; or a good quality photo.",
+      "Land Drilling": "Drill holes in the ground to the required depths; and angles using:; Tripod, Cable percussion, Rotary; Dynamic sampling, Rotary percussive or Vibration; Choose ONE:; Reinstating Ground Condition; Carrying Out Checks and/or Basic Maintenance on; Plant or Machinery; Preparing and Operating Specialised Powered; Tools and Equipment; Setting Out Secondary Dimensional Work Control; Slinging and Signalling the Movement of Loads",
+      "Land Drilling Support Operative": "Receive and Organise Materials and Equipment; for the Drilling Activity; Set up Protection and Safety Equipment; for the Work Area; Choose ONE:; Carry Out Operator Maintenance on Drilling Plant; and Equipment; Locating and Identifying Underground Services; Prepare and Operate Powered Units, Tools; Pedestrian Plant, Machinery or Equipment; Reinstate the Drilling Area of Operations; and Complete Works",
+      "Mastic": "Applying sealants to structural fabric, ONE of:; - Masonry; - Soffits; - Windows and Door Frames; - Work surfaces and sanitary ware; Erecting and dismantling access/working; platforms, ONE of:; - Joint sealant application; - Point of purchase Industrial storage systems; - Loading bay equipment; Plus TWO of:; Ladders/crawler Step ladders/ Proprietary; boards platform steps towers; Trestle Mobile scaffold Proprietary; platforms; towers staging/podiums 7",
+      "Modular Buildings": "OPTIONAL UNITS; Group One- choose ONE:; Installing, dismantling and maintaining; modular buildings; Installing, maintaining and decommissioning prefabricated; portable cabins, units and temporary buildings; Group TWO- choose TWO:; Maintaining Maintaining Removing and; first fixing; non-structural non-structural or; installing basic; components; carpentry structural components plumbing; Applying paint Applying coatings; Installing; systems by brush by the air spray; plasterboard linings; and roller method; Preparing surfaces Slinging and; Finishing dry lining; by abrasive blast hand signalling; walls and ceilings; cleaning suspended loads",
+      "Multi-Trade": "PATHWAYS; Candidates must select TWO of:; Maintenance Carpentry and Joinery; Maintenance Painting and Decorating; Maintenance Tiling; Maintenance Plastering; Maintenance Roofing; Maintenance Trowel Occupations (Bricklaying); If you require specific lists of photo and video evidence for any of the optional units please get in touch.",
+      "Painting and Decorating": "Preparing Paint and Work Area; Applying Surface Coatings by; Brush and Roller; Setting Up and Using Access Platforms; Preparing Surfaces for Painting",
+      "Painting and Decorating (Heritage)": "Preparing Paint and Work Area; Applying Surface Coatings by; Brush and Roller; Setting Up and Using Access Platforms; Preparing Surfaces for Painting; Preparing and painting surfaces on conservation; or restoration projects:; Painted interiors or painted exteriors",
+      "Painting and Decorating (Industrial)": "Preparing Paint and Work Area; Applying Surface Coatings by; Brush and Roller; Setting Up and Using Access Platforms; Preparing Surfaces for Painting; OPTIONAL UNIT- choose ONE:; Operating equipment in support of the paint sprayer; Operating equipment in support of the abrasive blast cleaner; Applying coatings by the airless spray method; Preparing surfaces by abrasive blast cleaning",
+      "Performing Engineering Operations": "Using and Communicating Technical Information; OPTIONAL UNITS: 3 of the following; - Producing Mechanical Engineering Drawings using a CAD System; - Producing Components using Hand Fitting Techniques; - Producing Mechanical Assemblies; - Forming and Assembling Pipework Systems; - Carrying Out Aircraft Detail Fitting Activities; - Installing Aircraft Mechanical Fasteners; - Producing Aircraft Detail Assemblies; - Preparing and Using Lathes for Turning Operations; - Preparing and Using Milling Machines; - Preparing and Using Grinding Machines; - Preparing and Proving CNC Machine Tool Programs; - Preparing and Using CNC Turning or Miling Machines; - Preparing and Using CNC Machining Centres; - Preparing and Using Industrial Robots; - Maintaining Mechanical Devices and Equipment; Continued on next page...",
+      "Photovoltaic Panels": "Mandatory Units; Use access equipment to work at heights; Locate, test, handle and position photovoltaic; panels prior to installation; Optional Units; Minimum of 8 credits; 5 8 8; the structurecre dits Prepare the structurecre dits credits credits; Fix photovoltaic Fix photovoltaic; for photovoltaic; panels onto a roof panels a roof; into; - panel installation -; structure structure; structure new build; 6 5; credits credits; credits; Ensure the glass related; Fix photovoltaic; Post photovoltaic installation is completed; panels onto a non-; safely and handed over; installation activities; roof structure; to the customer",
+      "Piling": "Install, or contribute to the installation of, bored and/; or driven piles and/or specialist works, for ONE of:; Rotary bored kelly Driven cast-in-situ; Sheet piling Driven piling; bar piling piling; Sectional auger Continuous flight Displacement; Slurry walling; piling (mini piling) auger piling flight auger; Diaphragm; Tripod piling Vibro piling; walling; Operating piling rigs to construct and form; Prepare to and attach suspended loads and guide; move and place them using hand signals",
+      "Plant Installation": "Installing plant or machinery for operational; activities, for ONE of:; Rig; Crane; Tower Crane Hoist; (demolition, piling; (mobile or ringer); or drilling); Excavation or; Batching, mixing Crushing or Power generation; vacuum plant or; or blending plants screening plants equipment; machinery; Climate; Concrete placing; Pump management; boom; machines; PATHWAYS; Additional optional units must be completed for each; pathway please ask for more details; Tower Crane Hoist; Dismantling Pre-installed Dismantling; Tower Cranes Pre-installed Hoists; Slinging and hand Preparing and Operating; signalling the movement Hoists During Installation; of suspended loads Activities",
+      "Plant Maintenance": "Carrying Out the Servicing and Maintenance of Plant; and Equipment; Unfasten and remove components using approved; tools and techniques:; Unplugging, De-soldering, Lubricating, Freeing off corroded components; Using a hydraulic press , Using specialist tools, Filing and dressing; Assemble components in their correct position using:; Use of fastenings and retainers, Connecting mating surfaces, Drifting/; pressing into position, Positioning and securing , Shimming and adjusting; Using adhesives; Maintaining the Work Area; Carrying Out Routine Inspections; on Plant and Equipment; Diagnosing Faults in Plant or Equipment Systems; and Components, TWO of:; Power unit, Hydraulic, Pneumatic, Electrical/electronic, Steering; Braking, Chassis/frames, Transmission",
+      "Plastering": "Mixing Plaster; Applying finishing plaster to prepared surfaces; Producing internal solid plastering finishes; - walls & ceilings; Apply solid render to background surfaces and; producing finishes",
+      "Plastering (Heritage Solid)": "Applying finishing plaster to prepared surfaces; Producing internal solid plastering finishes; Apply solid render to background surfaces and; producing finishes; Working on conservation or restoration; projects ONE of:; Roofing, Lead work, Brickwork, Earthen; structure, Stonemasonry, Decoration, Plastering, Wall and floor; tiling, Carpentry and joinery, Iron/metal work; OPTIONAL UNIT- choose ONE; Installing direct bond dry linings; Laying sand and cement screeds; Applying projection plaster and render and maintaining equipment; Installing mechanically fixed plasterboard 7",
+      "Point of Purchase Installation": "Installing internal display systems , TWO of:; Ceiling Glass; Wall; standing; mounted mounted; mounted; Installing display signs, TWO of:; Ceiling; Wall; Free standing; mounted mounted; Installing graphic displays, ANY of:; Ceiling; Wall; Free standing; mounted mounted",
+      "Precast Concrete": "Slinging and hand signalling the movement of; suspended loads; PATHWAYS; Erecting precast concrete flooring units:; Lay screeds, Grout joints, Shutter, Install reinforcement.; or; Erecting precast concrete cladding units:; Position cladding units, Fix cladding units, Erect and dismantle; temporary propping, Shutter and grout joints, Install; reinforcement; or; Erecting precast concrete structural units:; Position structural units, Fix structural units (mechanically; and/or jointing materials, adhesive, grout, mortar) Shutter and; grout joints , Install reinforcement, Erect temporary propping",
+      "Protective Components": "Installing, maintaining and removing work area; protection and safety equipment in relation to; protection equipment, barriers and fences; Installing protective components, TEN of:; Corner Impact; protection Sheet protection; protection protection; Bump rails/; Door/frame; Kickplates; parking fenders Barriers; protection; Thermos-form; Bollards or Expansion joint; Fully bonded; internal/external; bollards covers; PVC wall; pane; Hygienic ceiling; welded joints Detail joints Access detailing; systems; Hygienic door; Stainless steel; systems",
+      "Removal of Non-Hazardous Waste": "Installing, maintaining and removing temporary; protection and safety arrangements relating to:; Protection and safety notices OR Safety lighting; Remove, prepare, sort, store and dispose of at least; three materials defined as non-hazardous waste by; current legislation",
+      "Rendering": "Prepare background surfaces, mix and apply solid; render to bellcasts, internal and external angles; walls, reveals and soffits, for ONE of:; Brick Block Concrete; Rubble stone External Expanded metal; masonry insulation lath (EML); Produce a plain-faced finish coat to external walls; and/or external insulation plus ONE of:; Rough-cast Synthetic or non- Proprietary; Dash; (harling, wet dash) synthetic renders pre-cast; Prepare, load and operate equipment and apply; projection plaster to vertical and horizontal surfaces; and/or render to specified surfaces",
+      "Road Building": "Establishing work area protection and safety; or; Segregating the area for highways works; PATHWAYS; Slurry/Micro Slurry/Micro; Bituminous; Concrete Paving; Surfacing Surfacing; Paving; (Machine); (Machine) (Manual); (Machine); High Friction High Friction; Surface Dressing Planing; Surfacing Surfacing; (Machine) (Machine); (Machine) (Manual); Surface Pavement; Road Recycling Soil Stabilisation; Retexturing Marking; (Machine) (Machine); (Machine) (Machine); Pavement Marking Pavement Marking; (Manual) (Road Studs)",
+      "Roofing": "PATHWAYS; 1. Roof Tiler; 2. Roof Slater; 3. Roof Slater and Tiler; 4. Fully Supported Lead and Hard Metal Roofer; and Cladder; 5. Thatching; 6. Solar Collector Roofer- Access; 7. Solar Collector Roofer- Proctection/Handover; If you require specific lists of photo and video evidence for any of the optional units please get in touch.",
+      "SFS (Structural Framing Systems)": "Erecting steel frame walls, floors and roofs, SIX of:; Prefabricated and/; Pre-manufactured; Lattice beams and/; or in-situ non-load; beams and/or in-situ load; or C section joists; bearing walls; bearing walls; Floor and/or Pre-manufactured; Hot rolled columns; in-situ composite and/or in-situ roof; and beams; floors decking units; structures; Installing supplementary steel frame finishings, ONE of:; Vapour; Brick tie Breather; Fire stops; control layer; systems membrane; Sheathing Cladding support; Insulation Insulation Linings; boarding fixtures; Preparing and assembling cold formed steel frames, ONE of:; Floor frames; frames Support structures Roofs 7",
+      "Scaffolding": "Using resources of fall protection systems; and/or equipment; Erecting and dismantling-; Independent and Birdcage Scaffolds; Mobile and Static Scaffold Towers; Cantilever Scaffolds; Pavement or Roof Scaffolds",
+      "Screed Flooring": "Installing, maintaining and removing; work area protection and safety equipment; in relation to in situ flooring; Preparing & inspecting substrates prior to laying; screed floors, THREE of:; Cementitious substrates Insulated areas Membranes; Areas with heating; Ducted areas; systems; Laying screed floors, ONE of:; Cementitious substrates Flowable screeds",
+      "Shopfitting Bench Work": "Manufacturing routine shopfitting products; Marking out from setting out details for routine; shopfitting products; OPTIONAL UNITS- choose ONE:; Producing setting out details for routine; shopfitting products; Setting up and using transportable cutting; and shaping machines",
+      "Shopfitting Site Work": "OPTIONAL UNITS- choose THREE:; Installing shopfitting frames and finishings; Installing shopfitting fitments; e.g. counters, shelving units; Installing shopfronts and finishings; Install fire resisting timber door; assemblies and door sets; Setting up and using cutting; and shaping machines",
+      "Site Logistics": "OPTIONAL UNITS; choose TWO:; Set up, initiate, monitor and maintain temporary; traffic management systems to control vehicles; Maintain construction site set-up systems; e.g. hoarding/fencing, signage & barriers, material; Coordinate construction resources e.g. stock taking; liaising with suppliers, communicate with managers; Maintaining construction site fire management systems; Maintain construction site waste management systems",
+      "Steel Fixing": "OPTIONAL UNITS; choose TWO:; Cutting and bending reinforcement; steel to shape; Fixing steel in situ, FOUR of:; Beams, Bases, Columns, Slabs, Staircases, Walls; Prefabricating reinforcement steel sections; Beams, Bases, Columns, Slabs, Staircases, Walls; Incorporate TWO of into prefabricated steel sections:; Temporary construction bars, Bracing, Lifting points",
+      "Stonemasonry (External)": "Preparing backgrounds and setting out basic external; stonemasonry, for:; Load bearing support and restraint; systems to solid structures; Insulation (membranes, fire stops); Cavity trays and damp proof membranes (DPM); Erecting basic external stonemasonry:; walling, Quoin, jamb; Openings; and rakes and cill stones; Joint finishes and/; Copings; or expansion and; compression joints",
+      "Stonemasonry (Heritage)": "Produce basic section bed and face moulds for:; Natural stone components, shaped true and square; and moulded straight with stop ends and returns.; Erect basic external stonemasonry for:; Joint finishes and/; walling; Quoin, jamb; or expansion and; and rakes and cill stones; compression joints.; Copings Openings; Prepare, conserve, repair or refurbish existing; stonemasonry, brickwork or earthen structures for:; Replicate existing structures, stabilise existing; structures, prepare mortars appropriately to the; existing, joint finishes, integrate surface finishes.; Preparing and mixing lime mortars for TWO of:; Hydraulic limes and non-hydraulic limes, lime mortars with; additives, lime mortars with fibres (natural or synthetic). 7",
+      "Stonemasonry (Internal)": "Preparing backgrounds andsurfaces for internal; stonefixing for:; brick, block, tile, concrete, timber and manufactured; board, screed, sand and cement.; Installing internal stonefixing for:; and floor; Internal treads and; Work surfaces; surfaces; risers; Reveals, cills and soffits (doors and/or; windows) and/or floor drainage and outlets",
+      "Sub-Structure Grouting": "Preparing the site for chemical and resin grouting; and soil injection; Carrying out chemical and resin grouting; and soil injection; OPTIONAL UNITS- choose at least ONE; Inspecting and completing user maintenance on; plant or machinery; Installing, maintaining and removing work area; protection and safety equipment; Slinging and hand signalling the movement of; suspended loads",
+      "Sweeping and Cleaning": "Preparing and operating plant or machinery to; sweep, clean or clear:; ONE of-; Self-propelled Pedestrian; Road Pavement; Controlled; Sweeper; Sweeper Sweeper; Sweeper; Gully Pedestrian; Gully; Cleaner Controlled; Sucker; Cleaner; plus TWO of-; Tipping of lifted Scrub Hose clean, wet; materials clean sweep; Pressure Empty or clear by; Blow clear; washer clean suction",
+      "Tiling": "Preparing Backgrounds for Tiling; Tiling Wall and Floor Surfaces; Plus ONE of:; Laying Sand and Cement Screeds; or; Laying Under Tile Heating Systems and Tile Systems",
+      "Timber Frame Erection": "Erecting timber roof structures:; - Pre-assembled roof structures \u2013 mechanically handled; - Plus InSitu Roofs either manually or mechanically handled; Erecting timber walls and floors",
+      "Traffic Marshall": "Preparing to and directing and guiding the; movement of vehicles, plant or machinery:; ONE of-; Movement guide marshaller; Loader/securer; Demonstrate the following:; measuring, gauging, estimating, interpreting, judging, explaining; preparing, commanding, directing, guiding, indicating, informing; instructing, signing, positioning, moving, securing, signalling and relaying."
     },
-
-    {
-      id:            'nvq-trade-level-3',
-      title:         'Level 3 Construction NVQ (Trade)',
-      category:      'Construction NVQ',
-      level:         3,
-      minExperience: null,
-      roles:         ['advanced craft operative','chargehand','leading hand','experienced tradesperson',
-                      'gang leader','specialist trade operative'],
-      audience:      'Tradespeople with advanced experience in their trade who also carry some supervisory responsibility, and need a Level 3 qualification — typically to move toward a Gold CSCS Card.',
-      description:   'A trade-specific Level 3 NVQ recognising advanced craft competence. Level 3 is designed for those with advanced experience in their trade who also have supervisory responsibility, which is the main thing that separates it from Level 2. ' +
-                     'CST offers Level 3 trade NVQs in: ' + TRADES_L3.join(', ') + '.' + NVQ_PROCESS + NVQ_PORTFOLIO + NVQ_ENTRY,
-      suitedFor:     [
-        'Advanced craft operatives who also supervise or direct others',
-        'Those who already hold a Level 2 NVQ and want to progress',
-        'Workers needing a Level 3 or 4 NVQ for a Gold CSCS Card'
-      ],
-      notSuitedFor:  'Not for those new to a trade — Level 2 is the correct starting point. Those whose role is primarily supervising others may be better suited to the Level 3 Occupational Work Supervisor NVQ.',
-      progression:   ['nvq-l3-occupational-work-supervisor','nvq-l4-site-supervision'],
-      url:           'https://www.csttraining.co.uk/trade/',
-      benefits:      'Recognises advanced craft competence and supports a Gold CSCS Card application. Assessed on real site work, completed remotely alongside the day job.'
-    },
-
-    /* ── SUPERVISION (Level 3 & 4) ───────────────────────── */
-    {
-      id:            'nvq-l3-occupational-work-supervisor',
-      title:         'Level 3 NVQ Occupational Work Supervision',
-      category:      'Construction NVQ',
-      level:         3,
-      minExperience: null,
-      roles:         ['supervisor','chargehand','foreman','gang leader','leading hand',
-                      'working supervisor','site supervisor'],
-      audience:      'Tradespeople who have stepped up to supervise a small team or gang on site and need a supervisory qualification for a Gold CSCS Card.',
-      description:   'The Level 3 NVQ in Occupational Work Supervision recognises competence in supervising construction work and teams on site. Typically takes 4 to 8 weeks from start to finish. CITB approved and completed fully remotely.' + NVQ_PROCESS + NVQ_ENTRY,
-      suitedFor:     [
-        'Working supervisors, chargehands and foremen',
-        'Tradespeople who now supervise a gang or small team',
-        'Those needing a Gold CSCS Card via the supervisory route',
-        'Anyone whose role has moved from doing the work to overseeing it'
-      ],
-      notSuitedFor:  'Not for those who do not supervise anyone — a trade NVQ is the right route for operatives. Those supervising a whole site or larger operation should consider the Level 4 Site Supervision NVQ.',
-      progression:   ['nvq-l4-site-supervision','nvq-l6-site-management'],
-      url:           'https://www.csttraining.co.uk/occupational-work-supervisor-level-3-nvq/',
-      benefits:      'Supports a Gold CSCS Card application. Typically completed in 4 to 8 weeks, fully remotely, with a dedicated assessor. The Gold card also requires an in-date CITB Health, Safety and Environment (HS&E) test.'
-    },
-
-    {
-      id:            'nvq-l3-cco',
-      title:         'Level 3 NVQ Construction Contracting Operations',
-      category:      'Construction NVQ',
-      level:         3,
-      minExperience: null,
-      roles:         ['assistant site manager','trainee quantity surveyor','estimator',
-                      'buyer','planner','contracts assistant','site administrator'],
-      audience:      'Experienced on-site technical staff — estimating, buying, planning, surveying, site technical support or design co-ordination — rather than those in a trade or on the tools.',
-      description:   'The Level 3 NVQ in Construction Contracting Operations recognises competence in the technical and contracting side of construction. Typically takes 4 to 12 weeks. You choose from 7 pathways: General, Estimating, Buying, Planning, Surveying, Site Technical Support and Design Co-ordinator. Evidence gathered relates to the pathway chosen. A written case study may be required, and the assessor may visit site or hold a video call. CITB approved and completed remotely.' + NVQ_PROCESS + NVQ_ENTRY,
-      suitedFor:     [
-        'On-site technical staff in estimating, buying, planning or surveying',
-        'Site technical support and design co-ordination roles',
-        'Anyone in a construction office role needing a Gold CSCS Card'
-      ],
-      notSuitedFor:  'Not for trade operatives or those supervising site work directly — the Occupational Work Supervision NVQ suits those roles better.',
-      progression:   ['nvq-l4-site-supervision','nvq-l6-cco-general'],
-      url:           'https://www.csttraining.co.uk/cco-level-3/',
-      benefits:      'Supports a Gold CSCS Card application for technical and contracting roles, alongside an in-date CITB HS&E test. Seven pathways so the NVQ matches the work you actually do. Typically 4 to 12 weeks, completed remotely.'
-    },
-
-    {
-      id:            'nvq-l4-site-supervision',
-      title:         'Level 4 NVQ Construction Site Supervision',
-      category:      'Construction NVQ',
-      level:         4,
-      minExperience: null,
-      roles:         ['site supervisor','section supervisor','general foreman',
-                      'assistant site manager','sub-agent'],
-      audience:      'Experienced site supervisors responsible for supervising site operations, who need a Level 4 qualification for a Gold CSCS Card.',
-      description:   'The Level 4 NVQ in Construction Site Supervision recognises competence in supervising site operations at a higher level than Level 3. Typically takes 4 to 8 weeks. CITB approved and completed fully remotely. Eligible for ELCAS funding for current and ex-military personnel.' + NVQ_PROCESS + NVQ_ENTRY,
-      suitedFor:     [
-        'Site supervisors and general foremen with real site responsibility',
-        'Those progressing beyond a Level 3 supervisory NVQ',
-        'Anyone needing a Gold CSCS Card via the Level 4 route',
-        'Ex-forces personnel who may be eligible for ELCAS funding'
-      ],
-      notSuitedFor:  'Not for those managing a whole site or project — the Level 6 Site Management NVQ is the Black CSCS Card route. Not for operatives without supervisory responsibility.',
-      progression:   ['nvq-l6-site-management','nvq-l6-cco-general'],
-      url:           'https://www.csttraining.co.uk/site-supervision-level-4/',
-      benefits:      'Supports a Gold CSCS Card application. Typically 4 to 8 weeks, fully remote. One of CST\'s ELCAS-eligible NVQs for service leavers and veterans.'
-    },
-
-    /* ── MANAGEMENT (Level 6 & 7) ────────────────────────── */
-    {
-      id:            'nvq-l6-site-management',
-      title:         'Level 6 NVQ Construction Site Management',
-      category:      'Construction NVQ',
-      level:         6,
-      minExperience: null,
-      roles:         ['site manager','project manager','construction manager','site agent',
-                      'contracts manager','general foreman moving into management'],
-      audience:      'Experienced site managers running sites or projects who need a Level 6 qualification to apply for a Black CSCS Card.',
-      description:   'The Level 6 NVQ in Construction Site Management is the main route to a Black CSCS Card for site managers. Typically takes 8 to 12 weeks. Assessed by CIOB chartered assessors.' + NVQ_PROCESS + NVQ_ENTRY,
-      suitedFor:     [
-        'Site managers and site agents running their own sites',
-        'Construction and contracts managers without a Level 6 qualification',
-        'Those needing a Black CSCS Card',
-        'Experienced supervisors who have moved fully into site management',
-        'Ex-forces personnel who may be eligible for ELCAS funding'
-      ],
-      notSuitedFor:  'Not for supervisors who do not manage a site — Level 3 or 4 supervision NVQs are the correct route. Those in commercial or contracting roles rather than site management should look at the Level 6 Construction Contracting Operations NVQ.',
-      progression:   ['nvq-l7-senior-management'],
-      url:           'https://www.csttraining.co.uk/construction-site-management-level-6/',
-      benefits:      'The recognised route to a Black CSCS Card for site managers. Assessed by CIOB chartered assessors. Typically 8 to 12 weeks, completed remotely alongside the job. You can apply for a temporary CSCS card once enrolled. The Black card also requires the CITB MAP test.'
-    },
-
-    {
-      id:            'nvq-l7-senior-management',
-      title:         'Level 7 NVQ Construction Senior Management',
-      category:      'Construction NVQ',
-      level:         7,
-      minExperience: null,
-      roles:         ['senior site manager','project director','construction director',
-                      'operations manager','senior contracts manager','managing director'],
-      audience:      'Senior construction professionals operating above individual site level who want the highest-level construction management NVQ.',
-      description:   'The Level 7 NVQ in Construction Senior Management is the most senior construction management NVQ. Typically takes 8 to 12 weeks. Assessed by CIOB assessors and offers a short route to MCIOB membership. 6 units are mandatory and a further 13 are optional. The mandatory units are: manage project processes in construction; manage teams in construction; provide advice, judgement and service ethically in construction; develop self and others in construction; control projects in construction; and plan a construction organisation workforce. Approved by Ofqual, CITB, CSCS and CIOB, awarded through NOCN. IMPORTANT: this NVQ is NO LONGER ELIGIBLE for CITB grant funding — do not tell visitors they can claim a CITB grant for it. ELCAS funding for service personnel and service leavers is still available.' + NVQ_PROCESS + NVQ_ENTRY,
-      suitedFor:     [
-        'Senior managers responsible for multiple sites or projects',
-        'Construction and project directors',
-        'Those pursuing MCIOB membership via the short route',
-        'Level 6 NVQ holders progressing to the highest level',
-        'Ex-forces personnel who may be eligible for ELCAS funding'
-      ],
-      notSuitedFor:  'Not appropriate for site managers running a single site — the Level 6 Site Management NVQ is the right level. Not for supervisors.',
-      progression:   [],
-      url:           'https://www.csttraining.co.uk/senior-construction-management-level-7-nvq/',
-      benefits:      'The highest-level construction management NVQ, supporting a Black CSCS Card and offering a short route to MCIOB membership. Assessed by CIOB assessors, typically 8 to 12 weeks.'
-    },
-
-    {
-      id:            'nvq-l6-cco-general',
-      title:         'Level 6 NVQ Construction Contracting Operations – General',
-      category:      'Construction NVQ',
-      level:         6,
-      minExperience: null,
-      roles:         ['technical site manager','operations manager','contracts manager',
-                      'sub-contractor site manager','owner','director','construction manager'],
-      audience:      'Technical site managers, operations managers, specialist sub-contractor site managers, owners and directors who need a Level 6 qualification for a Black CSCS Card.',
-      description:   'The Level 6 NVQ in Construction Contracting Operations (General) covers the commercial and contracting side of construction at a management level. Typically takes 8 to 12 weeks. Assessed by CIOB assessors.' + NVQ_PROCESS + NVQ_ENTRY,
-      suitedFor:     [
-        'Technical site managers and operations managers',
-        'Specialist sub-contractor site managers',
-        'Owners and directors of construction businesses',
-        'Ex-forces personnel who may be eligible for ELCAS funding'
-      ],
-      notSuitedFor:  'Those working in one commercial specialism — estimating, buying, surveying or planning — should take the Specialist pathway version instead. Those running traditional main-contractor sites may be better suited to the Level 6 Site Management NVQ.',
-      progression:   ['nvq-l7-senior-management'],
-      url:           'https://www.csttraining.co.uk/level-6-cco/',
-      benefits:      'Route to a Black CSCS Card for commercial and contracting professionals. Assessed by CIOB assessors, typically 8 to 12 weeks, completed remotely.'
-    },
-
-    {
-      id:            'nvq-l6-cco-specialist',
-      title:         'Level 6 NVQ Construction Contracting Operations – Specialist',
-      category:      'Construction NVQ',
-      level:         6,
-      minExperience: null,
-      roles:         ['quantity surveyor','estimator','planner','buyer','commercial manager',
-                      'procurement manager'],
-      audience:      'Senior professionals working in one specific commercial discipline — planning, estimating, surveying or buying — who need a Level 6 qualification in their specialism.',
-      description:   'The Specialist version of the Level 6 Construction Contracting Operations NVQ, with 4 pathways: Estimating, Buying, Surveying and Planning. Typically takes 8 to 12 weeks. Assessed by CIOB assessors.' + NVQ_PROCESS + NVQ_ENTRY,
-      suitedFor:     [
-        'Quantity surveyors, estimators, planners and buyers',
-        'Those whose role sits within one commercial discipline rather than across all of them',
-        'Professionals needing a Black CSCS Card in a specialist commercial role'
-      ],
-      notSuitedFor:  'Not for those working across the full range of contracting operations — the General pathway is a better fit. Not for site managers.',
-      progression:   ['nvq-l7-senior-management'],
-      url:           'https://www.csttraining.co.uk/construction-contracting-operations-level-6-nvq-specialist/',
-      benefits:      'Recognises competence in a specific commercial discipline and supports a Black CSCS Card. Choose from planning, estimating, surveying or buying pathways.'
-    },
-
-    {
-      id:            'nvq-l6-senior-site-inspection',
-      title:         'Level 6 NVQ Diploma in Senior Site Inspection',
-      category:      'Construction NVQ',
-      level:         6,
-      minExperience: null,
-      roles:         ['clerk of works','site inspector','quality inspector',
-                      'architectural inspector','senior site inspector','building inspector'],
-      audience:      'Site inspectors, quality inspectors, architectural inspectors, clerks of works and other inspection-based roles.',
-      description:   'The Level 6 NVQ Diploma in Senior Site Inspection recognises competence in inspecting construction work and managing quality on site. Typically takes 8 to 12 weeks. Assessed by CIOB assessors.' + NVQ_PROCESS + NVQ_ENTRY,
-      suitedFor:     [
-        'Site inspectors, quality inspectors and architectural inspectors',
-        'Clerks of works and other inspection-based roles',
-        'Inspection professionals needing a Black CSCS Card'
-      ],
-      notSuitedFor:  'Not for site or contracts managers — the Site Management or Contracting Operations NVQs are more appropriate for those roles.',
-      progression:   ['nvq-l7-senior-management'],
-      url:           'https://www.csttraining.co.uk/senior-site-inspection-level-6-nvq/',
-      benefits:      'The senior qualification for site inspection and clerk of works roles. Supports a Black CSCS Card application alongside the CITB MAP test. ProQual and CITB approved. Typically 8 to 12 weeks, completed remotely.'
-    },
-
-    /* ── PLANT, CRANE & ELECTRICAL ───────────────────────── */
-    {
-      id:            'nvq-plant',
-      title:         'Plant and Machine Operations NVQs (Level 2 & 3)',
-      category:      'Construction NVQ',
-      level:         2,
-      minExperience: null,
-      roles:         ['plant operator','excavator operator','dumper driver','roller operator',
-                      'telehandler operator','forklift operator','machine operator'],
-      audience:      'Plant and machine operators who hold a red trainee CPCS or NPORS card and need an NVQ to upgrade to a blue competence card.',
-      description:   'CST offers a wide range of plant and machine operations NVQs at Levels 2 and 3, covering the main categories of construction plant. These are the qualification route from a red CPCS or NPORS trainee card to a blue competence card.' + NVQ_PROCESS + NVQ_ENTRY,
-      suitedFor:     [
-        'Plant operators holding a red trainee CPCS or NPORS card',
-        'Machine operators needing formal recognition of competence',
-        'Operators whose employer requires a blue card'
-      ],
-      notSuitedFor:  'Not for those who do not operate plant. The specific NVQ depends on the machine category you operate — check the plant NVQ page or ask the team which applies to you.',
-      progression:   ['nvq-l3-occupational-work-supervisor'],
-      url:           'https://www.csttraining.co.uk/plant-nvqs/',
-      benefits:      'The route from a red trainee CPCS or NPORS card to a blue competence card. Assessed on the machines you already operate, completed remotely.'
-    },
-
-    {
-      id:            'nvq-crane',
-      title:         'Crane NVQs (Level 2, 4 & 5)',
-      category:      'Construction NVQ',
-      level:         2,
-      minExperience: null,
-      roles:         ['crane operator','slinger signaller','crane supervisor','appointed person',
-                      'lifting supervisor','tower crane operator','mobile crane operator'],
-      audience:      'Those working in lifting operations — crane operators, slinger signallers, crane supervisors and appointed persons — who need an NVQ for a blue CPCS card.',
-      description:   'CST offers NVQs across lifting operations at Levels 2, 4 and 5, covering crane operators, slinger signallers, crane supervisors and appointed persons. These support blue CPCS card applications.' + NVQ_PROCESS + NVQ_ENTRY,
-      suitedFor:     [
-        'Crane operators and slinger signallers',
-        'Crane supervisors and appointed persons',
-        'Anyone in lifting operations needing a blue CPCS card'
-      ],
-      notSuitedFor:  'Not for general construction operatives. The right level depends on your specific lifting role — ask the team which NVQ matches what you do.',
-      progression:   [],
-      url:           'https://www.csttraining.co.uk/crane-nvqs/',
-      benefits:      'Covers the full range of lifting roles and supports a blue CPCS card. Assessed on your actual lifting work, completed remotely.'
-    },
-
-    {
-      id:            'nvq-electrical-level-3',
-      title:         'Level 3 Electrotechnical Experienced Worker NVQ',
-      category:      'Construction NVQ',
-      level:         3,
-      minExperience: null,
-      roles:         ['electrician','electrical installer','maintenance electrician',
-                      'experienced electrical worker'],
-      audience:      'Experienced electricians working without a full formal qualification who need to evidence competence through the experienced worker route.',
-      description:   'The Level 3 Electrotechnical Experienced Worker qualification is the assessment route for electricians with substantial industry experience but no full qualification. It recognises the work you already do rather than teaching from scratch.' + NVQ_PROCESS + NVQ_ENTRY,
-      suitedFor:     [
-        'Practising electricians with several years of experience',
-        'Those who learned on the job and have no formal electrotechnical qualification',
-        'Electricians who need to evidence competence for card or scheme purposes'
-      ],
-      notSuitedFor:  'Not a route into the electrical trade for beginners — it requires substantial existing experience and access to work to evidence.',
-      progression:   [],
-      url:           'https://www.csttraining.co.uk/level-3-electrotechnical-experienced-worker/',
-      benefits:      'The recognised experienced worker assessment route for electricians. Recognises existing competence without returning to college.'
-    },
-
-    /* ── OCCUPATIONAL HEALTH & SAFETY NVQs ───────────────── */
-    {
-      id:            'ohs-nvq-level-3',
-      title:         'Level 3 NVQ Occupational Health & Safety',
-      category:      'Health & Safety',
-      level:         3,
-      minExperience: null,
-      roles:         ['health and safety officer','h&s advisor','safety coordinator',
-                      'site safety officer','h&s administrator'],
-      audience:      'Those working in a health and safety role who want a competence-based NVQ assessed on their actual work rather than an exam-based certificate.',
-      description:   'The Level 3 NVQ in Occupational Health and Safety recognises competence in an H&S role through workplace evidence rather than examination. It is the NVQ alternative to certificate-based routes such as NEBOSH.' + NVQ_PROCESS + NVQ_ENTRY,
-      suitedFor:     [
-        'H&S officers and advisors already doing the role',
-        'Those who prefer evidence-based assessment to exams',
-        'People who need a recognised H&S qualification without classroom study'
-      ],
-      notSuitedFor:  'Not for those new to health and safety with no H&S duties to evidence — NEBOSH or IOSH courses teach the knowledge first. Senior practitioners should consider the Level 6 NVQ.',
-      progression:   ['ohs-nvq-level-6','nebosh-general'],
-      url:           'https://www.csttraining.co.uk/ohs-level-3/',
-      benefits:      'Competence-based H&S qualification assessed on the work you already do, with no exams. Completed remotely with a dedicated assessor.'
-    },
-
-    {
-      id:            'ohs-nvq-level-6',
-      title:         'Level 6 NVQ Occupational Health & Safety',
-      category:      'Health & Safety',
-      level:         6,
-      minExperience: null,
-      roles:         ['health and safety manager','shequ manager','hse manager',
-                      'safety manager','head of health and safety'],
-      audience:      'Experienced health and safety practitioners who want a degree-level qualification assessed through workplace competence, often as a route toward professional IOSH membership.',
-      description:   'The Level 6 NVQ Diploma in Occupational Health and Safety is a degree-level competence qualification for practising H&S professionals. Widely used as a route toward Graduate IOSH and onward Chartered membership. Eligible for ELCAS funding.' + NVQ_PROCESS + NVQ_ENTRY,
-      suitedFor:     [
-        'Practising H&S managers and practitioners',
-        'Those working toward Graduate or Chartered IOSH membership',
-        'NEBOSH General or Construction Certificate holders progressing further',
-        'Ex-forces personnel who may be eligible for ELCAS funding'
-      ],
-      notSuitedFor:  'Not for those new to health and safety — requires a substantial H&S role to evidence. The Level 3 NVQ or NEBOSH Certificates are better starting points.',
-      progression:   ['ohs-nvq-level-7'],
-      url:           'https://www.csttraining.co.uk/ohs-level-6/',
-      benefits:      'Degree-level H&S qualification assessed on real work rather than exams. Commonly used as a route toward professional IOSH membership. One of CST\'s ELCAS-eligible NVQs.'
-    },
-
-    {
-      id:            'ohs-nvq-level-7',
-      title:         'Level 7 Diploma Occupational Health & Safety',
-      category:      'Health & Safety',
-      level:         7,
-      minExperience: null,
-      roles:         ['head of health and safety','hse director','shequ director',
-                      'senior h&s manager','group safety manager'],
-      audience:      'Senior health and safety professionals operating at a strategic level who want the highest-level H&S qualification.',
-      description:   'The Level 7 Diploma in Occupational Health and Safety is a postgraduate-level qualification for senior H&S professionals with strategic responsibility.' + NVQ_PROCESS + NVQ_ENTRY,
-      suitedFor:     [
-        'Heads of health and safety and HSE directors',
-        'Senior practitioners with strategic organisational responsibility',
-        'Level 6 holders progressing to the highest level'
-      ],
-      notSuitedFor:  'Not appropriate without substantial senior H&S experience. Level 6 is the correct level for most practising H&S managers.',
-      progression:   [],
-      url:           'https://www.csttraining.co.uk/occupational-health-and-safety-level-7/',
-      benefits:      'The most senior H&S qualification CST offers, recognising strategic health and safety leadership.'
-    },
-
-    /* ── BUSINESS NVQs ───────────────────────────────────── */
-    {
-      id:            'business-nvqs',
-      title:         'Business NVQs (Management, Administration & Customer Service)',
-      category:      'Leadership & Management',
-      level:         3,
-      minExperience: null,
-      roles:         ['office manager','administrator','team leader','customer service advisor',
-                      'operations coordinator','business support','contact centre manager'],
-      audience:      'People working in business, administration or customer service roles who want a work-based qualification assessed on the job rather than through study and exams.',
-      description:   'CST offers business NVQs across management, business administration and customer service, plus an OTHM Level 4 Diploma in Business Management. Like construction NVQs, these are assessed on evidence from your actual role through an online portfolio.',
-      suitedFor:     [
-        'Administrators and office managers wanting formal recognition',
-        'Customer service staff and team leaders',
-        'Those who prefer work-based assessment to classroom study',
-        'Employers qualifying office-based teams'
-      ],
-      notSuitedFor:  'Not for those wanting a taught management course with a professional body behind it — ILM or CMI qualifications suit that better. Not for construction site roles.',
-      progression:   ['ilm-level-3','cmi-level-3-management'],
-      url:           'https://www.csttraining.co.uk/business-nvqs-courses/',
-      benefits:      'Work-based qualifications for office and customer-facing roles, assessed on evidence from the job. Covers management, business administration and customer service pathways.'
+    level3: {
+      "Access and Rigging": "PATHWAYS; 1. Scaffolding and Offshore Scaffolding; Utilising the Provision of Fall Protection Systems; Erecting Specialised, Designed Scaffolds and Rigging; PLUS TWO OF; Erecting and Dismantling Overhead Scaffolds; Erecting and Dismantling Falsework Scaffolds; Erecting and Dismantling Shoring Scaffolds; Erecting and Dismantling Temporary Roof Scaffolds; or; 5. Temporary Suspended Access Equipment; If you require specific lists of photo and video evidence for any of the optional units please get in touch.",
+      "Architectural Joinery": "Producing setting out details, marking out from; setting out details and manufacturing TWO of:; Units; Panelling; Windows; Doors; and/or and Staircases; (with; opening lights) Cladding; fitments; Manufacturing bespoke products THREE of:; Units; Panelling; Opening; Doors; and/or and Door sets; Windows; Cladding; fitments; products Joinery products Joinery products Handrails; Staircases; with double with single with any of:; and; curvature curvature; glass,metal, fabrics, straight and with turns; Balustrades; features features; veneers and laminates",
+      "Bench Joinery": "Producing setting out details, marking out from; setting out details and manufacturing TWO of:; Doors, Windows with opening lights, Units and/; or fitments, Panelling and Cladding, Staircases; Manufacturing bespoke products THREE of:; Door Sets, Doors, Opening Windows, Units and/or fitments, Panelling and Cladding; Staircases (straight or with turns), Joinery products with any of: glass,metal, fabrics; veneers and laminates, Handrails and Balustrades, Joinery products with single; curvature features, Joinery products with double curvature features",
+      "Bricklaying": "Set Out Brick & Block Work; Erect Brick & Block Work e.g: cavity wall structures; blockwork structures, solid wall structures, form openings; joint finishes, cills capping and copings.; Repairing and Maintaining Masonry Structures; COMPLEX BRICKWORK- choose THREE:; Arch; Chimney Stack Fireplace; rough ringed, axed, gauged; Wall Wall Curved Wall Curved Wall Splayed; flush, projecting on Plan in Elevation on Plan; features 7",
+      "Carpentry": "Maintaining & Cleaning Tools; FIRST FIX- choose THREE:; Partitions; Frames Shaped Linings Staircases; with openings and; and/or window Door and/or hatch with turns; change of direction; SECOND FIX; Side Hung Doors Mouldings Ironmongery; Doubles or Pairs Detailed Architrave, Skirting In Pairs or Sets; plus choose TWO:; Accessible; Bespoke Stair Components; Cladding or; Service; Prefabricated; balustrades, handrails; Panelling; Units or Fitments; spindles with turns; OPTIONAL UNITS- choose TWO:; Erecting roof structure carcassing components, TWO of:; Hips and/or valleys, Roof verge and eaves, Parapet finishings, False; chimneys, Openings (e.g. windows, hatches, dormers, roof lights and vents); Structural carcassing components, ONE of:; Inclined Roofs with Gables, Load Bearing Partitions, Joistsground, upper or; flat roof, including coverings (flat roofs, decks or floors); THREE different examples of maintaining non-structural; and structural components; please ask for further details.",
+      "Carpentry (Shopfitting)": "Maintaining & Cleaning Tools; Installing shopfitting fitments TWO of:; Counters, Display units; Shelving units, Fixed seating.; Installing shopfitting frames and finishing, SIX of:; Door frames, Hung doors, Door sets, Mouldings or trims, Ironmongery; Service encasement, Linings, Panelling or cladding, Partition walling; Staircase finishings and balustrades, Staircases, Bulkheads and soffits, Units; and fitments, Window frames.; Installing shopfronts and finishings THREE of:; Counters; Shopfront surrounds, Stall risers, Mouldings and trims, Window beds, Fascias; Specialist treatment and finishes, Blind box.; Marking out from setting out details for routine; shopfitting products; Setting up and using transportable cutting; and shaping machines",
+      "Cladding (Rainscreen)": "Preparing backing walls to receive; rainscreen wall cladding; Installing rainscreen wall cladding systems; OPTIONAL UNIT- choose THREE:; Refurbishing sheeting and; Setting Out Secondary; Slinging & hand signalling the; cladding on roofs, walls or; Dimensional Work Control; movement of suspended loads; rainscreen systems; Preparing and operating boom-type Preparing and operating scissor-type; mobile elevating work platforms - MEWP mobile elevating work platforms - MEWP; Preparing and operating ergonomic; Repairing sheeting and cladding systems; manipulating machines to lift and; on roofs and walls (including rainscreen); transfer loads",
+      "Cladding (Roof and Wall Sheeting and Cladding)": "Preparing resources for the installation of sheeting; and cladding materials on roofs and walls; Installing sheeting and cladding systems; on roofs and walls ONE of:; Built-up, Standing seam, Secret fix, Composite panel, Fibre-cement; Installing sheeting and cladding rainwater; goods on roofs and walls; Installing sheeting and cladding systems to curved; and complex roof and wall formations; OPTIONAL UNIT- choose ONE:; Slinging & hand signalling the Installing Solar Setting Out Secondary; movement of suspended loads Collectors to Roofs Dimensional Work Control; Preparing and operating boom-type Preparing and operating scissor-type; mobile elevating work platforms - MEWP mobile elevating work platforms - MEWP; Refurbishing sheeting and cladding on Repairing sheeting and cladding systems; roofs, walls or rainscreen systems on roofs and walls (including rainscreen)",
+      "Demolition": "PATHWAYS; Top Man Operative; Chargehand; and segregating components and Removing and segregating components and; in demolition and/or refurbishment materials in demolition and/or refurbishment; Controlling, directing and guiding the; Installing, constructing, maintaining; operation of plant or machinery; and removing temporary works; FOUR of:; Installing, constructing, maintaining; screen, hoardings and covers; dismantling and removing temporary works; Access and egress routes; Supports FOUR of:; Supporting structures Protective screen, hoardings and covers; Removal equipment Access and egress routes; Diverting equipment Supports; Site facilities Supporting structures; Stabilisation Removal equipment; Diverting equipment; Site facilities; and/or demolishing THREE of:; Stabilisation; and/or concrete, roofs and/or; timber structures, metal structures; Dismantling and/or demolishing THREE of:; masonry and/or concrete, roofs and/or; Plant Operative; cladding, timber structures, metal structures; Operating plant or machinery to; dismantle and/or demolish structures; above or up to 30 metres",
+      "Fenestration": "OPTIONAL UNITS- to be taken from both groups; Group One- Minimum of 9 credits; 14 9 9; credits credits credits; Removing and; Removing and; Installing; installing oriel; installing box sash; Conservatories; windows; windows; 3 6 9; Post curtain wall credits credits Installing facetted, credits; Creating datum; activities structurally glazed; points for curtain; Check system is installed and; or unitised curtain; correctly, remove surplus wall installation; materials/rubbish walling systems; 9 8 9; credits credits credits; Removing and; Installing Removing; installing rooflight; bay windows bay windows; windows; Group Two- Minimum of 4 credits; 11 8 4; credits credits credits; Installing glass; Installing curtain Installing windows; and/or panels into; walling systems and doors; windows and doors",
+      "Fenestration Surveying": "Maintain Health and Safety Within; the Fenestration Surveying; Understanding the Building Regulations in the; Fenestration Industry; Identify Fenestration Installation Requirements; Communicating and Working with Others; Produce Specifications for Window and Door; Curtain Wall or Conservatory Installations; Plus ONE optional unit:; Ensure Resources are; Promote and Maintain Post Curtain Walling; to Meet Work; Health and Safety Activity; Requirements; Control the Installation; Improve the Work of the; Post Windows, Doors; of Windows and Doors, Organisation Through the use; or Conservatories; of Resources, Communication; or Conservatories, or; Installation Activity; and Working Relationships. 7; Curtain Walling",
+      "Floor Coverings": "Preparing and Fitting Underlays; Assessing and Preparing Subfloor Surfaces; Setting Out for Laying Floorcoverings; Preparing Surfaces to Receive Floorcoverings; PATHWAY 1 PATHWAY 2; Resilient and Textile Timber; Installing Tmber-Based; Installing Textile Floorcoverings:; Floorcoverings; Contact or Domestic work; Contact or Domestic work; Installing Resilient Floorcoverings: TWO of:; Contact or Domestic work; \u2022 Wood Block; \u2022 Solid Wood; \u2022 Engineered Wood; Assessing and Evaluating; \u2022 Laminate; Conditions for Floorcoverings; Joining and Repairing Textile Assessing and Evaluating; Conditions for Floorcoverings; Floorcoverings",
+      "Formwork": "Erect and strike timber formwork for TWO of:; Walls, Columns, Beams, Soffits, Bases; Construct, fabricate, maintain and repair formwork; components for THREE of:; Stairs, Landings, Ramps, Inclined Structures, Curved or; Circular Structures, Pre-cast Forms; Erect and strike complex formwork for TWO of:; Stairs, Landings, Ramps, Inclined Structures, Curved or; Circular Structures, Pre-cast Forms",
+      "Glazing": "OPTIONAL UNITS- to be taken from both groups; Group One- Choose ONE; Maintaining glazing systems; following manufacturing and company guidelines; Cutting glass for glazing; cutting machinery, hand tools and measuring equipment; Group Two- as a minimum choose ONE; Apply window Glaze glass curtain; Glaze; film to glass glass interiors wall systems; Glaze glass Glaze glass overhead Glaze glass shop; balustrades installations fronts; glass stair and Glaze structural Glaze toughened; installations glass installations glass assemblies; Glaze security; Glaze; glazing installations 7; glass blocks",
+      "Heritage Skills (Roof Slating and Tiling)": "Re-laying Heritage Roof Coverings THREE of:; Single-lap clay tiles, Clay plain tiles, Peg tiles, Stone slates; Regular sized natural slates, Random length and width; natural slates, Flashings, Related fittings and components; Repairing and Maintaining Heritage Roof Coverings; Replacing Heritage Roof Coverings; Working on Conservation and Restoration; Carpentry and Joinery Projects; OPTIONAL UNITS- choose TWO:; Installing:; Double-lap Roof Tiles, Natural Roof Slate, Plain Tile Roof; Coverings, Random Natural Roof Slates with Diminishing Margins; Regular Sized Natural Roof Slat, Single-lap Roof Tiles to a Fixed; Gauge, Weathering Leadwork to Roofs (to be fabricated also)",
+      "Heritage Skills (Stonemasonry)": "Conserving or Restoring Stonemasonry, Brickwork; or Earthen Structures for:; Replicate existing structures, Stabilise existing structures; Prepare mortars appropriate to the existing, Joint finishes; Integrate surface finishes.; Working on Conservation and Restoration; Carpentry and Joinery Projects; Prepare the mixing of non-hydraulic (lime putty); and hydraulic lime mortars (coarse and fine stuff); to include lime mortars without additives or fibres; mechanically and by hand.",
+      "Heritage Skills (Wood Occupations)": "Conserving or Restoring Timber-based Products; EIGHT of:; Load bearing components, Non-load bearing components; Walls, Floors, Roofs, Joist coverings, Frames (including; windows), Panelling/cladding, Units and fitments, Doors; Mouldings, Staircases.; Working on Conservation and Restoration; Carpentry and Joinery Projects; OVERACHING UNITS; one unit from A and one unit from B OR one unit from A or B and then one unit from C OR both units from C.; Group A Group B Group C; 1. Producing Setting; 1. Manufacturing Bespoke 1. Conserving or Restoring; Out Details for Bespoke; Heavy Timber Framework in; Architectural Joinery; Architectural Joinery Products; the Workplace; Products; 2. Producing Setting; 2. Setting Out Timber; 2. Manufacturing Bespoke; Out Details for Bespoke; Framework in the Workplace; Shopfitting Products; Shopfitting Products; 3. Manufacturing Bespoke; 3. Producing Setting; Wheelwrighting Products; Out Details for Bespoke; Wheelwrighting Products 7",
+      "Insulation": "Insulation and building treatments, building; construction, defects and interfaces; PATHWAYS SPECIFIC REQUIREMENTS:; Room in Roof Park Homes Hybrid Wall; internal inuslation to - Installing external wall insulation; - Installing external wall insulation; sections of buildings or; - Park Homes insualtion - Installing internal insulation to; insulation; walls or Injecting, blowing and; insulation to cold roofs or - Installing or spraying insulation to; spraying insulation to internal walls; suspended floors; customer relationships; insulation to create - Installing insulations to cold roofs or; developing customer relationships External Wall Insulation; or developing customer; relationships Boarder; - Installing external wall insulation; Framed Sections of External Wall Insulation; Buildings Boarder and Finisher; External Wall Insulation; or injecting/blowing/ - Installing external wall insulation; Finisher; to framed sections; - Applying surface finishes to external; of buildings; - Applying surface finishes to external; wall insulation, THREE of:; wall insulation, THREE of:; Dash finishes, Synthetic or non-synthetic renders.; Insulation (Walls) Proprietary pre-cast finishes, Paint finishes, Brick Dash finishes, Synthetic or non-synthetic renders.; slips, Brick effect render Proprietary pre-cast finishes, Paint finishes, Brick; internal insulation to slips, Brick effect render; Injecting, blowing and; insulation to internal walls; All installation units require standard pre, during and; post checks to be provided as evidence",
+      "Interior Systems": "Pathways- choose ONE:; Complex Suspended Ceiling Systems; Install four of the following:; Curved Ceilings, Sloping Ceilings, Floating Ceilings/; Canopies, Complex Ceiling Voids, Plasterboard Margin; Interfaces, Rafts and/or Baffles Acoustic Sections; Stretched Ceiling Fixing; Install and demonstrate the following:; Fix peripheral rails., Heat the work area to 100\u00b0 Fahrenheit using; gas heaters, Install proprietary stretched ceilings, Reduce the; heat to normal room temperature, Carry out any repairs.; Service Operable Partition Walls; Two of the following:; Sliding and/or Folding Wal, Operable Wall, Non-Acoustic; Glass Wall, Vertically Rising Wall, Accordion Wall",
+      "Moving Loads": "Prepare loads for lifting, positioning and moving; Lift, position and move loads; Determine resource requirements to achieve lifting; positioning and moving loads; Pathways- choose ONE:; 1. Determine technical requirements to achieve lifting and positioning; 2. Dismantle elements and assemblies for the movement of loads; 3. Contribute to technical leadership in the movement of loads",
+      "Painting": "Preparing Paint and Work Area; Applying Surface Coatings by Brush and Roller; Setting Up and Using Access Platforms; Preparing Surfaces for Painting; Hanging Wallpaper; OPTIONAL UNIT- choose ONE:; Applying; Producing; Spraying Paint; Complex Stencils; Comb Textured; Applying Metal Installing Coving &; Leaf to Surfaces; Decorative Mouldings",
+      "Plant Installation": "Installing plant or machinery for operational activities; Configuring tower cranes or hoists for operation; during installation activities; Preparing and operating tower cranes or hoist; during installation activities; Inspecting plant or machinery for operational serviceability; Supervising and co-ordinating plant installation and; dismantling activities; Carrying out basic maintenance on; installed plant and equipment; Dismantling pre-installed tower cranes or hoists; Only; Diagnosing faults in plant or machinery systems 7",
+      "Plant Maintenance": "Configure, service, maintain and adjust plant and; plant components; Repair plant by joining materials and fabricating; dismantling and assembling components; Inspect, diagnose and rectify faults in; plant and equipment; Move standard loads",
+      "Plastering": "Installing direct bond dry lining systems; Installing mechanically fixed plasterboard; Running in-situ mouldings",
+      "Plastering (Fibrous)": "Installing complex fibrous plaster components; Producing complex plasterwork moulds; Producing fibrous plaster components; Repairing complex decorative; fibrous plaster components; Running in-situ mouldings",
+      "Roofing (Slater)": "Installing double-lap artificial roof slates; Installing natural roof slates to mitred; and vertial roof details; Installing pre-formed weathering flashings; Installing randon natural roof slates with; diminishing margins; Installing underlay, battens and roofing components; Stripping and reclaiming roof coverings",
+      "Roofing (Tiler)": "Installing double-lap roof tiles; Installing single and double lap roof tiles to mitred; and vertial roof details; Installing pre-formed weathering flashings; Installing Single-lap Roof Tiles to a Fixed Gauge; Installing underlay, battens and roofing components; Stripping and reclaiming roof coverings",
+      "Scaffolding": "Erecting specialised, designed scaffolds; and rigging, for ONE of:; Scaffolding, Steeplejacking, Rigging: structures used in; entertainment, Rigging: suspended access equipment; Off-shore Scaffolding; Plus TWO of:; Erecting and dismantling overhead scaffolds; Erecting and dismantling falsework scaffolds; Erecting and dismantling shoring scaffolds; Erecting and dismantling temporary roof scaffolds",
+      "Steel Fixing": "Plan, sequence, prepare, measure, mark out; fit, fix, position, coordinate and install in situ; reinforcement steel to complex designs, for:; Slabs; Bases; Walls; with junctions that are not a 90 degree angle; and at least one complex curved shape",
+      "Stonemasonry (Banker Masonry)": "Set out complex shapes and produce templates; moulds and reverses for natural stone components; FOUR of:; Shaped Curved Ramp and; Tracery; on Plan Twist; Ionic; Spheres Entablature Finials; components; Select, cut and produce natural stone components; FOUR of:; Prepared for; Curved Ramp and; Tracery; Twist fixing and lifting; on Plan; Ionic; Entablature Finials; Spheres; components",
+      "Tiling": "Prepare backgrounds for tiling; Tiling wall and floor surfaces; Producing two types of complex ceramic, mosaic; and stone surface finishes for:; Arches, reveals, cills and soffits (door and/or windows); Staircase and landing; OPTIONAL UNITS- choose TWO:; Providing drainage; Laying sand and; cement screeds for tiled surfaces; Laying under tile heating Producing internal & external; systems and tiling surfaces sand and cement backgrounds"
     }
+  };
 
-  ];
+  /* Common ways people describe their job, mapped to the trade name used
+     in the handbooks. "I'm a scaffolder" needs to find "Scaffolding". */
+  var ALIASES = {
+    'scaffolder':'Scaffolding', 'scaffolders':'Scaffolding',
+    'bricklayer':'Bricklaying', 'brickie':'Bricklaying', 'bricky':'Bricklaying',
+    'carpenter':'Carpentry', 'chippy':'Carpentry', 'joiner':'Bench Joinery',
+    'plasterer':'Plastering', 'spread':'Plastering',
+    'tiler':'Tiling', 'roofer':'Roofing', 'slater':'Roofing (Slater)',
+    'glazier':'Glazing', 'painter':'Painting and Decorating',
+    'decorator':'Painting and Decorating',
+    'groundworker':'Groundworks', 'groundworkers':'Groundworks',
+    'dryliner':'Dry Lining Fixing', 'drylining':'Dry Lining Fixing',
+    'dry lining':'Dry Lining Fixing', 'dry liner':'Dry Lining Fixing',
+    'boarder':'Dry Lining Boarder', 'taper':'Dry Lining Finishing',
+    'steelfixer':'Steel Fixing', 'steel fixer':'Steel Fixing',
+    'stonemason':'Stonemasonry (External)', 'mason':'Stonemasonry (External)',
+    'demolition operative':'Demolition', 'piler':'Piling',
+    'formworker':'Formwork', 'shuttering':'Formwork',
+    'cladder':'Cladding', 'mastic man':'Mastic', 'sealant':'Mastic',
+    'crane operator':'Cranes', 'plant operator':'Plant Maintenance',
+    'floor layer':'Floor Coverings', 'flooring':'Floor Coverings',
+    'render':'Rendering', 'renderer':'Rendering',
+    'traffic marshal':'Traffic Marshall', 'banksman':'Traffic Marshall'
+  };
 
-  /* ═══════════════════════════════════════════════════════════
-     4. MERGE
-  ═══════════════════════════════════════════════════════════ */
+  /* Reduce a trade name to a stem that survives the way people actually
+     talk: Scaffolding -> scaffold, Bricklaying -> bricklay, Tiling -> til. */
+  function stem(name) {
+    var base = name.replace(/\s*\(.*?\)\s*/g, ' ').trim().toLowerCase();
+    var first = base.split(/\s+/)[0];
+    return first.replace(/(ings|ing|ers|er|s)$/, '');
+  }
 
-  const kb = window.CSTKnowledge;
+  window.CSTKnowledge.findTradeEvidence = function (text) {
+    if (!text) return null;
+    var hay = ' ' + text.toLowerCase().replace(/[^a-z0-9 ]/g, ' ')
+                        .replace(/\s+/g, ' ') + ' ';
 
-  // Sanitise the existing entries (advisor.js is untouched — it never loads this file)
-  kb.qualifications.forEach(sanitiseEntry);
+    // 1. explicit alias — most reliable
+    var target = null;
+    Object.keys(ALIASES).forEach(function (a) {
+      if (hay.indexOf(' ' + a) !== -1) target = ALIASES[a];
+    });
 
-  // Add the NVQs, skipping any id that already exists
-  const existing = new Set(kb.qualifications.map(q => q.id));
-  nvqs.forEach(q => {
-    if (!existing.has(q.id)) kb.qualifications.push(sanitiseEntry(q));
-  });
+    var levels = /level\s*3|lvl\s*3|supervis/.test(hay)
+      ? ['level3', 'level2'] : ['level2', 'level3'];
 
-  console.log('CSTKnowledge: ' + kb.qualifications.length + ' qualifications loaded, prices stripped.');
+    var best = null;
+    levels.forEach(function (lvl) {
+      var map = window.CSTKnowledge.tradeEvidence[lvl];
+      Object.keys(map).forEach(function (name) {
+        var hit = false;
+        if (target && name === target) hit = true;
+        if (!hit) {
+          var base = name.replace(/\s*\(.*?\)\s*/g, ' ').trim().toLowerCase();
+          if (base.length >= 5 && hay.indexOf(base) !== -1) hit = true;
+        }
+        if (!hit) {
+          var st = stem(name);
+          if (st.length >= 5 && hay.indexOf(st) !== -1) hit = true;
+        }
+        if (!hit) return;
+
+        /* Score the match. A bracketed variant like "Plastering (Heritage
+           Solid)" should only win if the visitor actually said something
+           like "heritage" — otherwise the plain "Plastering" is right. */
+        var bracket = (name.match(/\((.*?)\)/) || [])[1];
+        var score = 0;
+        if (target && name === target) score += 30;
+        if (bracket) {
+          var words = bracket.toLowerCase().split(/[^a-z0-9]+/).filter(function (w) {
+            return w.length > 3;
+          });
+          var asked = words.some(function (w) { return hay.indexOf(w) !== -1; });
+          score += asked ? 50 : -20;
+        } else {
+          score += 10;
+        }
+        if (!best || score > best.score) {
+          best = { level: lvl, name: name, tasks: map[name], score: score };
+        }
+      });
+      if (best) levels.length = 0; // stop at the preferred level
+    });
+    return best;
+  };
+
+  /* Find the sellable product (with its real URL) for a trade name. */
+  window.CSTKnowledge.findTradeProduct = function (text, preferLevel) {
+    if (!text) return null;
+    var hay = ' ' + text.toLowerCase().replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ') + ' ';
+    var want = preferLevel || (/level\s*3|lvl\s*3|supervis/.test(hay) ? 3 : 2);
+    var best = null;
+    TRADE_PRODUCTS.forEach(function (p) {
+      var base = p.name.toLowerCase().replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
+      var words = base.split(' ').filter(function (w) { return w.length >= 4; });
+      var quality = 0;
+      var hit = (base.length >= 5 && hay.indexOf(base) !== -1);
+      if (hit) quality = 100;
+      // also match if every significant word appears (handles "dry lining boarder"
+      // vs "Dry-Lining Boarder", and "&" vs "and")
+      if (!hit && words.length) {
+        hit = words.every(function (w) {
+          var stem = w.replace(/(ings|ing|ers|er|s)$/, '');
+          return hay.indexOf(stem.length >= 4 ? stem : w) !== -1;
+        });
+        if (hit) quality = 60 + words.length * 5;
+      }
+      if (!hit) {
+        var first = base.split(' ')[0];
+        var stemmed = first.replace(/(ings|ing|ers|er|s)$/, '');
+        hit = stemmed.length >= 5 && hay.indexOf(stemmed) !== -1;
+        if (hit) quality = 20;
+      }
+      if (!hit) return;
+      var score = quality + (p.level === want ? 3 : 0) + (base.length / 100);
+      if (!best || score > best.score) best = { p: p, score: score };
+    });
+    return best ? best.p : null;
+  };
+
+  console.log('CSTKnowledge: trade evidence loaded (' +
+    Object.keys(window.CSTKnowledge.tradeEvidence.level2).length + ' L2, ' +
+    Object.keys(window.CSTKnowledge.tradeEvidence.level3).length + ' L3).');
 
 
   }
@@ -578,7 +378,7 @@
      swapped. Applying twice is harmless — every add is guarded.
   ─────────────────────────────────────────────────────────── */
   window.CSTKnowledgeExtensions = window.CSTKnowledgeExtensions || [];
-  window.CSTKnowledgeExtensions.push({ name: 'knowledge-nvq', apply: apply });
+  window.CSTKnowledgeExtensions.push({ name: 'knowledge-trades', apply: apply });
   if (window.CSTKnowledge && window.CSTKnowledge.qualifications) apply();
 
 })();
