@@ -466,6 +466,9 @@ VENUE RULE — STAY VAGUE: not every course runs at every venue, and the list ab
 - NEVER list every town in a region, and never imply the list is complete.
 - If they ask about a town not on the list, do not say CST Training does not go there — say the course page or the team can confirm what is available in their area.
 - Remember most courses are also available online via Google Meet, which is often the better answer for someone with no venue nearby.
+- EXCEPTION — five CITB classroom courses have their own per-town and per-region pages: SMSTS, SSSTS, SMSTS Refresher, SSSTS Refresher and HSA. If a LOCATION PAGE FOR THIS ENQUIRY block appears at the end of this prompt, link that page directly — it shows the dates running there. Still never state a date yourself.
+- NO OTHER COURSE HAS LOCATIONS. PRINCE2, NEBOSH, IOSH, ILM, CMI, MSP, ISEP, SHEA, first aid, mental health, the 18th Edition and every NVQ are delivered online, remotely or by portfolio. Never offer a location page or a town for any of them, and never imply a classroom venue exists for them.
+- If no location page is supplied, fall back to the vague rule above and the postcode finder.
 
 ════════════════════════════════════════
 STYLE
@@ -554,6 +557,28 @@ The card is large and sits below your text, so it competes with what you wrote. 
       ? relevant.map(detailFor).join('\n\n')
       : '(Nothing specific identified yet — ask the visitor about their role or what they are looking for.)';
 
+    // Location page: if they named a town AND a CITB course, give the exact page
+    let locBlock = '';
+    if (kb && typeof kb.findLocationPage === 'function') {
+      const said = messages.filter(m => m.role === 'user').map(m => m.content).join(' ');
+      const loc = kb.findLocationPage(said + ' ' + ctx.title);
+      if (loc) {
+        locBlock = loc.hubOnly ? `
+
+════════════════════════════════════════
+LOCATION PAGE FOR THIS ENQUIRY
+════════════════════════════════════════
+${loc.courseName} locations page: ${loc.url}
+They asked about ${loc.courseName} but either named no place, or named one with no page. Link this page — it lists every location plus the online options, and has a postcode search. Do NOT state any dates or say a place is unavailable.` : `
+
+════════════════════════════════════════
+LOCATION PAGE FOR THIS ENQUIRY
+════════════════════════════════════════
+${loc.courseName} in ${loc.place}: ${loc.url}
+Link this exact page. It shows the dates running at that location so the visitor sees live availability. Do NOT state any dates yourself. Locations apply ONLY to SMSTS, SSSTS, SMSTS Refresher, SSSTS Refresher and HSA — never offer a location page for any other course.`;
+      }
+    }
+
     // Trade evidence: look up only the trade actually mentioned
     let tradeBlock = '';
     if (kb && typeof kb.findTradeEvidence === 'function') {
@@ -609,7 +634,7 @@ Use this as context only. Never recommend a course simply because they are on it
 ════════════════════════════════════════
 COURSE DETAIL — most relevant to this conversation
 ════════════════════════════════════════
-${detail}${tradeBlock}`;
+${detail}${tradeBlock}${locBlock}`;
   }
 
   /* ─────────────────────────────────────────────────────────────
@@ -1019,6 +1044,12 @@ ${detail}${tradeBlock}`;
       const norm = u => String(u).replace(/[#?].*$/, '').replace(/\/+$/, '').toLowerCase();
       (kb.qualifications || []).forEach(q => { if (q.url) set.add(norm(q.url)); });
       (kb.tradeProducts || []).forEach(p => { if (p.url) set.add(norm(p.url)); });
+      if (kb.courseLocations) {
+        Object.keys(kb.courseLocations).forEach(k => {
+          const m = kb.courseLocations[k];
+          if (m && typeof m === 'object') Object.keys(m).forEach(p => set.add(norm(m[p])));
+        });
+      }
       // Hub and utility pages the bot may legitimately point at
       ['','/trade','/nvqs','/supervision','/management','/crane-nvqs','/plant-nvqs',
        '/ohs-nvqs','/business-nvqs-courses','/citb-courses','/nebosh-courses-online',
