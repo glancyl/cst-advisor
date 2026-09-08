@@ -468,7 +468,8 @@
       level:         3,
       minExperience: null,
       roles:         ['health and safety officer','h&s advisor','safety coordinator',
-                      'site safety officer','h&s administrator'],
+                      'site safety officer','h&s administrator','ohs','hse','sheq','shequ',
+                      'nebosh holder','iosh holder'],
       audience:      'Those working in a health and safety role who want a competence-based NVQ assessed on their actual work rather than an exam-based certificate.',
       description:   'The Level 3 NVQ in Occupational Health and Safety recognises competence in an H&S role through workplace evidence rather than examination. It is the NVQ alternative to certificate-based routes such as NEBOSH.' + NVQ_PROCESS + NVQ_ENTRY,
       suitedFor:     [
@@ -489,7 +490,7 @@
       level:         6,
       minExperience: null,
       roles:         ['health and safety manager','shequ manager','hse manager',
-                      'safety manager','head of health and safety'],
+                      'safety manager','head of health and safety','ohs','sheq','ehs'],
       audience:      'Experienced health and safety practitioners who want a degree-level qualification assessed through workplace competence, often as a route toward professional IOSH membership.',
       description:   'The Level 6 NVQ Diploma in Occupational Health and Safety is a degree-level competence qualification for practising H&S professionals. Widely used as a route toward Graduate IOSH and onward Chartered membership. Eligible for ELCAS funding.' + NVQ_PROCESS + NVQ_ENTRY,
       suitedFor:     [
@@ -511,7 +512,7 @@
       level:         7,
       minExperience: null,
       roles:         ['head of health and safety','hse director','shequ director',
-                      'senior h&s manager','group safety manager'],
+                      'senior h&s manager','group safety manager','ohs','sheq','ehs'],
       audience:      'Senior health and safety professionals operating at a strategic level who want the highest-level H&S qualification.',
       description:   'The Level 7 Diploma in Occupational Health and Safety is a postgraduate-level qualification for senior H&S professionals with strategic responsibility.' + NVQ_PROCESS + NVQ_ENTRY,
       suitedFor:     [
