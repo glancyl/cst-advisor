@@ -17,8 +17,8 @@
 
   /* ─────────────────────────────────────────────────────────────
      CONSTANTS
-     >>> LOG_URL: replace with a NEW Apps Script deployment so the
-     sitewide traffic does not land in the advisor's sheet. <<<
+     LOG_URL points at the assistant's own Apps Script sheet, separate
+     from the advisor's.
   ───────────────────────────────────────────────────────────── */
 
   const API_URL   = 'https://www.csttraining.co.uk/?cst_advisor_proxy=1';
@@ -26,7 +26,10 @@
   const LOG_URL   = 'https://script.google.com/macros/s/AKfycbx7UHfMVKmszEdzf-Cl-_CMj_qRmAELzATL0S_x_a8ktbkFHPr8YucpZYckGy0eTMbn/exec';
 
   const PHONE = '020 3488 4472';
-  const EMAIL = 'enquiries@csttraining.co.uk';
+  const EMAIL_SALES  = 'sales@csttraining.co.uk';        // new enquiries, course info
+  const EMAIL_ADMIN  = 'admin@csttraining.co.uk';        // bookings, certificates, transfers
+  const EMAIL_ASSESS = 'enquiries@csttraining.co.uk';    // assessments team, learners in progress
+  const EMAIL = EMAIL_SALES;                             // default
 
   /* ── TESTING LOCK ─────────────────────────────────────────
      While ONLY_ON_PATHS has anything in it, the assistant appears on
@@ -127,7 +130,6 @@
   .cst-asst__bubble a:hover { background:var(--orange); }
   .cst-asst__msg--user .cst-asst__bubble a { background:#fff; color:var(--navy) !important; }
   .cst-asst__deadlink { color:var(--muted); }
-  .cst-asst__msg--user .cst-asst__bubble a { color:#fff; }
 
   .cst-asst__typing { display:flex; gap:9px; margin-bottom:13px; }
   .cst-asst__typing-bubble { background:#fff; border:1px solid var(--border);
@@ -393,6 +395,7 @@ These apply to CITB courses (SMSTS, SSSTS, HSA, SEATS, DRHS, Temporary Works, CD
 - Course times: courses run 08:30 to 17:00, remote and classroom alike.
 - Class sizes: up to 12 candidates on remote courses, up to 20 in a classroom.
 - Certificates: after the trainer marks the exam, the certificate is issued by CITB and sent by email. This can take up to 28 working days. If someone is past that, or is chasing a specific certificate, escalate.
+- Assessor site visits (NVQs): available, but chargeable as an additional cost on top of the course. Say a site visit can be arranged for an additional fee and that the team will confirm the cost, then escalate. Never state the fee, never imply it is included, and never say site visits are not offered.
 - Transfers to a different course date: possible but not guaranteed, and a rebooking fee applies. You may say that a fee applies and that at least 14 working days' notice before the start date is needed, but NEVER state the fee amount or percentage — escalate for the actual figures.
 - Refresher eligibility: candidates must hold an IN-DATE certificate to sit any refresher (SMSTS, SSSTS, TWC). Once it has expired the full course is required instead. For the TWC Refresher the certificate must still be in date even at the point of a resit.
 - Resits: many CITB courses include a free same-day resit where the candidate scores close to the pass mark. Thresholds vary by course — do not invent one.
@@ -432,10 +435,10 @@ AWARD vs CERTIFICATE vs DIPLOMA:
 - Certificate (3-5 units, 3-6 months): all-round CV boost without full Diploma commitment.
 - Diploma (6+ units, 6-12 months): comprehensive. Only the Diploma opens the door to Chartered Manager status.
 
-FUNDING, GRANTS AND FINANCE — ALWAYS ESCALATE: do NOT explain CITB grants, ELCAS, the CITB Employer Network, funding eligibility, payment options or finance. Say that funding varies by employer and course and that the team will confirm what applies to them, then emit an ESCALATE block. Never state amounts, never say who is or is not eligible, and never say a course is or is not funded. Explain that grants exist and point to the CITB funding page — NEVER state a grant amount. ELCAS funding is available for current and ex-military personnel on some NVQs.
+FUNDING, GRANTS AND FINANCE — ALWAYS ESCALATE: do NOT explain CITB grants, ELCAS, the CITB Employer Network, funding eligibility, payment options or finance. You may say only that various funding and payment routes exist and that what applies depends on the employer and the course. Then emit an ESCALATE block routed to sales. Never state an amount, never say who is or is not eligible, and never say a course is or is not funded.
 
 ════════════════════════════════════════
-ABOUT CST Training TRAINING
+ABOUT CST TRAINING
 ════════════════════════════════════════
 ${(kb && kb.company) ? [
   'CST Training LTD, registered in England and Wales, company number ' + kb.company.companyNumber + '.',
@@ -474,7 +477,20 @@ STYLE
 - Never guarantee an exam pass.
 - This is a chat window, not an essay.
 
-Contact details you may always give: ${PHONE} or ${EMAIL}.
+════════════════════════════════════════
+WHO TO SEND PEOPLE TO
+════════════════════════════════════════
+Phone for everything: ${PHONE}. There are THREE email addresses and using the wrong one sends a customer to the wrong team, so pick deliberately.
+
+- ${EMAIL_SALES} — SALES. Anyone not yet booked: course information, which course they need, prices, dates, availability, group and in-house bookings, funding and payment questions. This is the DEFAULT for a website visitor.
+- ${EMAIL_ADMIN} — ADMIN. Anyone already booked, about the booking itself: joining instructions, certificates, transfers and date changes, refunds, invoices, name changes, complaints.
+- ${EMAIL_ASSESS} — ASSESSMENTS TEAM. Anyone already ON a course or working through an NVQ who needs help with the learning itself: assessor contact, portfolio and evidence questions, Quals Direct access, units, exam or resit queries mid-course.
+
+The test: not booked yet = sales. Booked but asking about the paperwork = admin. Already doing it and asking about the work = assessments.
+
+If you cannot tell, use ${EMAIL_SALES} and say the team will pass it on.
+
+Do not list all three addresses at once. Give the one that fits.
 
 ════════════════════════════════════════
 STRUCTURED OUTPUTS
@@ -502,8 +518,10 @@ Use this when a formal recommendation card genuinely helps — usually when some
 When the visitor asks about a specific booking, order, certificate, refund, invoice or complaint, reply with a short plain sentence explaining you can't look that up, then exactly:
 
 <ESCALATE>
-{"type":"escalate","topic":"short description of what they need"}
+{"type":"escalate","topic":"short description of what they need","route":"sales|admin|assessments"}
 </ESCALATE>
+
+Set "route" using the rules in WHO TO SEND PEOPLE TO above. Use "admin" for booking paperwork, "assessments" for someone mid-course or mid-NVQ, and "sales" for everything else.
 
 When someone wants to speak to a person or is ready to enquire, reply with your message then exactly:
 
@@ -659,11 +677,16 @@ ${detail}${tradeBlock}`;
 
     const esc = text.match(/<ESCALATE>([\s\S]*?)<\/ESCALATE>/);
     if (esc) {
-      let topic = '';
-      try { topic = (JSON.parse(esc[1].trim()) || {}).topic || ''; } catch (e) {}
+      let topic = '', route = 'sales';
+      try {
+        const j = JSON.parse(esc[1].trim()) || {};
+        topic = j.topic || '';
+        if (/^(sales|admin|assessments)$/.test(j.route || '')) route = j.route;
+      } catch (e) {}
       return {
         type: 'escalate',
         topic,
+        route,
         text: text.replace(/<ESCALATE>[\s\S]*?<\/ESCALATE>/, '').trim()
       };
     }
@@ -773,15 +796,11 @@ ${detail}${tradeBlock}`;
     }
 
     _bindEvents() {
-      // Bound on the document in the capture phase: other plugins on the page
-      // (pixels, trackers, browser extensions) attach their own global click
-      // handlers, and one calling stopImmediatePropagation would otherwise
-      // swallow the click before it reached the button.
-      // Bound inside the shadow root. Page scripts cannot intercept events here,
-      // so the earlier capture-phase workaround is no longer needed.
+      // Bound inside the shadow root. Page scripts cannot intercept events
+      // here, so no capture-phase workaround is needed.
       this.launcherEl.addEventListener('click', (e) => {
         e.preventDefault();
-        console.log('[CST Training] launcher clicked');
+        console.log('[CST] launcher clicked');
         this._toggle();
       });
       this.closeBtn.addEventListener('click', (e) => {
@@ -825,12 +844,10 @@ ${detail}${tradeBlock}`;
       if (typeof force !== 'boolean' && this._lastToggle && now - this._lastToggle < 250) return;
       this._lastToggle = now;
 
-      // Resolve the panel from the LIVE document every time. Something on this
-      // page detaches our nodes after mount, which left us toggling an element
-      // that was no longer on the page (0x0, empty computed styles).
-      // If the page removed our host, rebuild before opening.
+      // Something on this page detaches our nodes after mount, so if the host
+      // has gone, rebuild it before opening.
       if (!this.host || !this.host.isConnected || !this.shadow) {
-        console.warn('[CST Training] host was removed — rebuilding widget.');
+        console.warn('[CST] host was removed — rebuilding widget.');
         const keep = this.messages.slice();
         const wasStarted = this.started;
         this._render();
@@ -848,9 +865,9 @@ ${detail}${tradeBlock}`;
       if (this.isOpen) {
         p.style.display = 'flex';
         const r = p.getBoundingClientRect();
-        console.log('[CST Training] open — panel size:', Math.round(r.width) + 'x' + Math.round(r.height));
+        console.log('[CST] open — panel size:', Math.round(r.width) + 'x' + Math.round(r.height));
         if (r.width < 10 || r.height < 10) {
-          console.warn('[CST Training] panel still has no size inside the shadow root.');
+          console.warn('[CST] panel still has no size inside the shadow root.');
         }
       } else {
         p.style.display = 'none';
@@ -919,8 +936,8 @@ ${detail}${tradeBlock}`;
 
         } else if (parsed.type === 'escalate') {
           if (parsed.text) this._addBotMessage(parsed.text);
-          this._showEscalate(parsed.topic);
-          this._log({ outcome: 'escalated', detail: parsed.topic });
+          this._showEscalate(parsed.topic, parsed.route);
+          this._log({ outcome: 'escalated', detail: parsed.topic, confidence: parsed.route });
 
         } else if (parsed.type === 'lead_capture') {
           if (parsed.text) this._addBotMessage(parsed.text);
@@ -1049,12 +1066,12 @@ ${detail}${tradeBlock}`;
       // If the invented slug reduces to a real page, silently use the real one.
       const repaired = this._repairUrl(norm);
       if (repaired) {
-        console.warn('[CST Training] repaired invented link:', clean, '->', repaired);
+        console.warn('[CST] repaired invented link:', clean, '->', repaired);
         const label = label_ ? text : repaired.replace(/^https?:\/\/(www\.)?/, '');
         return `<a href="${repaired}" target="_blank" rel="noopener">${label}</a>`;
       }
 
-      console.warn('[CST Training] blocked an invented link:', clean);
+      console.warn('[CST] blocked an invented link:', clean);
       return `<span class="cst-asst__deadlink">${text}</span>`;
     }
 
@@ -1214,26 +1231,35 @@ ${detail}${tradeBlock}`;
     }
 
     /* ── ESCALATION CARD ──────────────────────────────────── */
-    _showEscalate(topic) {
+    _showEscalate(topic, route) {
+      const TEAMS = {
+        sales:       { email: EMAIL_SALES,  name: 'sales team',
+                       ready: 'Let them know which course you\u2019re interested in and roughly when you\u2019d like to do it.' },
+        admin:       { email: EMAIL_ADMIN,  name: 'admin team',
+                       ready: 'Your name, the email address used to book, and your booking or order reference if you have one.' },
+        assessments: { email: EMAIL_ASSESS, name: 'assessments team',
+                       ready: 'Your name, the email address you registered with, and which qualification you\u2019re working through.' }
+      };
+      const team = TEAMS[route] || TEAMS.sales;
       const subject = encodeURIComponent(topic ? `Website enquiry: ${topic}` : 'Website enquiry');
       const card = document.createElement('div');
       card.className = 'cst-asst__card';
       card.innerHTML = `
-        <div class="cst-asst__card-label">Our team can help with this</div>
-        <div class="cst-asst__card-title">Speak to the CST Training team</div>
+        <div class="cst-asst__card-label">Our ${team.name} can help with this</div>
+        <div class="cst-asst__card-title">Speak to the CST Training ${team.name}</div>
         <div class="cst-asst__card-text">
-          I can't look up individual bookings, but our team can sort this out quickly.
+          This one needs a person rather than me \u2014 they'll be able to sort it out quickly.
         </div>
         <div class="cst-asst__card-block">
-          <strong>Please have ready</strong>
-          Your name, the email address used to book, and your booking or order reference if you have one.
+          <strong>Please include</strong>
+          ${team.ready}
         </div>
         <div class="cst-asst__ctas">
           <a href="tel:${PHONE.replace(/\s/g, '')}" class="cst-asst__btn cst-asst__btn--primary">
             Call ${PHONE}
           </a>
-          <a href="mailto:${EMAIL}?subject=${subject}" class="cst-asst__btn cst-asst__btn--orange">
-            Email the team
+          <a href="mailto:${team.email}?subject=${subject}" class="cst-asst__btn cst-asst__btn--orange">
+            Email ${team.email}
           </a>
         </div>`;
       this.msgEl.appendChild(card);
@@ -1248,10 +1274,11 @@ ${detail}${tradeBlock}`;
         <div class="cst-asst__card-label">Get in touch</div>
         <div class="cst-asst__card-title">Ready to enquire?</div>
         <div class="cst-asst__card-text">
-          Our team will help you get booked onto the right course.
+          Our sales team will help you get booked onto the right course.
         </div>
         <div class="cst-asst__ctas">
           <a href="/contact/" class="cst-asst__btn cst-asst__btn--orange">Enquire now</a>
+          <a href="mailto:${EMAIL_SALES}" class="cst-asst__btn cst-asst__btn--primary">Email sales</a>
           <a href="tel:${PHONE.replace(/\s/g, '')}" class="cst-asst__btn cst-asst__btn--primary">
             Call ${PHONE}
           </a>
@@ -1304,7 +1331,7 @@ ${detail}${tradeBlock}`;
     if (!shouldLoad()) return;
     ensureKnowledge();
     window.CSTAssistantInstance = new CSTAssistant();
-    console.log('[CST Training] assistant mounted. Click the bubble, or run ' +
+    console.log('[CST] assistant mounted. Click the bubble, or run ' +
                 'window.CSTAssistantInstance._toggle() to open it manually.');
     watch();
   }
