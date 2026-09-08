@@ -46,8 +46,8 @@
     'electronic copy, scanned copy or a good quality photo. ' +
     'Assessment methods available: video and photo evidence, live observations by video ' +
     'call, recorded professional discussions with your assessor, site documentation, ' +
-    'recorded witness testimony from a qualified colleague, and in some cases a site visit ' +
-    '(the site visit is the last stage, subject to site rules, and may incur further costs). ' +
+    'recorded witness testimony from a qualified colleague, and a site visit from an assessor. ' +
+    'SITE VISITS: CST Training does offer assessor site visits, but they are chargeable as an ADDITIONAL COST on top of the course. Say that a site visit can be arranged for an additional fee and that the team will confirm the cost, then escalate. Never state or estimate the fee, and never suggest a site visit is included. ' +
     'For video, 2-3 minute clips of the start, middle and end of a task work best, or a ' +
     'timelapse covering the whole task. The assessor must be able to see it is you doing ' +
     'the work and that you are wearing the correct PPE. ' +
