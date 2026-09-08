@@ -22,6 +22,8 @@
   ───────────────────────────────────────────────────────────── */
 
   const API_URL   = 'https://www.csttraining.co.uk/?cst_advisor_proxy=1';
+  // Swap to 'claude-haiku-4-5' for noticeably faster and cheaper replies.
+  // Sonnet is better at judgement; Haiku is quicker. Test both on real questions.
   const API_MODEL = 'claude-sonnet-4-6';
   const LOG_URL   = 'https://script.google.com/macros/s/AKfycbx7UHfMVKmszEdzf-Cl-_CMj_qRmAELzATL0S_x_a8ktbkFHPr8YucpZYckGy0eTMbn/exec';
 
@@ -163,7 +165,7 @@
     cursor:pointer; text-decoration:underline; }
 
   .cst-asst__card { background:#fff; border:1px solid var(--border); border-left:3px solid var(--orange);
-    border-radius:10px; padding:14px; margin-bottom:13px; }
+    border-radius:10px; padding:14px; margin:16px 0 13px; }
   .cst-asst__card-label { font-size:.66rem; text-transform:uppercase; letter-spacing:.07em;
     color:var(--orange); font-weight:700; margin-bottom:5px; }
   .cst-asst__card-title { font-size:1rem; font-weight:700; color:var(--navy); margin-bottom:7px; }
@@ -523,11 +525,19 @@ When the visitor asks about a specific booking, order, certificate, refund, invo
 
 Set "route" using the rules in WHO TO SEND PEOPLE TO above. Use "admin" for booking paperwork, "assessments" for someone mid-course or mid-NVQ, and "sales" for everything else.
 
-When someone wants to speak to a person or is ready to enquire, reply with your message then exactly:
+Use LEAD_CAPTURE ONLY when the visitor has actually asked to be put in touch with someone — "can someone call me", "I want to speak to a person", "put me through to sales", or when they say yes to an offer you made in a previous turn.
 
 <LEAD_CAPTURE>
 {"type": "lead_capture"}
-</LEAD_CAPTURE>`;
+</LEAD_CAPTURE>
+
+DO NOT use LEAD_CAPTURE when:
+- You are already answering their question. A good answer plus a course link is a complete reply.
+- You are only OFFERING to put them in touch. Offer in words and wait for them to say yes. Never write "if you'd like to speak to the team" and then emit the block in the same reply — that buries your answer under a card.
+- You have just given them a course page link. One call to action per reply.
+- You are declining something (price, dates, comparisons). Answer, link the page, stop.
+
+The card is large and sits below your text, so it competes with what you wrote. Only trigger it when it IS the answer.`;
   }
 
   /* ── DYNAMIC HALF ────────────────────────────────────────── */
@@ -609,7 +619,7 @@ ${detail}${tradeBlock}`;
   async function callAPI(messages, ctx, expanded, expandedTrades) {
     const body = {
       model: API_MODEL,
-      max_tokens: 1000,
+      max_tokens: 700,
       system: [
         {
           type: 'text',
@@ -647,8 +657,13 @@ ${detail}${tradeBlock}`;
     }
 
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error?.message || `API error ${res.status}`);
+      const bodyText = await res.text().catch(() => '');
+      let msg = `HTTP ${res.status}`;
+      try { const j = JSON.parse(bodyText); msg = (j.error && j.error.message) || msg; } catch (e) {}
+      console.error('[CST] API call failed —', res.status, res.statusText,
+                    '\nproxy said:', bodyText.slice(0, 800),
+                    '\nrequest size:', JSON.stringify(body).length, 'chars');
+      throw new Error(msg);
     }
 
     const data = await res.json();
@@ -956,6 +971,7 @@ ${detail}${tradeBlock}`;
         this._addBotMessage(
           `I'm having trouble connecting at the moment. Please try again, or contact our team on <strong>${PHONE}</strong>.`
         );
+        console.error('[CST] the error above is why the assistant could not reply:', err && err.message);
       }
 
       this.sendBtn.disabled = this.inputEl.value.trim().length === 0;
