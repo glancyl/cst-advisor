@@ -129,10 +129,19 @@
   .cst-asst__bubble { background:#fff; border:1px solid var(--border); border-radius:12px;
     padding:10px 13px; font-size:.86rem; line-height:1.5; color:var(--body); max-width:82%; }
   .cst-asst__msg--user .cst-asst__bubble { background:var(--navy); color:#fff; border-color:var(--navy); }
-  .cst-asst__bubble a { display:inline-block; background:var(--navy); color:#fff !important;
-    font-weight:600; text-decoration:none; padding:6px 12px; border-radius:6px;
-    margin:3px 0; font-size:.82rem; word-break:break-word; }
+  /* Links sit on their own line as a full-width button. Inline at .82rem they
+     read as highlighted text and people did not realise they were clickable.
+     The arrow and the larger tap target make the call to action obvious. */
+  .cst-asst__bubble a { display:block; background:var(--navy); color:#fff !important;
+    font-weight:700; text-decoration:none; padding:11px 14px; border-radius:8px;
+    margin:9px 0 3px; font-size:.85rem; word-break:break-word; text-align:left;
+    position:relative; padding-right:32px; line-height:1.35; }
+  .cst-asst__bubble a::after { content:'→'; position:absolute; right:14px;
+    top:50%; transform:translateY(-50%); font-weight:700; opacity:.85; }
   .cst-asst__bubble a:hover { background:var(--orange); }
+  .cst-asst__bubble a:active { background:var(--orange); }
+  /* A run of links should not collapse into one block. */
+  .cst-asst__bubble a + a { margin-top:6px; }
   .cst-asst__msg--user .cst-asst__bubble a { background:#fff; color:var(--navy) !important; }
   .cst-asst__deadlink { color:var(--muted); }
 
