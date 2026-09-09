@@ -890,19 +890,56 @@ ${detail}${tradeBlock}${notSoldBlock}${locBlock}`);
   ───────────────────────────────────────────────────────────── */
 
   const HS_STYLE_ID = 'cst-hs-launcher-hidden';
-  const HS_CSS = '#hubspot-messages-iframe-container{display:none!important;}';
+  const HS_CSS = '#hubspot-messages-iframe-container{visibility:hidden!important;' +
+                 'opacity:0!important;pointer-events:none!important;}';
+  /* HubSpot writes inline styles onto its own container, and an inline style
+     beats a stylesheet rule even with !important. So the properties are set
+     directly on the element, and a MutationObserver puts them back whenever
+     HubSpot overwrites them. The stylesheet stays as a fallback for the window
+     before the container exists. */
+  const HS_PROPS = [['visibility','hidden'], ['opacity','0'], ['pointer-events','none']];
+
+  let hsWantHidden = true;
+  let hsObserver   = null;
+
+  function hsContainer() {
+    return document.getElementById('hubspot-messages-iframe-container');
+  }
+
+  function hsStyleTag(on) {
+    const existing = document.getElementById(HS_STYLE_ID);
+    if (on && !existing) {
+      const st = document.createElement('style');
+      st.id = HS_STYLE_ID;
+      st.textContent = HS_CSS;
+      (document.head || document.documentElement).appendChild(st);
+    } else if (!on && existing) {
+      existing.remove();
+    }
+  }
 
   function hsHide() {
-    if (document.getElementById(HS_STYLE_ID)) return;
-    const st = document.createElement('style');
-    st.id = HS_STYLE_ID;
-    st.textContent = HS_CSS;
-    (document.head || document.documentElement).appendChild(st);
+    hsWantHidden = true;
+    hsStyleTag(true);
+    const el = hsContainer();
+    if (el) {
+      HS_PROPS.forEach(pair => el.style.setProperty(pair[0], pair[1], 'important'));
+      if (!hsObserver && typeof MutationObserver === 'function') {
+        hsObserver = new MutationObserver(() => {
+          if (!hsWantHidden) return;
+          const c = hsContainer();
+          if (c) HS_PROPS.forEach(pair => c.style.setProperty(pair[0], pair[1], 'important'));
+        });
+        hsObserver.observe(el, { attributes: true, attributeFilter: ['style', 'class'] });
+      }
+    }
   }
 
   function hsShow() {
-    const st = document.getElementById(HS_STYLE_ID);
-    if (st) st.remove();
+    hsWantHidden = false;
+    hsStyleTag(false);
+    const el = hsContainer();
+    if (el) HS_PROPS.forEach(pair => el.style.removeProperty(pair[0]));
   }
 
   function hsAvailable() {
