@@ -621,6 +621,8 @@ When the visitor asks about a specific booking, order, certificate, refund, invo
 
 Set "route" using the rules in WHO TO SEND PEOPLE TO above. Use "admin" for booking paperwork, "assessments" for someone mid-course or mid-NVQ, and "sales" for everything else.
 
+IMPORTANT, THE "unknown" ROUTE: if the visitor has asked to speak to a person but has NOT told you what it is about, set "route":"unknown". Do not guess sales. "Can I speak to someone", "let me talk to a human" and "put me through to a person" on their own are all unknown, because a certificate chase and a course enquiry go to different teams. The widget will then ask them which it is, so do not ask in your text. Only use a specific route when something they have said actually tells you which team it is.
+
 Use LEAD_CAPTURE ONLY when the visitor has actually asked to be put in touch with someone — "can someone call me", "I want to speak to a person", "put me through to sales", or when they say yes to an offer you made in a previous turn.
 
 <LEAD_CAPTURE>
@@ -857,7 +859,7 @@ ${detail}${tradeBlock}${notSoldBlock}${locBlock}`);
       try {
         const j = JSON.parse(esc[1].trim()) || {};
         topic = j.topic || '';
-        if (/^(sales|admin|assessments)$/.test(j.route || '')) route = j.route;
+        if (/^(sales|admin|assessments|unknown)$/.test(j.route || '')) route = j.route;
       } catch (e) {}
       return { type: 'escalate', topic, route, text: stripBlocks(text) };
     }
@@ -1528,8 +1530,43 @@ ${detail}${tradeBlock}${notSoldBlock}${locBlock}`);
       });
     }
 
+    /* ── WHICH TEAM? ──────────────────────────────────────────
+       A bare "let me speak to a human" tells us nothing, and routing to sales
+       by default meant certificate chases landed with the sales team. One tap
+       decides it, rather than the model guessing. */
+    _showRouteChooser(topic) {
+      const OPTIONS = [
+        { route: 'sales',       label: 'Choosing or booking a course' },
+        { route: 'admin',       label: 'An existing booking, certificate or invoice' },
+        { route: 'assessments', label: 'A course or NVQ I am already doing' }
+      ];
+      const card = document.createElement('div');
+      card.className = 'cst-asst__card';
+      card.innerHTML = `
+        <div class="cst-asst__card-label">Putting you through</div>
+        <div class="cst-asst__card-title">What is it about?</div>
+        <div class="cst-asst__card-text">
+          So you get the right person first time.
+        </div>
+        <div class="cst-asst__also">
+          ${OPTIONS.map(o =>
+            `<button class="cst-asst__also-item" type="button" data-route="${o.route}">${o.label}</button>`
+          ).join('')}
+        </div>`;
+      this.msgEl.appendChild(card);
+      card.querySelectorAll('[data-route]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          card.querySelectorAll('[data-route]').forEach(b => { b.disabled = true; });
+          this._showEscalate(topic, btn.dataset.route);
+          this._log({ outcome: 'escalated', detail: topic, confidence: btn.dataset.route });
+        });
+      });
+      this._scroll();
+    }
+
     /* ── ESCALATION CARD ──────────────────────────────────── */
     _showEscalate(topic, route) {
+      if (route === 'unknown') { this._showRouteChooser(topic); return; }
       const TEAMS = {
         sales:       { email: EMAIL_SALES,  name: 'sales team',
                        ready: 'Let them know which course you\u2019re interested in and roughly when you\u2019d like to do it.' },
@@ -1539,9 +1576,11 @@ ${detail}${tradeBlock}${notSoldBlock}${locBlock}`);
                        ready: 'Your name, the email address you registered with, and which qualification you\u2019re working through.' }
       };
       const team = TEAMS[route] || TEAMS.sales;
-      // Only offer live chat when HubSpot is actually loaded, which also means
-      // the team is inside their chat operating hours.
-      const liveChat = hsAvailable();
+      // Live chat goes to the SALES inbox, so only offer it when this escalation
+      // is actually for sales. Admin (certificates, transfers, refunds) and
+      // assessments (learners mid-course) keep the email and phone card, so the
+      // sales team is not fielding admin queries.
+      const liveChat = hsAvailable() && route === 'sales';
       const subject = encodeURIComponent(topic ? `Website enquiry: ${topic}` : 'Website enquiry');
       const card = document.createElement('div');
       card.className = 'cst-asst__card';
