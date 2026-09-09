@@ -128,6 +128,45 @@
 
   window.CSTKnowledge.tradeProducts = TRADE_PRODUCTS;
 
+  /* ═══════════════════════════════════════════════════════════
+     NOT LISTED FOR SALE  ***HARD BLOCK***
+     There is a learner handbook, and therefore evidence detail, for
+     trades that have NO product on /trade/. The bot confirmed a
+     "Level 2 Ceiling Fixing NVQ" and invented a card outcome for it
+     purely because evidence text existed in the prompt.
+     This list is from TRADE-RECONCILIATION.md, checked against the
+     live /trade/ page. If a trade is here, the bot must NOT confirm
+     CST Training sells it, must NOT state a card, and must NOT link
+     a page. Move an entry out of this list only after the product
+     actually appears on /trade/.
+  ═══════════════════════════════════════════════════════════ */
+  var NOT_SOLD = {
+    level2: ['Acoustic Packages and Frames Installer','Bench Joinery','Ceiling Fixing',
+             'Concrete Repair','Facade Preservation','Highway Maintenance',
+             'Industrial Storage Systems Installation','Insulated Enclosures',
+             'Land Drilling Support Operative','Performing Engineering Operations',
+             'Point of Purchase Installation','Protective Components',
+             'Removal of Non-Hazardous Waste','Screed Flooring','Sub-Structure Grouting',
+             'Sweeping and Cleaning','Timber Frame Erection','Traffic Marshall'],
+    level3: ['Bench Joinery','Heritage Skills (Roof Slating and Tiling)',
+             'Heritage Skills (Stonemasonry)','Heritage Skills (Wood Occupations)',
+             'Moving Loads']
+  };
+
+  /* Sold, but through their own hub rather than /trade/. */
+  var HUB_TRADES = {
+    'Cranes':            'https://www.csttraining.co.uk/crane-nvqs/',
+    'Plant Installation':'https://www.csttraining.co.uk/plant-nvqs/',
+    'Plant Maintenance': 'https://www.csttraining.co.uk/plant-nvqs/'
+  };
+
+  window.CSTKnowledge.tradeSaleStatus = function (name, level) {
+    var lvl = (level === 'level3' || level === 3) ? 'level3' : 'level2';
+    if (HUB_TRADES[name]) return { sold: true, hub: HUB_TRADES[name] };
+    if (NOT_SOLD[lvl].indexOf(name) !== -1) return { sold: false, hub: null };
+    return { sold: true, hub: null };
+  };
+
   /* Trade-specific tasks, keyed by trade name as used in the course index. */
   window.CSTKnowledge.tradeEvidence = {
     level2: {
