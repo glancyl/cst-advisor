@@ -38,11 +38,14 @@
      Add more paths one per line, each in quotes with a trailing comma.
   ─────────────────────────────────────────────────────────── */
   const ONLY_ON_PATHS = [
-    '/smsts/',
-    '/sssts/',
+    '/',                                       // homepage, exact match only
+    '/trade/',
     '/bricklaying-level-2/',
     '/carpentry-level-2/',
-    '/what-does-isep-course-mean/'   // keep for testing
+    '/occupational-work-supervisor-level-3-nvq/',
+    '/site-supervision-level-4/',
+    '/construction-site-management-level-6/',
+    '/cco-level-3/'
   ];
 
   // Pages to skip once you HAVE gone sitewide (ignored while ONLY_ON_PATHS is set).
@@ -1722,7 +1725,12 @@ ${detail}${tradeBlock}${notSoldBlock}${locBlock}`);
     const here = trim(path);
     const only = ONLY_ON_PATHS.filter(Boolean).map(trim);
     if (only.length) {
-      return only.some(p => here === p || here.indexOf(p + '/') === 0);
+      // '/' trims to an empty string, and indexOf('/') === 0 is true for EVERY
+      // path, so without this the homepage entry would load the assistant
+      // sitewide, checkout and basket included. Root matches the root only.
+      return only.some(p => p === ''
+        ? here === ''
+        : (here === p || here.indexOf(p + '/') === 0));
     }
 
     if (EXCLUDE_PATHS.some(p => p && path.indexOf(p) === 0)) return false;
