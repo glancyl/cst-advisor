@@ -31,7 +31,6 @@
   const EMAIL_SALES  = 'sales@csttraining.co.uk';        // new enquiries, course info
   const EMAIL_ADMIN  = 'admin@csttraining.co.uk';        // bookings, certificates, transfers
   const EMAIL_ASSESS = 'enquiries@csttraining.co.uk';    // assessments team, learners in progress
-  const EMAIL = EMAIL_SALES;                             // default
 
   /* ── TESTING LOCK ─────────────────────────────────────────
      While ONLY_ON_PATHS has anything in it, the assistant appears on
@@ -304,7 +303,7 @@
   function detailFor(q) {
     return `${q.title} (id: ${q.id})
   URL: ${q.url}
-  Category: ${q.category} | Level: ${q.level}${typeof q.minExperience === 'number' ? ' | Min experience: ' + q.minExperience + ' years' : ''}
+  Category: ${q.category} | Level: ${q.level}
   Audience: ${q.audience}
   Suited for: ${(q.suitedFor || []).slice(0, 3).join('; ')}
   Not suited for: ${q.notSuitedFor}
@@ -323,11 +322,38 @@
     return window.CSTKnowledge;
   }
 
+  /* Strip em and en dashes from everything that reaches the model, including
+     the inherited course text. The style rule alone was not enough while the
+     prompt itself was full of them. */
+  function noDashes(str) {
+    return String(str)
+      .replace(/(\d)\s*[\u2013\u2014]\s*(\d)/g, '$1 to $2')
+      .replace(/\s+[\u2013\u2014]\s+/g, ', ')
+      .replace(/[\u2013\u2014]/g, ',');
+  }
+
+  /* The inherited entries say "CST" on its own ("Delivered online by CST").
+     That reaches the prompt AND the recommendation card, so no prompt rule can
+     fix it. Expand it once, in the data. */
+  function expandBrandName(kb) {
+    if (!kb || kb.__brandFixed) return;
+    kb.__brandFixed = true;
+    const fix = s => typeof s === 'string'
+      ? s.replace(/\bCST\b(?!\s+(?:Training|Studio|Learn))/g, 'CST Training') : s;
+    (kb.qualifications || []).forEach(q => {
+      ['description', 'benefits', 'audience', 'notSuitedFor'].forEach(f => {
+        if (q[f]) q[f] = fix(q[f]);
+      });
+      if (Array.isArray(q.suitedFor)) q.suitedFor = q.suitedFor.map(fix);
+    });
+  }
+
   function buildStaticPrompt() {
     const kb = ensureKnowledge();
+    expandBrandName(kb);
     const quals = (kb && kb.qualifications) ? kb.qualifications : [];
 
-    return `You are the CST Training website assistant. You help visitors anywhere on csttraining.co.uk understand our courses, choose the right qualification, and find the right page.
+    return noDashes(`You are the CST Training website assistant. You help visitors anywhere on csttraining.co.uk understand our courses, choose the right qualification, and find the right page.
 
 CST Training is a UK construction, health & safety and professional qualifications training provider with 30+ locations nationwide. We deliver CITB courses (SMSTS, SSSTS, HSA, Temporary Works, SEATS, DRHS, CDM Awareness), construction NVQs, NEBOSH, IOSH, ILM, CMI, PRINCE2, MSP, first aid, mental health and EUSR SHEA — online via Google Meet and in classrooms nationwide.
 
@@ -476,7 +502,7 @@ STYLE
 ════════════════════════════════════════
 - ALWAYS write the company name in full as "CST Training". Never shorten it to "CST" on its own, in any sentence, ever. "CST Training can help with that", never "CST can help with that". The only exceptions are the product names CST Studio and CST Learn, which are correct as written.
 - Plain UK English. Direct, warm, no sales pressure.
-- NEVER use em dashes or en dashes (— or –) in your replies. CST Training house style forbids them. Use a full stop, a comma, or a joining word like "so" or "and" instead. Write "I can't look up bookings, but the team can" not "I can't look up bookings — but the team can". Hyphens in compound words (e-learning, same-day, in-house) are fine.
+- NEVER use em dashes or en dashes in your replies. CST Training house style forbids them, and this prompt contains none, so do not introduce any. Use a full stop, a comma, or a joining word like "so" or "and" instead. Hyphens in compound words (e-learning, same-day, in-house) are fine.
 - Do not open with filler like "Great news", "Great question" or "Good question". Start with the answer.
 - Do not editorialise about the visitor's situation ("that's a solid cohort", "that's a good stage to be at"). Answer the question.
 - Short answers — two to four sentences plus a link. Only go longer if they've asked for detail.
@@ -544,7 +570,7 @@ DO NOT use LEAD_CAPTURE when:
 - You have just given them a course page link. One call to action per reply.
 - You are declining something (price, dates, comparisons). Answer, link the page, stop.
 
-The card is large and sits below your text, so it competes with what you wrote. Only trigger it when it IS the answer.`;
+The card is large and sits below your text, so it competes with what you wrote. Only trigger it when it IS the answer.`);
   }
 
   /* ── DYNAMIC HALF ────────────────────────────────────────── */
@@ -564,7 +590,10 @@ The card is large and sits below your text, so it competes with what you wrote. 
     // Location page: if they named a town AND a CITB course, give the exact page
     let locBlock = '';
     if (kb && typeof kb.findLocationPage === 'function') {
-      const said = messages.filter(m => m.role === 'user').map(m => m.content).join(' ');
+      // Only the LATEST message. Joining the whole conversation meant a chat that
+      // touched SMSTS earlier resolved an SSSTS question to the SMSTS page.
+      const lastUser = messages.filter(m => m.role === 'user').slice(-1)[0];
+      const said = lastUser ? lastUser.content : '';
       const loc = kb.findLocationPage(said + ' ' + ctx.title);
       if (loc) {
         locBlock = loc.hubOnly ? `
@@ -628,7 +657,7 @@ ${lines.join('\n\n')}`;
       }
     }
 
-    return `════════════════════════════════════════
+    return noDashes(`════════════════════════════════════════
 CURRENT PAGE
 ════════════════════════════════════════
 The visitor is on: "${ctx.title}" (${ctx.path}).
@@ -638,7 +667,7 @@ Use this as context only. Never recommend a course simply because they are on it
 ════════════════════════════════════════
 COURSE DETAIL — most relevant to this conversation
 ════════════════════════════════════════
-${detail}${tradeBlock}${locBlock}`;
+${detail}${tradeBlock}${locBlock}`);
   }
 
   /* ─────────────────────────────────────────────────────────────
@@ -692,7 +721,9 @@ ${detail}${tradeBlock}${locBlock}`;
       console.error('[CST] API call failed —', res.status, res.statusText,
                     '\nproxy said:', bodyText.slice(0, 800),
                     '\nrequest size:', JSON.stringify(body).length, 'chars');
-      throw new Error(msg);
+      const apiErr = new Error(msg);
+      apiErr.status = res.status;
+      throw apiErr;
     }
 
     const data = await res.json();
@@ -712,6 +743,16 @@ ${detail}${tradeBlock}${locBlock}`;
      PARSE RESPONSE
   ───────────────────────────────────────────────────────────── */
 
+  /* Remove every structured block, closed OR left open by a truncated reply.
+     max_tokens is 700, so a long answer can be cut mid-block. Without the
+     second pass the raw JSON rendered in the chat bubble. */
+  function stripBlocks(text) {
+    return String(text)
+      .replace(/<(RECOMMENDATION|ESCALATE|LEAD_CAPTURE)>[\s\S]*?<\/\1>/g, '')
+      .replace(/<\/?(?:RECOMMENDATION|ESCALATE|LEAD_CAPTURE)>[\s\S]*$/, '')
+      .trim();
+  }
+
   function parseResponse(text) {
     const rec = text.match(/<RECOMMENDATION>([\s\S]*?)<\/RECOMMENDATION>/);
     if (rec) {
@@ -727,22 +768,20 @@ ${detail}${tradeBlock}${locBlock}`;
         topic = j.topic || '';
         if (/^(sales|admin|assessments)$/.test(j.route || '')) route = j.route;
       } catch (e) {}
-      return {
-        type: 'escalate',
-        topic,
-        route,
-        text: text.replace(/<ESCALATE>[\s\S]*?<\/ESCALATE>/, '').trim()
-      };
+      return { type: 'escalate', topic, route, text: stripBlocks(text) };
     }
 
     if (/<LEAD_CAPTURE>/.test(text)) {
-      return {
-        type: 'lead_capture',
-        text: text.replace(/<LEAD_CAPTURE>[\s\S]*?<\/LEAD_CAPTURE>/, '').trim()
-      };
+      return { type: 'lead_capture', text: stripBlocks(text) };
     }
 
-    return { type: 'text', text: text.trim() };
+    const clean = stripBlocks(text);
+    if (!clean) {
+      console.warn('[CST] reply was truncated before any usable text.');
+      return { type: 'text',
+               text: 'Sorry, that reply got cut short. Could you ask me again?' };
+    }
+    return { type: 'text', text: clean };
   }
 
   /* ─────────────────────────────────────────────────────────────
@@ -875,9 +914,12 @@ ${detail}${tradeBlock}${locBlock}`;
 
       this.resetBtn.addEventListener('click', () => this._reset());
 
-      document.addEventListener('keydown', (e) => {
+      // Removed first, or every remount adds another document-level listener.
+      if (this._escHandler) document.removeEventListener('keydown', this._escHandler);
+      this._escHandler = (e) => {
         if (e.key === 'Escape' && this.isOpen) this._toggle(false);
-      });
+      };
+      document.addEventListener('keydown', this._escHandler);
 
       // Expose a manual opener for debugging
       window.CSTAssistantOpen = () => this._toggle(true);
@@ -933,7 +975,7 @@ ${detail}${tradeBlock}${locBlock}`;
       let welcome;
       if (course) {
         welcome = isMobile
-          ? `Hi! I'm the CST Training assistant. You're looking at the <strong>${course}</strong> — ask me anything about it, or about any of our other courses.`
+          ? `Hi! I'm the CST Training assistant. You're looking at the <strong>${course}</strong>. Ask me anything about it, or about any of our other courses.`
           : `Hello! I'm the CST Training assistant.\n\nI can see you're looking at the <strong>${course}</strong>. Ask me anything about it, or tell me about your role and I'll point you toward the right qualification.`;
       } else {
         welcome = isMobile
@@ -984,9 +1026,19 @@ ${detail}${tradeBlock}${locBlock}`;
           this._log({ outcome: 'escalated', detail: parsed.topic, confidence: parsed.route });
 
         } else if (parsed.type === 'lead_capture') {
+          // Every logged fire so far was a decline that already carried a course
+          // link, and the card buried it. One call to action per reply.
+          const body = parsed.text || '';
+          const hasLink = /\]\(https?:\/\//.test(body) ||
+                          /csttraining\.co\.uk/i.test(body);
           if (parsed.text) this._addBotMessage(parsed.text);
-          this._showLeadCapture();
-          this._log({ outcome: 'lead_capture' });
+          if (hasLink) {
+            console.warn('[CST] suppressed lead capture card: reply already has a link.');
+            this._log({ outcome: 'conversation', detail: 'lead_capture suppressed' });
+          } else {
+            this._showLeadCapture();
+            this._log({ outcome: 'lead_capture' });
+          }
 
         } else {
           this._addBotMessage(parsed.text);
@@ -997,9 +1049,18 @@ ${detail}${tradeBlock}${locBlock}`;
         this._hideTyping();
         this.isTyping = false;
         console.error('CSTAssistant API error:', err);
-        this._addBotMessage(
-          `I'm having trouble connecting at the moment. Please try again, or contact our team on <strong>${PHONE}</strong>.`
-        );
+        // 429 is the per visitor hourly limit, 503 the daily cap. Both used to
+        // show as a connection problem, which was misleading.
+        const st = err && err.status;
+        let failMsg;
+        if (st === 429) {
+          failMsg = `You've sent quite a few messages in a short space of time, so I need a moment. Please try again shortly, or call our team on <strong>${PHONE}</strong>.`;
+        } else if (st === 503) {
+          failMsg = `I'm not available right now. Please call our team on <strong>${PHONE}</strong> and they'll help straight away.`;
+        } else {
+          failMsg = `I'm having trouble connecting at the moment. Please try again, or contact our team on <strong>${PHONE}</strong>.`;
+        }
+        this._addBotMessage(failMsg);
         console.error('[CST] the error above is why the assistant could not reply:', err && err.message);
       }
 
@@ -1299,7 +1360,7 @@ ${detail}${tradeBlock}${locBlock}`;
         <div class="cst-asst__card-label">Our ${team.name} can help with this</div>
         <div class="cst-asst__card-title">Speak to the CST Training ${team.name}</div>
         <div class="cst-asst__card-text">
-          This one needs a person rather than me \u2014 they'll be able to sort it out quickly.
+          The team can sort this out quickly.
         </div>
         <div class="cst-asst__card-block">
           <strong>Please include</strong>
@@ -1336,6 +1397,33 @@ ${detail}${tradeBlock}${locBlock}`;
         </div>`;
       this.msgEl.appendChild(card);
       this._scroll();
+    }
+
+    /* ── REMOUNT ──────────────────────────────────────────────
+       The watchdog used to build a whole new instance, which reset messages,
+       expanded, expandedTrades and conversationId. A visitor mid-chat lost
+       everything and the sheet logged two conversations for one person. */
+    _remount() {
+      const keep       = this.messages.slice();
+      const wasOpen    = this.isOpen;
+      const wasStarted = this.started;
+      this._render();
+      this._bindEvents();
+      this.messages = keep;
+      this.started  = wasStarted;
+      this._restoreTranscript();
+      if (wasOpen) this._toggle(true);
+    }
+
+    _restoreTranscript() {
+      this.msgEl.innerHTML = '';
+      if (!this.messages.length) { this._sendWelcome(); return; }
+      this.chipsEl.style.display = 'none';
+      this.messages.forEach(m => {
+        if (m.role === 'user') { this._addUserMessage(m.content); return; }
+        const t = stripBlocks(m.content);
+        if (t) this._addBotMessage(t);
+      });
     }
 
     /* ── RESET ────────────────────────────────────────────── */
@@ -1397,8 +1485,12 @@ ${detail}${tradeBlock}${locBlock}`;
     setInterval(() => {
       const host = document.getElementById('cst-asst-host');
       if (!host || !host.isConnected || !host.shadowRoot) {
-        console.warn('CSTAssistant: widget was removed from the page — remounting.');
-        try { window.CSTAssistantInstance = new CSTAssistant(); } catch (e) {
+        console.warn('CSTAssistant: widget was removed from the page, remounting.');
+        try {
+          const inst = window.CSTAssistantInstance;
+          if (inst && typeof inst._remount === 'function') inst._remount();
+          else window.CSTAssistantInstance = new CSTAssistant();
+        } catch (e) {
           console.error('CSTAssistant: remount failed', e);
         }
       }
