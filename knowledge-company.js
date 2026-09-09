@@ -44,10 +44,12 @@
       callsRecorded: 'Calls are recorded for training and monitoring purposes.',
       reviews: 'Over 10,000 five-star reviews. Rated 5 stars on Trustpilot and Google.',
       managingDirector: 'Cohan Tyler',
-      inHouse: 'CST Training delivers in-house and on-site training — we can come to you. ' +
-               'Bulk discounts are available on orders of 5 or more courses, and content ' +
-               'can be tailored to a company\u2019s needs. Bulk order and in-house enquiries ' +
-               'go to the team.',
+      /* The discount clause was removed: the prompt forbids mentioning bulk or
+         group pricing, so feeding it here contradicted the rule. */
+      inHouse: 'CST Training delivers in-house and on-site training, so we can come to you. ' +
+               'Content can be tailored to a company\u2019s needs. Group, bulk order and ' +
+               'in-house enquiries go to the team, who will put a quote together. ' +
+               'Never state or imply what the rate would be.',
       trademark: 'PRINCE2 is a registered trademark of the PeopleCert group, used under licence.'
     };
 
