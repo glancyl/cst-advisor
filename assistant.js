@@ -1417,7 +1417,12 @@ ${detail}${tradeBlock}${locBlock}`);
 
     _restoreTranscript() {
       this.msgEl.innerHTML = '';
-      if (!this.messages.length) { this._sendWelcome(); return; }
+      // Only greet if the visitor had already opened the panel. Otherwise a
+      // watchdog remount before first open queues a second welcome message.
+      if (!this.messages.length) {
+        if (this.started) this._sendWelcome();
+        return;
+      }
       this.chipsEl.style.display = 'none';
       this.messages.forEach(m => {
         if (m.role === 'user') { this._addUserMessage(m.content); return; }
