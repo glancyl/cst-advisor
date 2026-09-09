@@ -905,7 +905,8 @@ ${detail}${tradeBlock}${notSoldBlock}${locBlock}`);
   const HS_PROPS = [['visibility','hidden'], ['opacity','0'], ['pointer-events','none']];
 
   let hsWantHidden = true;
-  let hsObserver   = null;
+  let hsObserver   = null;   // watches the container's own style attribute
+  let hsDomWatcher = null;   // waits for the container to be created at all
 
   function hsContainer() {
     return document.getElementById('hubspot-messages-iframe-container');
@@ -921,6 +922,12 @@ ${detail}${tradeBlock}${notSoldBlock}${locBlock}`);
     } else if (!on && existing) {
       existing.remove();
     }
+  }
+
+  function hsApplyNow() {
+    const c = hsContainer();
+    if (c) HS_PROPS.forEach(pair => c.style.setProperty(pair[0], pair[1], 'important'));
+    return !!c;
   }
 
   function hsHide() {
@@ -970,9 +977,20 @@ ${detail}${tradeBlock}${notSoldBlock}${locBlock}`);
       const prev = window.hsConversationsOnReady;
       window.hsConversationsOnReady = [].concat(prev || [], [bind]);
     }
-    // The container is injected asynchronously, so re-assert the style briefly.
-    let tries = 0;
-    const t = setInterval(() => { hsHide(); if (++tries > 20) clearInterval(t); }, 500);
+    /* HubSpot injects its container whenever it feels like it, and on a slow
+       page that was later than the old 10 second poll, so nothing hid it. Watch
+       the DOM until it turns up, however long that takes, then hide it and keep
+       the style observer on it. */
+    if (!hsApplyNow() && typeof MutationObserver === 'function' && !hsDomWatcher) {
+      hsDomWatcher = new MutationObserver(() => {
+        if (!hsWantHidden) return;
+        if (hsContainer()) {
+          hsHide();
+          if (hsDomWatcher) { hsDomWatcher.disconnect(); hsDomWatcher = null; }
+        }
+      });
+      hsDomWatcher.observe(document.documentElement, { childList: true, subtree: true });
+    }
   }
 
   /* ─────────────────────────────────────────────────────────────
