@@ -352,7 +352,8 @@
       const hay = ' ' + text.toLowerCase().replace(/[^a-z0-9 ]/g, ' ')
                             .replace(/\s+/g, ' ') + ' ';
 
-      const refresher = /refresher|\brefresh\b|\br\b|renew/.test(hay);
+      // \br\b removed: a stray standalone "r" flipped any match to the refresher page.
+      const refresher = /refresher|\brefresh\b|renew/.test(hay);
       let key = null;
       if (/smsts/.test(hay))      key = refresher ? 'smsts-r' : 'smsts';
       else if (/sssts/.test(hay)) key = refresher ? 'sssts-r' : 'sssts';
