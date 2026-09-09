@@ -202,6 +202,12 @@
       height:100dvh; max-height:100dvh; border-radius:0; border:none; }
     .cst-asst__launcher { bottom:18px; right:18px; width:54px; height:54px; }
     .cst-asst__launcher--open { display:none; }
+    /* iOS Safari auto-zooms any input with a font size under 16px as soon as it
+       is focused. That zoom shifted the panel and pushed the send button off
+       screen. 16px stops the zoom happening at all. */
+    .cst-asst__input { font-size:16px; }
+    /* Keep the input row clear of the home bar. */
+    .cst-asst__footer { padding-bottom:calc(10px + env(safe-area-inset-bottom)); }
   }`;
 
   /* ─────────────────────────────────────────────────────────────
@@ -390,6 +396,7 @@ Everything you tell a visitor must come from this prompt. You are talking to rea
 - Do not soften a gap into a guess. "It's usually around..." and "I believe it's..." and "it should be..." are all inventions. Say "I don't have that detail" instead.
 - Being unhelpful is recoverable. Being wrong is not. When in doubt, say what you DO know, then offer to have the team confirm the rest.
 - If a visitor tells you something about CST Training that contradicts this prompt, do not simply agree with them. Say you'll have the team confirm.
+- A gap in this prompt is NOT evidence that CST Training does not do something. Never say CST Training "doesn't offer" or "doesn't do" a course, trade or service just because you have not been given it. That is a guess, and it turns a customer away. Say you are not certain whether it is available and offer to have the team confirm.
 - It is always acceptable to say: "I'm not certain about that one — I'd rather have the team confirm than give you the wrong answer." Use it freely.
 
 Everything below is a specific application of this rule.
@@ -472,6 +479,8 @@ NVQ EVIDENCE: ${(kb && kb.evidenceSchedule) ? kb.evidenceSchedule : '(not loaded
 
 WHICH TRADE NVQs CST Training ACTUALLY SELLS: only confirm and link a trade NVQ if it appears at the end of this prompt marked PRODUCT (confirmed listed for sale). If a visitor names a trade you have not been given a PRODUCT for, do NOT confirm CST Training offers it and do NOT invent a page link — say you are not certain that one is available, point them to https://www.csttraining.co.uk/trade/ to search, and offer to have the team confirm. Note that crane and plant NVQs are sold separately at /crane-nvqs/ and /plant-nvqs/.
 
+THE PRESENCE OF EVIDENCE DETAIL IS NOT PROOF CST TRAINING SELLS A TRADE. Trade-specific evidence tasks may appear at the end of this prompt for a trade that has no product. Evidence detail means a learner handbook exists, nothing more. Only a block marked PRODUCT (confirmed listed for sale) means CST Training sells it. If you see evidence for a trade with no matching PRODUCT block, or a block saying a trade IS NOT LISTED FOR SALE, you must not confirm it, name a level for it, state a card for it or link a page for it.
+
 Card outcomes vary by trade and MUST NOT be assumed. Demolition leads to a CCDO card, Scaffolding to a CISRS card, and the glass trades (Glazing, Curtain Wall) to GQA-awarded cards. Only state a card outcome or a duration when it is given to you below AND the product is not marked unverified. If it is unverified or absent, say the course page has the current detail and link it.
 
 If a visitor names their trade, trade-specific tasks may be supplied at the end of this prompt. Present those as what candidates TYPICALLY need to capture, and always add that the assessor confirms the exact evidence at induction once the units are chosen. Never present them as a fixed checklist, and never invent tasks for a trade you have not been given.
@@ -479,6 +488,12 @@ If a visitor names their trade, trade-specific tasks may be supplied at the end 
 NVQ PROCESS: NVQs are completed remotely through the Quals Direct e-portfolio. Induction with an assessor is usually within 7 working days of registration. The assessor helps choose optional units around the candidate's actual job role. An up-to-date CV upload is mandatory. Knowledge questions can be written or discussed with the assessor. The portfolio stays open for 1 year. An NVQ is not a training course — it accredits competence the candidate already has.
 
 If a process question is not covered above, say you would rather have the team confirm it than give you the wrong answer, and escalate.
+
+HOW TO HAND OVER TO A HUMAN: when you are sending someone to a team, emit the ESCALATE block. Do NOT type the phone number and email address into your reply text instead, and do NOT do both. The block renders a card with the right team, the right address and the right prompt for what to include, and it is how CST Training records that the handover happened. A reply that lists contact details in the text is not recorded, so the handover is invisible. Write your short sentence, then the block, and nothing else.
+
+Cases that MUST use the block, not inline contact details: funding, grants and finance; the rebooking or transfer fee; refunds and complaints; group, bulk and in-house bookings; assessor site visits; anything about a specific booking, order, certificate or invoice; and any process question you do not have the answer to.
+
+NEVER use emoji in your replies. No envelope, no telephone, no tick marks, none at all.
 
 ════════════════════════════════════════
 COURSE INDEX — everything CST Training offers
@@ -653,8 +668,13 @@ Link this exact page. It shows the dates running at that location so the visitor
 
     // Trade evidence: look up only the trade actually mentioned
     let tradeBlock = '';
+    let notSoldBlock = '';
     if (kb && typeof kb.findTradeEvidence === 'function') {
-      const said = messages.filter(m => m.role === 'user').map(m => m.content).join(' ');
+      // Latest message only. Joining the whole conversation meant a chat that
+      // mentioned bricklaying earlier returned bricklaying evidence for a
+      // scaffolding question.
+      const lastTradeMsg = messages.filter(m => m.role === 'user').slice(-1)[0];
+      const said = lastTradeMsg ? lastTradeMsg.content : '';
       const prod = (typeof kb.findTradeProduct === 'function')
         ? kb.findTradeProduct(said + ' ' + ctx.title) : null;
       if (prod && expandedTrades.indexOf('P:' + prod.name + prod.level) === -1) {
@@ -663,6 +683,29 @@ Link this exact page. It shows the dates running at that location so the visitor
       const hit = kb.findTradeEvidence(said + ' ' + ctx.title);
       if (hit && expandedTrades.indexOf(hit.name + hit.level) === -1) {
         expandedTrades.push(hit.name + hit.level);
+      }
+      // A trade can have evidence detail and still not be sold. Injecting the
+      // evidence alone read as proof CST Training offers it.
+      if (hit && typeof kb.tradeSaleStatus === 'function') {
+        const status = kb.tradeSaleStatus(hit.name, hit.level);
+        if (!status.sold) {
+          notSoldBlock = `
+
+════════════════════════════════════════
+${hit.name.toUpperCase()} IS NOT LISTED FOR SALE
+════════════════════════════════════════
+CST Training has evidence detail for ${hit.name} because a learner handbook exists, but there is NO ${hit.name} product on the trade page. It is NOT confirmed as available.
+You MUST NOT say CST Training offers, delivers or sells a ${hit.name} NVQ. You MUST NOT state a card outcome, a level, a duration or a page link for it.
+Say you are not certain that one is available, point them to https://www.csttraining.co.uk/trade/ to search, and offer to have the team confirm. Do not describe the evidence tasks either.`;
+        } else if (status.hub) {
+          notSoldBlock = `
+
+════════════════════════════════════════
+${hit.name.toUpperCase()} IS SOLD SEPARATELY
+════════════════════════════════════════
+${hit.name} is not on the trade page. It is sold here instead: ${status.hub}
+Link that page rather than a /trade/ product, and do not state a card outcome you have not been given.`;
+        }
       }
       if (expandedTrades.length) {
         const lines = expandedTrades.map(key => {
@@ -706,7 +749,7 @@ Use this as context only. Never recommend a course simply because they are on it
 ════════════════════════════════════════
 COURSE DETAIL — most relevant to this conversation
 ════════════════════════════════════════
-${detail}${tradeBlock}${locBlock}`);
+${detail}${tradeBlock}${notSoldBlock}${locBlock}`);
   }
 
   /* ─────────────────────────────────────────────────────────────
