@@ -876,6 +876,64 @@ ${detail}${tradeBlock}${notSoldBlock}${locBlock}`);
   }
 
   /* ─────────────────────────────────────────────────────────────
+     HUBSPOT LIVE CHAT HANDOFF
+
+     HubSpot's widget has to be LOADED on the page for us to open it,
+     which means its own launcher would sit in the same corner as ours.
+     So we hide its container with CSS and only reveal it at the moment
+     the visitor asks for a person. When they close it, we hide it again.
+
+     Note: HubSpot's SDK cannot pre-fill a message, so the rep does not
+     receive the transcript inside the thread. The transcript is sent to
+     the log sheet with outcome 'handoff' instead, so it can be emailed
+     to the team from Apps Script.
+  ───────────────────────────────────────────────────────────── */
+
+  const HS_STYLE_ID = 'cst-hs-launcher-hidden';
+  const HS_CSS = '#hubspot-messages-iframe-container{display:none!important;}';
+
+  function hsHide() {
+    if (document.getElementById(HS_STYLE_ID)) return;
+    const st = document.createElement('style');
+    st.id = HS_STYLE_ID;
+    st.textContent = HS_CSS;
+    (document.head || document.documentElement).appendChild(st);
+  }
+
+  function hsShow() {
+    const st = document.getElementById(HS_STYLE_ID);
+    if (st) st.remove();
+  }
+
+  function hsAvailable() {
+    try {
+      const w = window.HubSpotConversations && window.HubSpotConversations.widget;
+      return !!(w && w.status && w.status().loaded);
+    } catch (e) { return false; }
+  }
+
+  /* Hide the launcher as soon as HubSpot is ready, and re-hide whenever the
+     visitor closes the panel. hsConversationsOnReady fires late if the script
+     has not finished, so it is set defensively either way. */
+  function hsInit() {
+    hsHide();
+    const bind = () => {
+      hsHide();
+      try {
+        window.HubSpotConversations.on('widgetClosed', () => hsHide());
+      } catch (e) {}
+    };
+    if (window.HubSpotConversations) bind();
+    else {
+      const prev = window.hsConversationsOnReady;
+      window.hsConversationsOnReady = [].concat(prev || [], [bind]);
+    }
+    // The container is injected asynchronously, so re-assert the style briefly.
+    let tries = 0;
+    const t = setInterval(() => { hsHide(); if (++tries > 20) clearInterval(t); }, 500);
+  }
+
+  /* ─────────────────────────────────────────────────────────────
      WIDGET
   ───────────────────────────────────────────────────────────── */
 
@@ -1444,6 +1502,9 @@ ${detail}${tradeBlock}${notSoldBlock}${locBlock}`);
                        ready: 'Your name, the email address you registered with, and which qualification you\u2019re working through.' }
       };
       const team = TEAMS[route] || TEAMS.sales;
+      // Only offer live chat when HubSpot is actually loaded, which also means
+      // the team is inside their chat operating hours.
+      const liveChat = hsAvailable();
       const subject = encodeURIComponent(topic ? `Website enquiry: ${topic}` : 'Website enquiry');
       const card = document.createElement('div');
       card.className = 'cst-asst__card';
@@ -1458,14 +1519,19 @@ ${detail}${tradeBlock}${notSoldBlock}${locBlock}`);
           ${team.ready}
         </div>
         <div class="cst-asst__ctas">
+          ${liveChat ? `<button class="cst-asst__btn cst-asst__btn--orange" type="button" data-livechat>
+            Chat to the team now
+          </button>` : ''}
           <a href="tel:${PHONE.replace(/\s/g, '')}" class="cst-asst__btn cst-asst__btn--primary">
             Call ${PHONE}
           </a>
-          <a href="mailto:${team.email}?subject=${subject}" class="cst-asst__btn cst-asst__btn--orange">
+          <a href="mailto:${team.email}?subject=${subject}" class="cst-asst__btn ${liveChat ? 'cst-asst__btn--primary' : 'cst-asst__btn--orange'}">
             Email ${team.email}
           </a>
         </div>`;
       this.msgEl.appendChild(card);
+      const lc = card.querySelector('[data-livechat]');
+      if (lc) lc.addEventListener('click', () => this._handoffToSales(topic));
       this._scroll();
     }
 
@@ -1480,14 +1546,40 @@ ${detail}${tradeBlock}${notSoldBlock}${locBlock}`);
           Our sales team will help you get booked onto the right course.
         </div>
         <div class="cst-asst__ctas">
-          <a href="/contact/" class="cst-asst__btn cst-asst__btn--orange">Enquire now</a>
+          ${hsAvailable() ? `<button class="cst-asst__btn cst-asst__btn--orange" type="button" data-livechat>
+            Chat to the team now
+          </button>` : `<a href="/contact/" class="cst-asst__btn cst-asst__btn--orange">Enquire now</a>`}
           <a href="mailto:${EMAIL_SALES}" class="cst-asst__btn cst-asst__btn--primary">Email sales</a>
           <a href="tel:${PHONE.replace(/\s/g, '')}" class="cst-asst__btn cst-asst__btn--primary">
             Call ${PHONE}
           </a>
         </div>`;
       this.msgEl.appendChild(card);
+      const lcLead = card.querySelector('[data-livechat]');
+      if (lcLead) lcLead.addEventListener('click', () => this._handoffToSales('lead capture'));
       this._scroll();
+    }
+
+    /* ── HANDOFF TO THE SALES TEAM ────────────────────────── */
+    _handoffToSales(topic) {
+      if (!hsAvailable()) {
+        console.warn('[CST] HubSpot chat not loaded, cannot hand off.');
+        return false;
+      }
+      // Log first, so the team has the context even if the visitor says nothing.
+      this._log({ outcome: 'handoff', detail: topic || 'live chat handoff' });
+
+      hsShow();
+      try {
+        window.HubSpotConversations.widget.open();
+      } catch (e) {
+        console.error('[CST] HubSpot open failed', e);
+        hsHide();
+        return false;
+      }
+      // Close our own panel so the two do not overlap.
+      this._toggle(false);
+      return true;
     }
 
     /* ── REMOUNT ──────────────────────────────────────────────
@@ -1565,6 +1657,7 @@ ${detail}${tradeBlock}${notSoldBlock}${locBlock}`);
   function init() {
     if (!shouldLoad()) return;
     ensureKnowledge();
+    hsInit();
     window.CSTAssistantInstance = new CSTAssistant();
     console.log('[CST] assistant mounted. Click the bubble, or run ' +
                 'window.CSTAssistantInstance._toggle() to open it manually.');
