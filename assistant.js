@@ -38,7 +38,11 @@
      Add more paths one per line, each in quotes with a trailing comma.
   ─────────────────────────────────────────────────────────── */
   const ONLY_ON_PATHS = [
-    '/what-does-isep-course-mean/'
+    '/smsts/',
+    '/sssts/',
+    '/bricklaying-level-2/',
+    '/carpentry-level-2/',
+    '/what-does-isep-course-mean/'   // keep for testing
   ];
 
   // Pages to skip once you HAVE gone sitewide (ignored while ONLY_ON_PATHS is set).
@@ -251,26 +255,44 @@
     ).join('\n');
   }
 
+  /* What the visitor TYPED matters far more than the page they happen to be
+     sitting on. Both used to score identically, so on the ISEP page an ISEP
+     course outranked the thing the person actually asked about, and a dozen
+     courses tied on the same score with the tie broken arbitrarily. */
+  const SAID_WEIGHT = 4;
+  const PAGE_WEIGHT = 1;
+
+  /* Someone describing their job and their experience is asking a competence
+     and card question, so NVQs should lead rather than a safety ticket. */
+  const ROLE_SIGNAL = /\b(i'?m|i am|im|work as|working as|my job|my role|i do|i've been|ive been)\b|\b\d+\s*\+?\s*(?:years?|yrs?)\b|\bon the tools\b/i;
+
   /* Pick the courses worth expanding: score each against the page and
      what the visitor has actually said. */
   function selectRelevant(quals, ctx, messages) {
-    const said = messages.filter(m => m.role === 'user')
-                         .slice(-4)
-                         .map(m => m.content).join(' ');
-    const haystack = tokenise(said + ' ' + ctx.title + ' ' + ctx.path +
-                              ' ' + (ctx.currentCourse || ''))
-                     .filter(w => !STOPWORDS.has(w));
-    if (!haystack.length) return [];
+    const userMsgs = messages.filter(m => m.role === 'user');
+    const said     = userMsgs.slice(-3).map(m => m.content).join(' ');
+    const latest    = userMsgs.slice(-1).map(m => m.content).join(' ');
 
     const counts = {};
-    haystack.forEach(w => { counts[w] = (counts[w] || 0) + 1; });
+    const add = (text, weight) => {
+      tokenise(text).filter(w => !STOPWORDS.has(w))
+        .forEach(w => { counts[w] = (counts[w] || 0) + weight; });
+    };
+    add(said, SAID_WEIGHT);
+    add(ctx.title + ' ' + ctx.path + ' ' + (ctx.currentCourse || ''), PAGE_WEIGHT);
+    if (!Object.keys(counts).length) return [];
+
+    const roleQuery = ROLE_SIGNAL.test(latest);
 
     const scored = quals.map(q => {
-      const text = tokenise([q.title, q.category, q.audience,
-                             (q.roles || []).join(' ')].join(' '));
-      const bag = new Set(text);
+      const bag = new Set(tokenise([q.title, q.category, q.audience,
+                                    (q.roles || []).join(' ')].join(' ')));
       let score = 0;
       Object.keys(counts).forEach(w => { if (bag.has(w)) score += counts[w]; });
+      if (score <= 0) return { q, score: 0 };
+      // Tie-breaker only, and only once they have described a role. Never
+      // pulls in an NVQ that did not already match on its own words.
+      if (roleQuery && /NVQ/i.test(q.category + ' ' + q.title)) score += 6;
       return { q, score };
     }).filter(x => x.score > 0);
 
@@ -388,6 +410,21 @@ THE DEFAULT: if the visitor has named a course, a trade or a job role, give them
 - If you are unsure of the exact level or variant, say so in one clause and link the hub page anyway. A page they can browse beats a question they have to answer.
 
 Getting someone onto the right page in one reply is the win. Extra turns lose people.
+
+ROLE AND EXPERIENCE QUESTIONS, LEAD WITH THE NVQ
+When a visitor describes the job they do and how long they have done it, and asks what they should do next, they are asking a competence and card question, not a training course question. Lead with the NVQ that accredits what they ALREADY do, and name the card it supports. This is what most of them are actually after, even when they do not use the word NVQ.
+
+- Working supervisor, chargehand or foreman, come up off the tools and now running a gang or small team: Level 3 NVQ Occupational Work Supervision, which supports a Gold CSCS Card.
+- Supervising site operations at a higher level, general foreman, section supervisor, assistant site manager: Level 4 NVQ Construction Site Supervision, Gold CSCS Card.
+- Running a site or project: Level 6 NVQ Construction Site Management, Black CSCS Card.
+- Still on the tools in a trade: the Level 2 NVQ for that trade, Blue CSCS Card. Level 3 if they also supervise others.
+- Technical or commercial role, estimating, buying, planning, surveying: Level 3 or Level 6 Construction Contracting Operations.
+
+Rules for these replies:
+- Recommend ONE qualification as the lead, with its link. You may name a single alternative in one short clause. NEVER present a menu of four options and ask them to pick.
+- A safety ticket (SMSTS, SSSTS, HSA) is a different kind of thing. If it is worth mentioning at all, it goes in ONE short sentence after the NVQ, never as the headline.
+- Name the card the NVQ supports, because that is usually why they are asking. Only ever state a card outcome you have been given.
+- Do not ask how many years they have, and do not comment on whether their experience is enough. See ENTRY REQUIREMENTS below.
 
 ════════════════════════════════════════
 PRICING AND AVAILABILITY — HARD RULES
@@ -548,7 +585,9 @@ high: "Based on everything you've told me, I'm confident this is the right quali
 medium: "There are a couple of good options here. I'd recommend speaking with our advisers before booking to make sure you choose the best fit."
 low: "I'd recommend speaking with our team directly so we can make sure you choose the right qualification for your situation."
 
-Use this when a formal recommendation card genuinely helps — usually when someone has described their role and is choosing between qualifications. For a straightforward "which page do I need" question, do NOT use the card: just answer in text with the link. Never run a long series of questions to reach a recommendation.
+USE the card whenever a visitor has described the job they do, or their role plus their experience, and asked what they should do or which qualification they need. That is the case it exists for, and prose with four links is the wrong answer there. Put the NVQ from the ROLE AND EXPERIENCE section in "qualificationId", and use "alsoConsider" for the alternatives instead of listing them in text.
+
+Do NOT use the card when they have simply asked where a page is, or named one specific course and asked about it. Answer those in text with the link. Never run a series of questions to reach a recommendation: recommend from what they have already told you.
 
 When the visitor asks about a specific booking, order, certificate, refund, invoice or complaint, reply with a short plain sentence explaining you can't look that up, then exactly:
 
