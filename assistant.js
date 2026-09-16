@@ -102,6 +102,24 @@
     border:2px solid var(--navy); }
   .cst-asst__launcher--open::after { display:none; }
 
+  /* Teaser bubble. Sits BELOW the launcher in z-order so it can never block
+     the bubble itself, and is dismissed for good once the visitor Xs it. */
+  .cst-asst__teaser { position:fixed; bottom:96px; right:24px; z-index:99997;
+    max-width:215px; background:#fff; border:1px solid var(--border);
+    border-radius:12px; box-shadow:0 6px 24px rgba(28,37,96,.22);
+    padding:10px 30px 10px 14px; font-size:.84rem; line-height:1.35;
+    color:var(--body); cursor:pointer; opacity:0; transform:translateY(8px);
+    transition:opacity .25s ease, transform .25s ease; pointer-events:none; }
+  .cst-asst__teaser--show { opacity:1; transform:translateY(0); pointer-events:auto; }
+  .cst-asst__teaser::before { content:''; position:absolute; bottom:-7px; right:22px;
+    width:12px; height:12px; background:#fff; border-right:1px solid var(--border);
+    border-bottom:1px solid var(--border); transform:rotate(45deg); }
+  .cst-asst__teaser-x { position:absolute; top:4px; right:4px; width:22px; height:22px;
+    border:none; background:none; cursor:pointer; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; padding:0; }
+  .cst-asst__teaser-x svg { width:13px; height:13px; fill:var(--muted); }
+  .cst-asst__teaser-x:hover { background:var(--surface); }
+
   .cst-asst__panel { position:fixed; bottom:96px; right:24px; z-index:99999;
     width:390px; max-width:calc(100vw - 32px); height:600px; max-height:calc(100vh - 130px);
     background:#fff; border-radius:14px; box-shadow:0 12px 48px rgba(28,37,96,.28);
@@ -220,6 +238,7 @@
     .cst-asst__input { font-size:16px; }
     /* Keep the input row clear of the home bar. */
     .cst-asst__footer { padding-bottom:calc(10px + env(safe-area-inset-bottom)); }
+    .cst-asst__teaser { bottom:82px; right:18px; max-width:190px; font-size:.8rem; }
   }`;
 
   /* ─────────────────────────────────────────────────────────────
@@ -1011,6 +1030,7 @@ ${detail}${tradeBlock}${notSoldBlock}${locBlock}`);
 
       this._render();
       this._bindEvents();
+      this._scheduleTeaser(5000);
     }
 
     /* ── DOM ──────────────────────────────────────────────── */
@@ -1020,6 +1040,12 @@ ${detail}${tradeBlock}${notSoldBlock}${locBlock}`);
       root.innerHTML = `
         <button class="cst-asst__launcher" id="cst-asst-launcher" type="button"
                 aria-label="Open the CST Training assistant">${ICONS.chat}</button>
+
+        <div class="cst-asst__teaser" id="cst-asst-teaser" role="button" tabindex="0">
+          Ask me about our courses and NVQs
+          <button class="cst-asst__teaser-x" id="cst-asst-teaser-x" type="button"
+                  aria-label="Dismiss">${ICONS.close}</button>
+        </div>
 
         <div class="cst-asst__panel" id="cst-asst-panel" role="dialog"
              aria-label="CST Training assistant">
@@ -1085,6 +1111,8 @@ ${detail}${tradeBlock}${notSoldBlock}${locBlock}`);
       this.chipsEl    = shadow.getElementById('cst-asst-chips');
       this.resetBtn   = shadow.getElementById('cst-asst-reset');
       this.closeBtn   = shadow.getElementById('cst-asst-close');
+      this.teaserEl   = shadow.getElementById('cst-asst-teaser');
+      this.teaserXEl  = shadow.getElementById('cst-asst-teaser-x');
     }
 
     _bindEvents() {
@@ -1123,6 +1151,28 @@ ${detail}${tradeBlock}${notSoldBlock}${locBlock}`);
 
       this.resetBtn.addEventListener('click', () => this._reset());
 
+      if (this.teaserEl) {
+        this.teaserEl.addEventListener('click', (e) => {
+          if (e.target.closest('.cst-asst__teaser-x')) return;
+          this._dismissTeaser(true);
+          this._toggle(true);
+        });
+        this.teaserEl.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            this._dismissTeaser(true);
+            this._toggle(true);
+          }
+        });
+      }
+      if (this.teaserXEl) {
+        this.teaserXEl.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          this._dismissTeaser(true);
+        });
+      }
+
       // Removed first, or every remount adds another document-level listener.
       if (this._escHandler) document.removeEventListener('keydown', this._escHandler);
       this._escHandler = (e) => {
@@ -1138,6 +1188,9 @@ ${detail}${tradeBlock}${notSoldBlock}${locBlock}`);
       const now = Date.now();
       if (typeof force !== 'boolean' && this._lastToggle && now - this._lastToggle < 250) return;
       this._lastToggle = now;
+
+      // Opening the panel retires the teaser for good.
+      if (typeof force !== 'boolean' || force) this._dismissTeaser(true);
 
       // Something on this page detaches our nodes after mount, so if the host
       // has gone, rebuild it before opening.
@@ -1174,6 +1227,30 @@ ${detail}${tradeBlock}${notSoldBlock}${locBlock}`);
         if (!this.started) { this.started = true; this._sendWelcome(); }
         setTimeout(() => this.inputEl.focus(), 120);
       }
+    }
+
+    /* ── TEASER BUBBLE ──────────────────────────────── */
+    _teaserDismissed() {
+      try { return localStorage.getItem('cstAsstTeaser') === 'off'; }
+      catch (e) { return false; }
+    }
+
+    _dismissTeaser(remember) {
+      if (this.teaserEl) this.teaserEl.classList.remove('cst-asst__teaser--show');
+      if (this._teaserTimer) { clearTimeout(this._teaserTimer); this._teaserTimer = null; }
+      if (remember) {
+        try { localStorage.setItem('cstAsstTeaser', 'off'); } catch (e) {}
+      }
+    }
+
+    _scheduleTeaser(delay) {
+      if (this._teaserDismissed() || this.isOpen || !this.teaserEl) return;
+      if (this._teaserTimer) clearTimeout(this._teaserTimer);
+      this._teaserTimer = setTimeout(() => {
+        if (!this.isOpen && !this._teaserDismissed() && this.teaserEl) {
+          this.teaserEl.classList.add('cst-asst__teaser--show');
+        }
+      }, delay || 5000);
     }
 
     /* ── WELCOME ──────────────────────────────────────────── */
@@ -1693,6 +1770,7 @@ ${detail}${tradeBlock}${notSoldBlock}${locBlock}`);
       this.started  = wasStarted;
       this._restoreTranscript();
       if (wasOpen) this._toggle(true);
+      else this._scheduleTeaser(3000);
     }
 
     _restoreTranscript() {
