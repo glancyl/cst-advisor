@@ -104,20 +104,24 @@
 
   /* Teaser bubble. Sits BELOW the launcher in z-order so it can never block
      the bubble itself, and is dismissed for good once the visitor Xs it. */
-  .cst-asst__teaser { position:fixed; bottom:96px; right:24px; z-index:99997;
-    max-width:215px; background:#fff; border:1px solid var(--border);
-    border-radius:12px; box-shadow:0 6px 24px rgba(28,37,96,.22);
-    padding:10px 30px 10px 14px; font-size:.84rem; line-height:1.35;
+  .cst-asst__teaser { position:fixed; bottom:94px; right:24px; z-index:99997;
+    max-width:calc(100vw - 48px); white-space:nowrap;
+    background:#fff; border:1px solid var(--border);
+    border-radius:10px; box-shadow:0 4px 18px rgba(28,37,96,.20);
+    padding:8px 28px 8px 13px; font-size:.82rem; line-height:1.3;
     color:var(--body); cursor:pointer; opacity:0; transform:translateY(8px);
     transition:opacity .25s ease, transform .25s ease; pointer-events:none; }
   .cst-asst__teaser--show { opacity:1; transform:translateY(0); pointer-events:auto; }
-  .cst-asst__teaser::before { content:''; position:absolute; bottom:-7px; right:22px;
+  /* The tail points at the launcher's centre: the launcher is 60px wide at
+     right:24px, so its centre is 54px from the viewport edge, and the tail
+     centre sits 24px + 24px + 6px = the same 54px. */
+  .cst-asst__teaser::before { content:''; position:absolute; bottom:-7px; right:24px;
     width:12px; height:12px; background:#fff; border-right:1px solid var(--border);
     border-bottom:1px solid var(--border); transform:rotate(45deg); }
-  .cst-asst__teaser-x { position:absolute; top:4px; right:4px; width:22px; height:22px;
+  .cst-asst__teaser-x { position:absolute; top:3px; right:3px; width:20px; height:20px;
     border:none; background:none; cursor:pointer; border-radius:50%;
     display:flex; align-items:center; justify-content:center; padding:0; }
-  .cst-asst__teaser-x svg { width:13px; height:13px; fill:var(--muted); }
+  .cst-asst__teaser-x svg { width:11px; height:11px; fill:var(--muted); }
   .cst-asst__teaser-x:hover { background:var(--surface); }
 
   .cst-asst__panel { position:fixed; bottom:96px; right:24px; z-index:99999;
@@ -238,7 +242,10 @@
     .cst-asst__input { font-size:16px; }
     /* Keep the input row clear of the home bar. */
     .cst-asst__footer { padding-bottom:calc(10px + env(safe-area-inset-bottom)); }
-    .cst-asst__teaser { bottom:82px; right:18px; max-width:190px; font-size:.8rem; }
+    /* Launcher is 54px at right:18px, so its centre is 45px in, and the tail
+       centre lands at 18px + 21px + 6px = 45px. */
+    .cst-asst__teaser { bottom:80px; right:18px; font-size:.8rem; }
+    .cst-asst__teaser::before { right:21px; }
   }`;
 
   /* ─────────────────────────────────────────────────────────────
@@ -1042,7 +1049,7 @@ ${detail}${tradeBlock}${notSoldBlock}${locBlock}`);
                 aria-label="Open the CST Training assistant">${ICONS.chat}</button>
 
         <div class="cst-asst__teaser" id="cst-asst-teaser" role="button" tabindex="0">
-          Ask me about our courses and NVQs
+          Need assistance?
           <button class="cst-asst__teaser-x" id="cst-asst-teaser-x" type="button"
                   aria-label="Dismiss">${ICONS.close}</button>
         </div>
