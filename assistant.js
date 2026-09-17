@@ -37,21 +37,13 @@
      THOSE PAGES ONLY. Empty it to [] to go sitewide.
      Add more paths one per line, each in quotes with a trailing comma.
   ─────────────────────────────────────────────────────────── */
-  const ONLY_ON_PATHS = [
-    '/',                                       // homepage, exact match only
-    '/trade/',
-    '/bricklaying-level-2/',
-    '/carpentry-level-2/',
-    '/occupational-work-supervisor-level-3-nvq/',
-    '/site-supervision-level-4/',
-    '/construction-site-management-level-6/',
-    '/cco-level-3/'
-  ];
+  const ONLY_ON_PATHS = [];   // empty = sitewide
 
   // Pages to skip once you HAVE gone sitewide (ignored while ONLY_ON_PATHS is set).
   const EXCLUDE_PATHS = [
-    // '/checkout/',
-    // '/basket/'
+    '/checkout/',
+    '/cart/',
+    '/basket/'
   ];
 
   const CHIPS = [
@@ -92,14 +84,14 @@
 
   .cst-asst__launcher { position:fixed; bottom:24px; right:24px; z-index:99998;
     width:60px; height:60px; border-radius:50%; border:none; cursor:pointer;
-    background:var(--navy); color:#fff; box-shadow:0 4px 20px rgba(28,37,96,.35);
+    background:#4c6bd8; color:#fff; box-shadow:0 4px 20px rgba(28,37,96,.35);
     display:flex; align-items:center; justify-content:center;
     transition:transform .18s ease, box-shadow .18s ease; }
   .cst-asst__launcher:hover { transform:scale(1.06); box-shadow:0 6px 26px rgba(28,37,96,.45); }
   .cst-asst__launcher svg { width:26px; height:26px; fill:#fff; }
   .cst-asst__launcher::after { content:''; position:absolute; top:6px; right:6px;
     width:11px; height:11px; border-radius:50%; background:var(--orange);
-    border:2px solid var(--navy); }
+    border:2px solid #4c6bd8; }
   .cst-asst__launcher--open::after { display:none; }
 
   /* Teaser bubble. Sits BELOW the launcher in z-order so it can never block
@@ -1836,7 +1828,10 @@ ${detail}${tradeBlock}${notSoldBlock}${locBlock}`);
         : (here === p || here.indexOf(p + '/') === 0));
     }
 
-    if (EXCLUDE_PATHS.some(p => p && path.indexOf(p) === 0)) return false;
+    // Trailing slashes are ignored on both sides, so /checkout and /checkout/
+    // are both excluded, and so is anything beneath them.
+    if (EXCLUDE_PATHS.filter(Boolean).map(trim)
+          .some(p => here === p || here.indexOf(p + '/') === 0)) return false;
 
     return true;
   }
