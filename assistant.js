@@ -279,8 +279,19 @@
     'this','that','have','does','about','from','they','there','would','should',
     'get','got','one','out','not','but','any','all','its','has','was','were']);
 
+  /* "NVQL7", "NVQ L7" and "level 7" all mean the same thing, and none of them
+     used to match "Level 7 NVQ Construction Senior Management": a lone digit is
+     dropped by the 3-character minimum. Fold them into one token, level7, which
+     then discriminates properly between levels. */
+  function normLevels(str) {
+    return String(str || '')
+      .replace(/\bnvq\s*l\s*([1-7])\b/gi, 'nvq level $1')
+      .replace(/\bl\s*([1-7])\b/gi, 'level $1')
+      .replace(/\blevel\s*([1-7])\b/gi, 'level$1');
+  }
+
   function tokenise(str) {
-    return (str || '').toLowerCase().match(/[a-z0-9]{3,}/g) || [];
+    return normLevels(str).toLowerCase().match(/[a-z0-9]{3,}/g) || [];
   }
 
   /* One line per course — enough for the model to know what exists and
@@ -302,6 +313,11 @@
      and card question, so NVQs should lead rather than a safety ticket. */
   const ROLE_SIGNAL = /\b(i'?m|i am|im|work as|working as|my job|my role|i do|i've been|ive been)\b|\b\d+\s*\+?\s*(?:years?|yrs?)\b|\bon the tools\b/i;
 
+  /* An NVQ accredits what someone does NOW, so it is the wrong lead for anyone
+     out of the role. "I WAS a project manager" used to score as a role signal
+     and push an NVQ they cannot currently evidence. */
+  const PAST_ROLE = /\b(was|were|used to|previous(?:ly)?|former(?:ly)?|ex[- ]|last job|old job|between jobs|left my|redundan|looking for work|out of work|career change|changing career)\b/i;
+
   /* Pick the courses worth expanding: score each against the page and
      what the visitor has actually said. */
   function selectRelevant(quals, ctx, messages) {
@@ -319,6 +335,7 @@
     if (!Object.keys(counts).length) return [];
 
     const roleQuery = ROLE_SIGNAL.test(latest);
+    const pastRole  = PAST_ROLE.test(said);
 
     const scored = quals.map(q => {
       const bag = new Set(tokenise([q.title, q.category, q.audience,
@@ -328,7 +345,7 @@
       if (score <= 0) return { q, score: 0 };
       // Tie-breaker only, and only once they have described a role. Never
       // pulls in an NVQ that did not already match on its own words.
-      if (roleQuery && /NVQ/i.test(q.category + ' ' + q.title)) score += 6;
+      if (roleQuery && !pastRole && /NVQ/i.test(q.category + ' ' + q.title)) score += 6;
       return { q, score };
     }).filter(x => x.score > 0);
 
@@ -462,6 +479,23 @@ Rules for these replies:
 - A safety ticket (SMSTS, SSSTS, HSA) is a different kind of thing. If it is worth mentioning at all, it goes in ONE short sentence after the NVQ, never as the headline.
 - Name the card the NVQ supports, because that is usually why they are asking. Only ever state a card outcome you have been given.
 - Do not ask how many years they have, and do not comment on whether their experience is enough. See ENTRY REQUIREMENTS below.
+
+AN NVQ NEEDS A CURRENT ROLE, SO CHECK BEFORE YOU LEAD WITH ONE
+An NVQ accredits competence the candidate is demonstrating at work right now, and the evidence comes from their own site. So if a visitor says they WERE in a role, are between jobs, are changing career, or are trying to get INTO a role rather than accredit the one they hold, an NVQ is the wrong lead. Do not recommend one as the headline and do not imply they can start it without a current role.
+For those visitors, lead with a taught, examined qualification they can complete regardless of employment: PRINCE2 for project management, CMI or ILM for management and leadership, NEBOSH or IOSH for health and safety, and SMSTS or SSSTS as the site safety ticket employers ask for. You may mention that an NVQ becomes the right route once they are back in a role, in one short clause.
+
+PROJECT MANAGEMENT ENQUIRIES
+If someone asks about project management qualifications, PRINCE2 is the recognised project management certification. It is taught and examined, with no workplace evidence needed, so it suits someone building a CV or moving jobs. Do not bring up MSP unless the visitor asks about programme management or names MSP themselves.
+NEVER present a health and safety qualification as a project management one. NEBOSH, IOSH, SMSTS and SSSTS are health and safety qualifications. Describing NEBOSH as a "formal project management certification" is wrong and misleads the visitor.
+The Level 6 NVQ Construction Site Management is a site management competence qualification and a CSCS card route, not a project management certification, and it needs a current site role.
+
+CSCS CARD ROUTES, DO NOT GET THESE WRONG
+A HIGHER level NVQ is never a problem for a card. Never tell a visitor that the level they hold is the wrong one because the card is usually associated with a lower level, and never tell someone holding a higher qualification that they need to go and do a lower one.
+- Black CSCS Card (Manager): supported by the Level 6 NVQ Construction Site Management, the Level 6 NVQ Construction Contracting Operations, the Level 6 NVQ Senior Site Inspection, AND the Level 7 NVQ Construction Senior Management. The Level 7 is the highest construction management NVQ and is a full Black Card route in its own right, not merely "above the requirement".
+- Gold CSCS Card (Supervisor): Level 3 NVQ Occupational Work Supervision, Level 4 NVQ Construction Site Supervision.
+- Blue CSCS Card (Skilled Worker): the Level 2 NVQ for the trade.
+- Some trades award their own cards instead, so see the trade rules below.
+The Black and Gold cards also require the relevant CITB Health, Safety and Environment test. CST Training does not issue CSCS cards, so the application itself is made through CSCS, but you may state with confidence which card an NVQ supports.
 
 ════════════════════════════════════════
 PRICING AND AVAILABILITY — HARD RULES
