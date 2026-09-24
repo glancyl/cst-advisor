@@ -1017,6 +1017,50 @@ ${detail}${tradeBlock}${notSoldBlock}${locBlock}`);
     } catch (e) { return false; }
   }
 
+  /* The chat widget only loads on pages a chatflow targets, and on some pages
+     HubSpot holds it back until asked. hsAvailable() answers "is it loaded right
+     now", which is too strict for deciding whether to OFFER live chat: the card
+     is built the moment the reply lands, often before HubSpot has finished.
+     hsPossible() answers the weaker question, "is HubSpot on this page at all",
+     and the button then loads the widget on demand when it is clicked. */
+  function hsPossible() {
+    try {
+      if (window.HubSpotConversations && window.HubSpotConversations.widget) return true;
+      return !!document.querySelector('script[src*="hs-scripts.com"]');
+    } catch (e) { return false; }
+  }
+
+  /* Load the widget if it is not up yet, then open it. HubSpot opens it for us
+     when load() is given widgetOpen, so the poll is only there to tell whether
+     it actually came up, since load() is a no-op if no chatflow targets the page. */
+  function hsLoadAndOpen(done) {
+    const conv = window.HubSpotConversations;
+    if (!conv || !conv.widget) { done(false); return; }
+
+    if (hsAvailable()) {
+      try { conv.widget.open(); done(true); }
+      catch (e) { console.error('[CST] HubSpot open failed', e); done(false); }
+      return;
+    }
+
+    try { conv.widget.load({ widgetOpen: true }); }
+    catch (e) { console.error('[CST] HubSpot load failed', e); done(false); return; }
+
+    let waited = 0;
+    const poll = setInterval(() => {
+      waited += 200;
+      if (hsAvailable()) {
+        clearInterval(poll);
+        try { conv.widget.open(); } catch (e) {}
+        done(true);
+      } else if (waited >= 4000) {
+        clearInterval(poll);
+        console.warn('[CST] HubSpot did not load: no chatflow targets this page.');
+        done(false);
+      }
+    }, 200);
+  }
+
   /* Hide the launcher as soon as HubSpot is ready, and re-hide whenever the
      visitor closes the panel. hsConversationsOnReady fires late if the script
      has not finished, so it is set defensively either way. */
@@ -1715,7 +1759,7 @@ ${detail}${tradeBlock}${notSoldBlock}${locBlock}`);
       // is actually for sales. Admin (certificates, transfers, refunds) and
       // assessments (learners mid-course) keep the email and phone card, so the
       // sales team is not fielding admin queries.
-      const liveChat = hsAvailable() && route === 'sales';
+      const liveChat = hsPossible() && route === 'sales';
       const subject = encodeURIComponent(topic ? `Website enquiry: ${topic}` : 'Website enquiry');
       const card = document.createElement('div');
       card.className = 'cst-asst__card';
@@ -1742,7 +1786,7 @@ ${detail}${tradeBlock}${notSoldBlock}${locBlock}`);
         </div>`;
       this.msgEl.appendChild(card);
       const lc = card.querySelector('[data-livechat]');
-      if (lc) lc.addEventListener('click', () => this._handoffToSales(topic));
+      if (lc) lc.addEventListener('click', () => this._handoffToSales(topic, lc));
       this._scroll();
     }
 
@@ -1757,7 +1801,7 @@ ${detail}${tradeBlock}${notSoldBlock}${locBlock}`);
           Our sales team will help you get booked onto the right course.
         </div>
         <div class="cst-asst__ctas">
-          ${hsAvailable() ? `<button class="cst-asst__btn cst-asst__btn--orange" type="button" data-livechat>
+          ${hsPossible() ? `<button class="cst-asst__btn cst-asst__btn--orange" type="button" data-livechat>
             Chat to the team now
           </button>` : `<a href="/contact/" class="cst-asst__btn cst-asst__btn--orange">Enquire now</a>`}
           <a href="mailto:${EMAIL_SALES}" class="cst-asst__btn cst-asst__btn--primary">Email sales</a>
@@ -1767,30 +1811,41 @@ ${detail}${tradeBlock}${notSoldBlock}${locBlock}`);
         </div>`;
       this.msgEl.appendChild(card);
       const lcLead = card.querySelector('[data-livechat]');
-      if (lcLead) lcLead.addEventListener('click', () => this._handoffToSales('lead capture'));
+      if (lcLead) lcLead.addEventListener('click', () => this._handoffToSales('lead capture', lcLead));
       this._scroll();
     }
 
     /* ── HANDOFF TO THE SALES TEAM ────────────────────────── */
-    _handoffToSales(topic) {
-      if (!hsAvailable()) {
-        console.warn('[CST] HubSpot chat not loaded, cannot hand off.');
+    _handoffToSales(topic, btn) {
+      if (!hsPossible()) {
+        console.warn('[CST] HubSpot is not on this page, cannot hand off.');
+        this._liveChatFailed(btn);
         return false;
       }
       // Log first, so the team has the context even if the visitor says nothing.
       this._log({ outcome: 'handoff', detail: topic || 'live chat handoff' });
 
+      if (btn) { btn.disabled = true; btn.textContent = 'Connecting...'; }
       hsShow();
-      try {
-        window.HubSpotConversations.widget.open();
-      } catch (e) {
-        console.error('[CST] HubSpot open failed', e);
-        hsHide();
-        return false;
-      }
-      // Close our own panel so the two do not overlap.
-      this._toggle(false);
+
+      hsLoadAndOpen((ok) => {
+        if (!ok) {
+          hsHide();
+          this._liveChatFailed(btn);
+          return;
+        }
+        // Close our own panel so the two do not overlap.
+        this._toggle(false);
+      });
       return true;
+    }
+
+    /* If live chat cannot come up, say so rather than leaving a dead button.
+       The email and phone buttons are already on the same card. */
+    _liveChatFailed(btn) {
+      if (btn) btn.remove();
+      this._addBotMessage('Live chat is not available at the moment, ' +
+        'so please use the phone number or email address above and the team will pick it up.');
     }
 
     /* ── REMOUNT ──────────────────────────────────────────────
