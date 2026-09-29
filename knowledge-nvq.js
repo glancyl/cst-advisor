@@ -4,15 +4,20 @@
  *
  * MUST be loaded AFTER knowledge.js and BEFORE assistant.js.
  *
- * Does two things:
- *   1. Strips prices, finance and discount language out of EVERY entry in
- *      window.CSTKnowledge, including the existing ones. The assistant is
- *      never allowed to quote a price, and the site's own pages disagree
- *      with each other on price, so no figure is injected into the prompt.
+ * Does three things:
+ *   1. Strips prices, finance and discount language out of the TEXT of every
+ *      entry in window.CSTKnowledge (descriptions, benefits and so on),
+ *      including the existing ones. Figures buried in course text are not
+ *      trusted, so none of them reach the prompt.
  *   2. Adds construction, OH&S and business NVQ entries.
+ *   3. Adds kb.nvqPrices, the ONLY prices the assistant is allowed to quote.
+ *      Every price and Buy Now link in it was checked against the live NVQ
+ *      page on 29 Sep 2026. When a price changes, edit it here, then bump
+ *      ?v= on this file and on assistant.js. NEVER add a Buy Now link that
+ *      has not been copied from the live page.
  *
  * The Qualification Advisor does not load this file, so advisor.js is
- * unaffected by either change.
+ * unaffected by any of this.
  *
  * Built from csttraining.co.uk, August 2026. Course facts (durations, card
  * outcomes, pathways) are taken from the live pages — check them against
@@ -21,6 +26,118 @@
 
 (function () {
   'use strict';
+
+  /* ═══════════════════════════════════════════════════════════
+     VERIFIED NVQ PRICES AND BUY NOW LINKS
+     Prices are ex VAT. Monthly is 0% finance over 10 months, ex VAT.
+     Checked against the live pages 29 Sep 2026.
+  ═══════════════════════════════════════════════════════════ */
+  const NVQ_PRICES_CHECKED = '29 Sep 2026';
+  const NVQ_PRICES = [
+    {"name": "Access Flooring L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/access-flooring-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-access-flooring-nvq-eligibility-form/"},
+    {"name": "Access & Rigging L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/accessing-operations-and-rigging-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-accessing-operations-and-rigging-nvq-eligibility-form/"},
+    {"name": "Bricklaying L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/bricklaying-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-bricklaying-nvq-eligibility-form/"},
+    {"name": "Access & Rigging (Offshore) L3", "hub": "trade", "price": 1100, "monthly": 110, "page": "https://www.csttraining.co.uk/accessing-operations-and-rigging-level-3/", "buyNow": "https://www.csttraining.co.uk/level-3-accessing-operations-and-rigging-nvq-eligibility-form/"},
+    {"name": "Architectural Metalwork L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/architectural-metalwork-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-architectural-metalwork-nvq-eligibility-form/"},
+    {"name": "Bricklaying L3", "hub": "trade", "price": 1100, "monthly": 110, "page": "https://www.csttraining.co.uk/bricklaying-level-3/", "buyNow": "https://www.csttraining.co.uk/level-3-bricklaying-nvq-eligibility-form/"},
+    {"name": "Occupational Work Supervisor L3", "hub": "supervision", "price": 1100, "monthly": 110, "page": "https://www.csttraining.co.uk/occupational-work-supervisor-level-3-nvq/", "buyNow": "https://www.csttraining.co.uk/level-3-ows-nvq-eligibility-form/"},
+    {"name": "L6 Construction Site Management", "hub": "management", "price": 1750, "monthly": 175, "page": "https://www.csttraining.co.uk/construction-site-management-level-6/", "buyNow": "https://www.csttraining.co.uk/level-6-management-eligibility-form/?product_id=149674"},
+    {"name": "Crane Supervisor L4", "hub": "crane", "price": 1400, "monthly": 140, "page": "https://www.csttraining.co.uk/crane-supervisor-level-4-nvq/", "buyNow": "https://www.csttraining.co.uk/level-4-crane-supervisor-nvq-eligibility-form/"},
+    {"name": "Brickwork Technicians L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/brickwork-technicians-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-brickwork-technicians-nvq-eligibility-form/"},
+    {"name": "Carpentry L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/carpentry-level-2/", "buyNow": "https://www.csttraining.co.uk/eligibility-carpentry-nvq/"},
+    {"name": "Carpentry L3", "hub": "trade", "price": 1100, "monthly": 110, "page": "https://www.csttraining.co.uk/carpentry-level-3/", "buyNow": "https://www.csttraining.co.uk/level-3-carpentry-nvq-eligibility-form/"},
+    {"name": "Cladding L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/cladding-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-cladding-nvq-eligibility-form/"},
+    {"name": "Cladding L3", "hub": "trade", "price": 1100, "monthly": 110, "page": "https://www.csttraining.co.uk/cladding-level-3/", "buyNow": "https://www.csttraining.co.uk/level-3-cladding-nvq-eligibility-form/"},
+    {"name": "Concrete Finishing L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/concrete-finishing-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-concrete-finishing-nvq-eligibility-form/"},
+    {"name": "Curtain Wall Installation L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/curtain-wall-installation-level-2-nvq/", "buyNow": "https://www.csttraining.co.uk/level-2-curtain-wall-installation-nvq-eligibility-form/"},
+    {"name": "Demolition L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/demolition-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-demolition-nvq-eligibility-form/"},
+    {"name": "Demolition L3", "hub": "trade", "price": 1100, "monthly": 110, "page": "https://www.csttraining.co.uk/demolition-level-3/", "buyNow": "https://www.csttraining.co.uk/level-3-demolition-nvq-eligibility-form/"},
+    {"name": "Diamond Drilling L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/diamond-drilling-level-2-nvq/", "buyNow": "https://www.csttraining.co.uk/level-2-diamond-drilling-nvq-eligibility-form/"},
+    {"name": "Dry-Lining Finishing L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/dry-lining-finishing-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-dry-lining-finishing-nvq-eligibility-form/"},
+    {"name": "Dry-Lining Fixing L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/dry-lining-fixing-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-dry-lining-fixing-nvq-eligibility-form/"},
+    {"name": "Dry-Lining Boarder L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/dry-lining-boarder-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-dry-lining-boarder-nvq-eligibility-form/"},
+    {"name": "Engineering Surveying L3", "hub": "trade", "price": 1100, "monthly": 110, "page": "https://www.csttraining.co.uk/engineering-surveying-level-3/", "buyNow": "https://www.csttraining.co.uk/level-3-engineering-surveying-nvq-eligibility-form/"},
+    {"name": "Fenestration Installation L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/fenestration-installation-level-2-nvq/", "buyNow": "https://www.csttraining.co.uk/level-2-fenestration-installation-nvq-eligibility-form/"},
+    {"name": "Fenestration Installation L3", "hub": "trade", "price": 1100, "monthly": 110, "page": "https://www.csttraining.co.uk/fenestration-installation-level-3-nvq/", "buyNow": "https://www.csttraining.co.uk/level-3-fenestration-installation-nvq-eligibility-form/"},
+    {"name": "Fenestration Surveying L3", "hub": "trade", "price": 1100, "monthly": 110, "page": "https://www.csttraining.co.uk/fenestration-surveying-level-3-nvq/", "buyNow": "https://www.csttraining.co.uk/level-3-fenestration-surveying-nvq-eligibility-form/"},
+    {"name": "Fire Stopping L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/fire-stopping-level-2-nvq/", "buyNow": "https://www.csttraining.co.uk/level-2-fire-stopping-nvq-eligibility-form/"},
+    {"name": "Floorcoverings L3", "hub": "trade", "price": 1100, "monthly": 110, "page": "https://www.csttraining.co.uk/floor-coverings-level-3/", "buyNow": "https://www.csttraining.co.uk/level-3-floor-coverings-nvq-eligibility-form/"},
+    {"name": "Acoustic Flooring L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/acoustic-flooring-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-acoustic-flooring-nvq-eligibility-form/"},
+    {"name": "Formwork L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/formwork-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-formwork-nvq-eligibility-form/"},
+    {"name": "Formwork L3", "hub": "trade", "price": 1100, "monthly": 110, "page": "https://www.csttraining.co.uk/formwork-level-3/", "buyNow": "https://www.csttraining.co.uk/level-3-formwork-nvq-eligibility-form/"},
+    {"name": "Fitted Interiors L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/fitted-interiors-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-fitted-interiors-nvq-eligibility-form/"},
+    {"name": "Glass Related Occupations L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/glass-related-occupations-level-2-nvq/", "buyNow": "https://www.csttraining.co.uk/level-2-glass-related-occupations-nvq-eligibility-form/"},
+    {"name": "Glazing L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/glazing-level-2-nvq/", "buyNow": "https://www.csttraining.co.uk/level-2-glazing-nvq-eligibility-form/"},
+    {"name": "Glazing L3", "hub": "trade", "price": 1100, "monthly": 110, "page": "https://www.csttraining.co.uk/glazing-level-3-nvq/", "buyNow": "https://www.csttraining.co.uk/level-3-glazing-nvq-eligibility-form/"},
+    {"name": "Groundworks L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/groundworks-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-groundworks-nvq-eligibility-form/"},
+    {"name": "Heritage Architectural Joinery L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/heritage-architectural-joinery-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-heritage-architectural-joinery-nvq-eligibility-form/"},
+    {"name": "Insulation & Building Treatments L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/nvq-level-2-insulation-building-treatments/", "buyNow": "https://www.csttraining.co.uk/level-2-insulation-and-building-treatments-nvq-eligibility-form/"},
+    {"name": "Insulation & Building Treatments L3", "hub": "trade", "price": 1100, "monthly": 110, "page": "https://www.csttraining.co.uk/level-3-insulation/", "buyNow": "https://www.csttraining.co.uk/level-3-insulation-and-building-treatments-nvq-eligibility-form/"},
+    {"name": "Interior Systems L3", "hub": "trade", "price": 1100, "monthly": 110, "page": "https://www.csttraining.co.uk/interior-systems-level-3/", "buyNow": "https://www.csttraining.co.uk/level-3-interior-systems-nvq-eligibility-form/"},
+    {"name": "Land Drilling L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/land-drilling-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-land-drilling-nvq-eligibility-form/"},
+    {"name": "Mastic L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/mastic-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-mastic-nvq-eligibility-form/"},
+    {"name": "Modular Building L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/modular-building-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-modular-building-nvq-eligibility-form/"},
+    {"name": "Multi-trade L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/multitrade-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-multi-trade-nvq-eligibility-form/"},
+    {"name": "Plastering L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/plastering-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-plastering-nvq-eligibility-form/"},
+    {"name": "Plastering L3", "hub": "trade", "price": 1100, "monthly": 110, "page": "https://www.csttraining.co.uk/plastering-level-3/", "buyNow": "https://www.csttraining.co.uk/level-3-plastering-nvq-eligibility-form/"},
+    {"name": "Painting & Decorating L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/painting-decorating-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-painting-nvq-eligibility-form/"},
+    {"name": "Painting & Decorating L3", "hub": "trade", "price": 1100, "monthly": 110, "page": "https://www.csttraining.co.uk/painting-decorating-level-3/", "buyNow": "https://www.csttraining.co.uk/level-3-painting-decorating-nvq-eligibility-form/"},
+    {"name": "Precast Concrete L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/precast-concrete-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-precast-concrete-nvq-eligibility-form/"},
+    {"name": "Piling L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/piling-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-piling-nvq-eligibility-form/"},
+    {"name": "Rendering L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/rendering-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-rendering-nvq-eligibility-form/"},
+    {"name": "Road Building L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/road-building-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-road-building-nvq-eligibility-form/"},
+    {"name": "Roofing L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/roofing-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-roofing-nvq-eligibility-form/"},
+    {"name": "Roofing L3", "hub": "trade", "price": 1100, "monthly": 110, "page": "https://www.csttraining.co.uk/roofing-level-3/", "buyNow": "https://www.csttraining.co.uk/level-3-roofing-nvq-eligibility-form/"},
+    {"name": "Scaffolding L2 (Blue CISRS)", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/scaffolding-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-scaffolding-nvq-eligibility-form/"},
+    {"name": "Scaffolding L3 (Gold CISRS)", "hub": "trade", "price": 1100, "monthly": 110, "page": "https://www.csttraining.co.uk/scaffolding-level-3/", "buyNow": "https://www.csttraining.co.uk/level-3-scaffolding-nvq-eligibility-form/"},
+    {"name": "Shopfitting L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/shopfitting-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-shopfitting-nvq-eligibility-form/"},
+    {"name": "Shopfitting L3", "hub": "trade", "price": 1100, "monthly": 110, "page": "https://www.csttraining.co.uk/shopfitting-level-3/", "buyNow": "https://www.csttraining.co.uk/level-3-shopfitting-nvq-eligibility-form/"},
+    {"name": "Solar Panels L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/solar-panels-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-solar-panels-nvq-eligibility-form/"},
+    {"name": "Specialist Installation Occupations L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/level-2-specialist-installations-nvq/", "buyNow": "https://www.csttraining.co.uk/level-2-specialist-installation-occupations-nvq-eligibility-form/"},
+    {"name": "Steel Fixing L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/steel-fixing-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-steel-fixing-nvq-eligibility-form/"},
+    {"name": "Steel Fixing L3", "hub": "trade", "price": 1100, "monthly": 110, "page": "https://www.csttraining.co.uk/steel-fixing-level-3/", "buyNow": "https://www.csttraining.co.uk/level-3-steel-fixing-nvq-eligibility-form/"},
+    {"name": "Site Logistics L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/site-logistics-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-site-logistics-nvq-eligibility-form/"},
+    {"name": "Stonemason L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/stonemason-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-stonemason-nvq-eligibility-form/"},
+    {"name": "SFS L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/sfs-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-sfs-nvq-eligibility-form/"},
+    {"name": "Tiling L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/tiling-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-tiling-nvq-eligibility-form/"},
+    {"name": "Tiling L3", "hub": "trade", "price": 1100, "monthly": 110, "page": "https://www.csttraining.co.uk/tiling-level-3/", "buyNow": "https://www.csttraining.co.uk/level-3-tiling-nvq-eligibility-form/"},
+    {"name": "Flat Roof L2", "hub": "trade", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/waterproofing-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-flat-roof-single-ply-nvq-eligibility-form/"},
+    {"name": "Construction Contracting Operations L3", "hub": "supervision", "price": 1100, "monthly": 110, "page": "https://www.csttraining.co.uk/cco-level-3/", "buyNow": "https://www.csttraining.co.uk/level-3-cco-nvq-eligibility-form/"},
+    {"name": "Site Supervision L4", "hub": "supervision", "price": 1400, "monthly": 140, "page": "https://www.csttraining.co.uk/site-supervision-level-4/", "buyNow": "https://www.csttraining.co.uk/supervision-nvq-eligibility-form/?product_id=149661"},
+    {"name": "L7 Construction Senior Management", "hub": "management", "price": 1995, "monthly": 200, "page": "https://www.csttraining.co.uk/senior-construction-management-level-7-nvq/", "buyNow": "https://www.csttraining.co.uk/level-7-construction-management-nvq-eligibility-form/"},
+    {"name": "L6 CCO General", "hub": "management", "price": 1750, "monthly": 175, "page": "https://www.csttraining.co.uk/level-6-cco/", "buyNow": "https://www.csttraining.co.uk/level-6-cco-nvq-eligibility-form/"},
+    {"name": "L6 CCO Specialist", "hub": "management", "price": 1750, "monthly": 175, "page": "https://www.csttraining.co.uk/construction-contracting-operations-level-6-nvq-specialist/", "buyNow": "https://www.csttraining.co.uk/level-6-cco-nvq-specialist-eligibility-form/"},
+    {"name": "L6 Senior Site Inspection (Diploma)", "hub": "management", "price": 1800, "monthly": 180, "page": "https://www.csttraining.co.uk/senior-site-inspection-level-6-nvq/", "buyNow": "https://www.csttraining.co.uk/level-6-senior-site-inspection-nvq-eligibility-form/"},
+    {"name": "Slinger Signaller L2", "hub": "crane", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/slinger-signaller-level-2-nvq/", "buyNow": "https://www.csttraining.co.uk/level-2-slinger-signaller-nvq-eligibility-form/"},
+    {"name": "Appointed Person L5", "hub": "crane", "price": 1450, "monthly": 145, "page": "https://www.csttraining.co.uk/appointed-person-level-5-nvq/", "buyNow": "https://www.csttraining.co.uk/level-5-appointed-person-nvq-eligibility-form/"},
+    {"name": "Tower Crane L2", "hub": "crane", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/tower-crane-level-2-nvq/", "buyNow": "https://www.csttraining.co.uk/level-2-tower-crane-nvq-eligibility-form/"},
+    {"name": "Crawler Crane L2", "hub": "crane", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/crawler-crane-level-2-nvq/", "buyNow": "https://www.csttraining.co.uk/level-2-crawler-crane-nvq-eligibility-form/"},
+    {"name": "Pedestrian Crane L2", "hub": "crane", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/pedestrian-crane-level-2-nvq/", "buyNow": "https://www.csttraining.co.uk/level-2-pedestrian-crane-nvq-eligibility-form/"},
+    {"name": "Spider Crane L2", "hub": "crane", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/spider-crane-level-2-nvq/", "buyNow": "https://www.csttraining.co.uk/level-2-spider-crane-nvq-eligibility-form/"},
+    {"name": "Mobile Crane L2", "hub": "crane", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/mobile-crane/", "buyNow": "https://www.csttraining.co.uk/level-2-mobile-crane-nvq-eligibility-form/"},
+    {"name": "Gantry Crane L2", "hub": "crane", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/gantry-crane-level-2-nvq/", "buyNow": "https://www.csttraining.co.uk/level-2-gantry-crane-nvq-eligibility-form/"},
+    {"name": "180 Excavator L2", "hub": "plant", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/180-excavator-level-2-nvq/", "buyNow": "https://www.csttraining.co.uk/level-2-180-degree-excavator-nvq-eligibility-form/"},
+    {"name": "360 Excavator L2", "hub": "plant", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/360-excavator-level-2-nvq/", "buyNow": "https://www.csttraining.co.uk/level-2-360-excavator-nvq-eligibility-form/"},
+    {"name": "ADT L2", "hub": "plant", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/adt-level-2-nvq/", "buyNow": "https://www.csttraining.co.uk/level-2-adt-nvq-eligibility-form/"},
+    {"name": "Concrete Pump L2", "hub": "plant", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/concrete-pump-level-2-nvq/", "buyNow": "https://www.csttraining.co.uk/level-2-concrete-pump-nvq-eligibility-form/"},
+    {"name": "Hoist Operator L2", "hub": "plant", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/hoist-operator-level-2-nvq/", "buyNow": "https://www.csttraining.co.uk/level-2-hoist-operator-nvq-eligibility-form/"},
+    {"name": "Forklift L2", "hub": "plant", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/forklift-level-2/", "buyNow": "https://www.csttraining.co.uk/level-2-forklift-nvq-eligibility-form/"},
+    {"name": "Forward Tipping Dumper L2", "hub": "plant", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/forward-tipping-dumper-level-2-nvq/", "buyNow": "https://www.csttraining.co.uk/level-2-forward-tipping-dumper-nvq-eligibility-form/"},
+    {"name": "Lorry Loaders L2", "hub": "plant", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/lorry-loaders-level-2-nvq/", "buyNow": "https://www.csttraining.co.uk/level-2-lorry-loaders-nvq-eligibility-form/"},
+    {"name": "Loading Shovel L2", "hub": "plant", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/loading-shovel-level-2-nvq/", "buyNow": "https://www.csttraining.co.uk/level-2-loading-shovel-nvq-eligibility-form/"},
+    {"name": "Plant Maintenance L2", "hub": "plant", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/plant-maintenance-level-2-nvq/", "buyNow": "https://www.csttraining.co.uk/level-2-plant-maintenance-nvq-eligibility-form/"},
+    {"name": "Rear Tipping Dumper L2", "hub": "plant", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/rear-tipping-dumper-level-2-nvq/", "buyNow": "https://www.csttraining.co.uk/level-2-rear-tipping-dumper-nvq-eligibility-form/"},
+    {"name": "Ride On Roller L2", "hub": "plant", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/ride-on-roller-level-2-nvq/", "buyNow": "https://www.csttraining.co.uk/level-2-ride-on-roller-nvq-eligibility-form/"},
+    {"name": "Scissor MEWP L2", "hub": "plant", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/level-2-mewp-nvq/", "buyNow": "https://www.csttraining.co.uk/level-2-mewp-nvq-eligibility-form/"},
+    {"name": "Skid Steer Loaders L2", "hub": "plant", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/skid-steer-loaders-level-2-nvq/", "buyNow": "https://www.csttraining.co.uk/level-2-skid-steer-loaders-nvq-eligibility-form/"},
+    {"name": "Static Concrete Boom L2", "hub": "plant", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/static-concrete-boom-level-2-nvq/", "buyNow": "https://www.csttraining.co.uk/level-2-static-concrete-boom-nvq-eligibility-form/"},
+    {"name": "Telehandler L2", "hub": "plant", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/telehandler-level-2-nvq/", "buyNow": "https://www.csttraining.co.uk/level-2-telehandler-nvq-eligibility-form/"},
+    {"name": "Tractor L2", "hub": "plant", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/tractor-level-2-nvq/", "buyNow": "https://www.csttraining.co.uk/level-2-tractor-nvq-eligibility-form/"},
+    {"name": "Traffic Marshall L2", "hub": "plant", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/traffic-marshall-level-2-nvq/", "buyNow": "https://www.csttraining.co.uk/level-2-traffic-marshall-nvq-eligibility-form/"},
+    {"name": "Plant Installation L2", "hub": "plant", "price": 895, "monthly": 90, "page": "https://www.csttraining.co.uk/plant-installations-level-2-nvq/", "buyNow": "https://www.csttraining.co.uk/level-2-plant-installations-nvq-eligibility-form/"},
+    {"name": "Plant Installation L3", "hub": "plant", "price": 1100, "monthly": 110, "page": "https://www.csttraining.co.uk/plant-installations-level-3-nvq/", "buyNow": "https://www.csttraining.co.uk/level-3-plant-installations-nvq-eligibility-form/"},
+    {"name": "Plant Maintenance Diploma L3 (not an NVQ)", "hub": "plant", "price": 1100, "monthly": 110, "page": "https://www.csttraining.co.uk/plant-maintenance-level-3/", "buyNow": "https://www.csttraining.co.uk/level-3-plant-maintenance-nvq-eligibility-form/"}
+  ];
 
   function apply() {
     if (!window.CSTKnowledge || !window.CSTKnowledge.qualifications) return;
@@ -566,7 +683,14 @@
     if (!existing.has(q.id)) kb.qualifications.push(sanitiseEntry(q));
   });
 
-  console.log('CSTKnowledge: ' + kb.qualifications.length + ' qualifications loaded, prices stripped.');
+  // Verified NVQ prices. Kept OUT of the qualification entries on purpose, so
+  // the sanitiser above never touches them and they reach the prompt only
+  // through the NVQ PRICE LIST in assistant.js.
+  kb.nvqPrices = NVQ_PRICES.slice();
+  kb.nvqPricesChecked = NVQ_PRICES_CHECKED;
+
+  console.log('CSTKnowledge: ' + kb.qualifications.length + ' qualifications loaded, prices stripped, ' +
+              kb.nvqPrices.length + ' verified NVQ prices added.');
 
 
   }
