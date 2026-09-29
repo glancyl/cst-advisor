@@ -6,10 +6,12 @@
  *  - Floating launcher bubble instead of an inline [data-cst-advisor] container
  *  - Self-contained CSS (injected, "cst-asst" prefix) — no shared styles with advisor.js
  *  - Page context derived automatically from the URL and page title
- *  - Hard guardrails: never states prices, dates or availability
+ *  - Hard guardrails: never states course prices, dates or availability.
+ *    NVQ prices and Buy Now links are the one exception, and come ONLY from
+ *    the verified list in knowledge-nvq.js (kb.nvqPrices).
  *  - Escalation path for anything about a specific booking
  *
- * Depends on: knowledge.js (window.CSTKnowledge)
+ * Depends on: knowledge.js (window.CSTKnowledge), then knowledge-nvq.js
  */
 
 (function () {
@@ -387,6 +389,20 @@
   Benefits: ${q.benefits}`;
   }
 
+  /* NVQ price list, from knowledge-nvq.js (kb.nvqPrices). It sits in the
+     cached static prompt, so it only costs full price once per cache window.
+     If the list has not loaded, the bot is told to quote no NVQ prices at all. */
+  function buildNvqPriceBlock(kb) {
+    const list = kb && Array.isArray(kb.nvqPrices) ? kb.nvqPrices : [];
+    if (!list.length) {
+      return '(NVQ price list not loaded. Do not state any NVQ price, monthly figure or discount, and do not give a Buy Now link. Link the NVQ page and offer the sales team.)';
+    }
+    const fmt = n => Number(n).toLocaleString('en-GB');
+    return list.map(i =>
+      `${i.name} | £${fmt(i.price)} + VAT, or £${fmt(i.monthly)} + VAT a month for 10 months | Page: ${i.page} | Buy Now: ${i.buyNow}`
+    ).join('\n');
+  }
+
   /* ── STATIC HALF ─────────────────────────────────────────── */
   /* Re-apply the knowledge modules if knowledge.js has swapped the object
      out from under us (it does that every time it loads, whatever the order). */
@@ -500,7 +516,17 @@ The Black and Gold cards also require the relevant CITB Health, Safety and Envir
 ════════════════════════════════════════
 PRICING AND AVAILABILITY — HARD RULES
 ════════════════════════════════════════
-You must NEVER state, estimate, imply or compare:
+THE ONE EXCEPTION IS NVQ PRICES. You MAY state an NVQ's price and monthly finance figure, but ONLY for an NVQ in the NVQ PRICE LIST below, and ONLY exactly as written there. Never round, add VAT, total up or work out any figure yourself.
+- When you give an NVQ price, also give that NVQ's Buy Now link from the list. Then offer, in one short sentence, to put them in touch with the sales team if they would rather talk it through first. Do not emit LEAD_CAPTURE for that offer; wait for them to say yes.
+- Buy Now takes them to a short eligibility form first, and the add to basket button appears once it is complete. Say so, so they are not surprised.
+- Discount code NVQ20 gives 20% off an NVQ when it is paid in full. It replaces the 10% pay-in-full discount and the two cannot be combined. Mention NVQ20 ONLY for NVQs, never for any other course, and never state the discounted amount.
+- If an NVQ is not in the list, you do not have its price. Link its page if you have one and offer the sales team.
+- Group and bulk NVQ orders follow the no-bulk-pricing rule below. Escalate to sales.
+
+NVQ PRICE LIST (checked against the live NVQ pages):
+${buildNvqPriceBlock(kb)}
+
+FOR EVERY COURSE THAT IS NOT AN NVQ, you must NEVER state, estimate, imply or compare:
 - Prices, fees, deposits, instalments or any payment amount
 - Discounts, promotions, offers, sale periods, or the ABSENCE of an offer
 - Whether bulk, group or volume pricing exists, applies, or "may apply". You may say CST Training handles group and in-house bookings and that the team will put a quote together. You may NOT say or imply that a discount, better rate or bulk price is available. "Bulk pricing may well apply" is a pricing claim and is banned.
@@ -1476,6 +1502,11 @@ ${detail}${tradeBlock}${notSoldBlock}${locBlock}`);
       const norm = u => String(u).replace(/[#?].*$/, '').replace(/\/+$/, '').toLowerCase();
       (kb.qualifications || []).forEach(q => { if (q.url) set.add(norm(q.url)); });
       (kb.tradeProducts || []).forEach(p => { if (p.url) set.add(norm(p.url)); });
+      // Verified NVQ product pages and Buy Now eligibility forms (knowledge-nvq.js)
+      (kb.nvqPrices || []).forEach(i => {
+        if (i.page)   set.add(norm(i.page));
+        if (i.buyNow) set.add(norm(i.buyNow));
+      });
       if (kb.courseLocations) {
         Object.keys(kb.courseLocations).forEach(k => {
           const m = kb.courseLocations[k];
