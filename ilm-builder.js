@@ -1,5 +1,5 @@
 /*!
- * CST Training ILM unit builder widget (v9: remounts if theme re-renders content, styles ILM page content)
+ * CST Training ILM unit builder widget (v10: remounts if theme re-renders content, styles ILM page content)
  * Host on GitHub Pages, load with ?v=N cache buster.
  *
  * Mount on any page:
@@ -85,7 +85,7 @@
     ".ilmb-evc{background:var(--s);border:1px solid var(--ln);border-top:3px solid var(--o);border-radius:10px;padding:14px 16px}",
     ".ilmb-evc b{display:block;font-family:var(--hd);font-weight:600;color:var(--n);margin-bottom:4px}",
     ".ilmb-evc span{display:block;font-size:.93rem;color:var(--mut);line-height:1.45}",
-    ".ilmb-tabs{display:flex;gap:8px;margin-top:22px;flex-wrap:wrap}",
+    ".ilmb-tabs{display:flex;gap:8px;margin:0 0 20px;flex-wrap:wrap}",
     ".ilmb-tabs button,.ilmb-chip{font:inherit;font-weight:600;padding:9px 16px;border-radius:99px;border:1.5px solid var(--ln);background:var(--s);color:var(--ink);cursor:pointer}",
     ".ilmb-tabs button[aria-selected=true]{background:var(--n);border-color:var(--n);color:#fff}",
     ".ilmb-grid{display:grid;grid-template-columns:1fr 290px;gap:32px;margin-top:28px;align-items:start}",
@@ -247,7 +247,7 @@
         });
         b.setAttribute("data-k", k); tabs.appendChild(b);
       });
-      inner.appendChild(tabs);
+      inner.insertBefore(tabs, h);
     }
 
     var grid = el("div", "ilmb-grid"); inner.appendChild(grid);
