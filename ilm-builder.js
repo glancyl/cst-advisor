@@ -1,5 +1,5 @@
 /*!
- * CST Training ILM unit builder widget
+ * CST Training ILM unit builder widget (v3: remounts if theme re-renders content, styles ILM page content)
  * Host on GitHub Pages, load with ?v=N cache buster.
  *
  * Mount on any page:
@@ -164,6 +164,28 @@
     return i;
   }
 
+  var STATES = {};
+
+  // Styles for the ILM page content (.ilmp). WordPress strips <style> tags
+  // from page content, so they are injected from here instead.
+  var PAGE_CSS = ".ilmp{--n:#1C2560;--o:#FF8A00;--bg:#F4F5F9;--ink:#1B1F33;--mut:#565C75;--ln:#DCDFEA;--ns:#E7E9F3;font-family:'Asap',ui-sans-serif,system-ui,-apple-system,'Segoe UI',Arial,sans-serif;color:var(--ink);font-size:1.0625rem;line-height:1.6}.ilmp *{box-sizing:border-box}.ilmp h1,.ilmp h2,.ilmp h3{font-family:'Alata',ui-sans-serif,system-ui,Arial,sans-serif;color:var(--n);line-height:1.2;margin:0 0 12px}.ilmp h1{font-size:clamp(1.9rem,4.6vw,2.8rem)}.ilmp h2{font-size:clamp(1.45rem,3vw,1.9rem)}.ilmp h3{font-size:1.1rem}.ilmp p{margin:0 0 .9em;max-width:70ch}.ilmp-sec{padding:48px 0;border-top:1px solid var(--ln)}.ilmp-sec:first-child{border-top:0;padding-top:8px}.ilmp-lead{font-size:1.15rem;color:var(--mut)}.ilmp-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:24px}.ilmp-fact{background:var(--bg);border-left:4px solid var(--o);border-radius:8px;padding:14px 16px}.ilmp-fact b{display:block;font-family:'Alata',sans-serif;font-size:1.5rem;color:var(--n)}.ilmp-fact span{font-size:.95rem;color:var(--mut)}.ilmp-tw{overflow-x:auto;margin-top:20px;border:1px solid var(--ln);border-radius:10px}.ilmp table{border-collapse:collapse;width:100%;min-width:560px;background:#fff}.ilmp th,.ilmp td{padding:13px 16px;text-align:left;border-bottom:1px solid var(--ln);vertical-align:top}.ilmp thead th{background:var(--n);color:#fff;font-family:'Alata',sans-serif;font-weight:400}.ilmp tbody th{font-weight:700;background:var(--bg)}.ilmp tr:last-child td,.ilmp tr:last-child th{border-bottom:0}.ilmp-steps{list-style:none;padding:0;margin:20px 0 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:0;counter-reset:s}.ilmp-steps li{counter-increment:s;padding:16px 18px 16px 0;border-top:3px solid var(--ln)}.ilmp-steps li.k{border-top-color:var(--o)}.ilmp-steps li::before{content:counter(s);display:block;font-family:'Alata',sans-serif;font-size:1.5rem;color:var(--n)}.ilmp-steps p{color:var(--mut);font-size:.98rem;margin:4px 0 0}.ilmp-ev{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:20px}.ilmp-ev div{background:var(--bg);border-radius:10px;padding:18px 20px}.ilmp-ev p{font-size:.98rem;color:var(--mut);margin:0}.ilmp-ev ul{margin:8px 0 0;padding-left:1.1em;font-size:.98rem;color:var(--mut)}.ilmp details{border-bottom:1px solid var(--ln);padding:16px 0}.ilmp details:first-of-type{border-top:1px solid var(--ln)}.ilmp summary{cursor:pointer;font-weight:700;font-size:1.05rem;list-style:none;display:flex;justify-content:space-between;gap:16px}.ilmp summary::-webkit-details-marker{display:none}.ilmp summary::after{content:\"+\";font-size:1.4rem;line-height:1;color:var(--o);flex:none}.ilmp details[open] summary::after{content:\"\\2013\"}.ilmp details p{margin:10px 0 0;color:var(--mut)}.ilmp-faq{max-width:820px;margin-top:20px}.ilmp :focus-visible{outline:3px solid var(--o);outline-offset:2px}";
+
+  function injectPageCss() {
+    if (document.getElementById("ilmp-css") || !document.querySelector(".ilmp")) return;
+    var s = document.createElement("style"); s.id = "ilmp-css"; s.textContent = PAGE_CSS;
+    document.head.appendChild(s);
+  }
+
+  // FAQ dropdowns: handled at document level so they keep working even if
+  // the theme re-renders the page content or blocks native toggling.
+  document.addEventListener("click", function (e) {
+    var s = e.target && e.target.closest ? e.target.closest(".ilmp summary") : null;
+    if (!s || !s.parentNode) return;
+    e.preventDefault();
+    var d = s.parentNode;
+    if (d.hasAttribute("open")) d.removeAttribute("open"); else d.setAttribute("open", "");
+  }, true);
+
   function injectCss() {
     if (document.getElementById("ilmb-css")) return;
     var s = document.createElement("style"); s.id = "ilmb-css"; s.textContent = CSS;
@@ -183,7 +205,9 @@
     var byCode = {}; UNITS.forEach(function (u) { byCode[u.code] = u; });
     var optionalCount = UNITS.filter(function (u) { return !u.mandatory; }).length;
 
-    var state = { qual: QUALS[qualAttr] ? qualAttr : "diploma", picks: [], focus: [] };
+    var key = level + "|" + qualAttr + "|" + idx;
+    var state = STATES[key] || (STATES[key] = { qual: QUALS[qualAttr] ? qualAttr : "diploma", picks: [], focus: [] });
+    root._ilmbMounted = true;
     function max() { return QUALS[state.qual].optional; }
 
     root.classList.add("ilmb");
@@ -391,12 +415,28 @@
 
   function init() {
     try {
+      injectPageCss();
       var roots = document.querySelectorAll(".cst-ilm-builder");
       if (!roots.length) return;
       injectCss();
-      Array.prototype.forEach.call(roots, function (r, i) { try { mount(r, i); } catch (e) { if (window.console) console.error("ILM builder:", e); } });
+      Array.prototype.forEach.call(roots, function (r, i) {
+        if (r._ilmbMounted) return;
+        try { mount(r, i); } catch (e) { if (window.console) console.error("ILM builder:", e); }
+      });
     } catch (e) {}
   }
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
-  else init();
+
+  // Some theme scripts copy page content as HTML after load, which keeps the
+  // look but strips click handlers. Watch for that and remount when it happens.
+  var timer = null;
+  function watch() {
+    init();
+    if (!window.MutationObserver || !document.body) return;
+    new MutationObserver(function () {
+      clearTimeout(timer);
+      timer = setTimeout(init, 150);
+    }).observe(document.body, { childList: true, subtree: true });
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", watch);
+  else watch();
 })();
