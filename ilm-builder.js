@@ -1,5 +1,5 @@
 /*!
- * CST Training ILM unit builder widget (v10: remounts if theme re-renders content, styles ILM page content)
+ * CST Training ILM unit builder widget (v11: remounts if theme re-renders content, styles ILM page content)
  * Host on GitHub Pages, load with ?v=N cache buster.
  *
  * Mount on any page:
@@ -85,7 +85,9 @@
     ".ilmb-evc{background:var(--s);border:1px solid var(--ln);border-top:3px solid var(--o);border-radius:10px;padding:14px 16px}",
     ".ilmb-evc b{display:block;font-family:var(--hd);font-weight:600;color:var(--n);margin-bottom:4px}",
     ".ilmb-evc span{display:block;font-size:.93rem;color:var(--mut);line-height:1.45}",
-    ".ilmb-tabs{display:flex;gap:8px;margin:0 0 20px;flex-wrap:wrap}",
+    ".ilmb-tabwrap{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 20px}",
+    ".ilmb-tablabel{font-family:var(--hd);font-weight:600;color:var(--n);font-size:1rem}",
+    ".ilmb-tabs{display:flex;gap:8px;margin:0;flex-wrap:wrap}",
     ".ilmb-tabs button,.ilmb-chip{font:inherit;font-weight:600;padding:9px 16px;border-radius:99px;border:1.5px solid var(--ln);background:var(--s);color:var(--ink);cursor:pointer}",
     ".ilmb-tabs button[aria-selected=true]{background:var(--n);border-color:var(--n);color:#fff}",
     ".ilmb-grid{display:grid;grid-template-columns:1fr 290px;gap:32px;margin-top:28px;align-items:start}",
@@ -238,7 +240,11 @@
       evStrip.appendChild(c);
     });
 
+    var tabsWrap = el("div", "ilmb-tabwrap");
+    tabsWrap.appendChild(el("span", "ilmb-tablabel", "Choose your qualification size:"));
     var tabs = el("div", "ilmb-tabs"); tabs.setAttribute("role", "tablist");
+    tabs.setAttribute("aria-label", "Choose your qualification size");
+    tabsWrap.appendChild(tabs);
     if (qualAttr === "choose") {
       Object.keys(QUALS).forEach(function (k) {
         var b = el("button", null, QUALS[k].label); b.type = "button"; b.setAttribute("role", "tab");
@@ -247,7 +253,7 @@
         });
         b.setAttribute("data-k", k); tabs.appendChild(b);
       });
-      inner.insertBefore(tabs, h);
+      inner.insertBefore(tabsWrap, h);
     }
 
     var grid = el("div", "ilmb-grid"); inner.appendChild(grid);
