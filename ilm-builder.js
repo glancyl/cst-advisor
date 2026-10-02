@@ -1,5 +1,5 @@
 /*!
- * CST Training ILM unit builder widget (v6: remounts if theme re-renders content, styles ILM page content)
+ * CST Training ILM unit builder widget (v8: remounts if theme re-renders content, styles ILM page content)
  * Host on GitHub Pages, load with ?v=N cache buster.
  *
  * Mount on any page:
@@ -118,8 +118,9 @@
     ".ilmb-rung .e{color:var(--mut);font-style:italic}",
     ".ilmb-done{display:none;background:rgba(255,138,0,.14);border-radius:8px;padding:10px 12px;font-weight:600;margin-top:12px;font-size:.95rem}",
     ".ilmb-ladder.full .ilmb-done{display:block}",
-    ".ilmb-enq{display:none;width:100%;text-align:center;margin-top:10px}",
-    ".ilmb-ladder.full .ilmb-enq{display:block}",
+    ".ilmb-enq{display:none}",
+    ".ilmb.ilmb-full .ilmb-enq{display:inline-block}",
+    ".ilmb.ilmb-full .ilmb-enq-l{display:block;width:100%;text-align:center;margin-top:10px}",
     ".ilmb-cta{scroll-margin-top:120px}",
     ".ilmb-note{font-size:.88rem;color:var(--mut);margin:12px 0 0!important}",
     ".ilmb-cta{background:var(--n);color:#fff;border-radius:12px;padding:32px 28px;margin-top:40px}",
@@ -254,6 +255,7 @@
     var row = el("div", "ilmb-row"); sug.appendChild(row);
     var sugBtn = el("button", "ilmb-btn"); sugBtn.type = "button"; row.appendChild(sugBtn);
     var clrBtn = el("button", "ilmb-btn ghost", "Clear picks"); clrBtn.type = "button"; row.appendChild(clrBtn);
+    var enqBtn = el("button", "ilmb-btn or ilmb-enq", "Enquire now"); enqBtn.type = "button"; row.appendChild(enqBtn);
 
     sugBtn.addEventListener("click", function () {
       var pools = (state.focus.length ? state.focus : ["people", "ops", "strat"]).map(function (g) {
@@ -295,15 +297,17 @@
     var lc = el("div", "ct"); ladder.appendChild(lc);
     var rungs = el("ol", "ilmb-rungs"); ladder.appendChild(rungs);
     var done = el("div", "ilmb-done"); ladder.appendChild(done);
-    var enqBtn = el("button", "ilmb-btn or ilmb-enq", "Enquire now"); enqBtn.type = "button"; ladder.appendChild(enqBtn);
+    var enqBtn2 = el("button", "ilmb-btn or ilmb-enq ilmb-enq-l", "Enquire now"); enqBtn2.type = "button"; ladder.appendChild(enqBtn2);
     ladder.appendChild(el("p", "ilmb-note", "You can change units at induction. Nothing here is final."));
 
     // Enquiry form
     var cta = el("div", "ilmb-cta"); cta.id = uid + "enquire"; inner.appendChild(cta);
-    enqBtn.addEventListener("click", function () {
+    function goToForm() {
       cta.scrollIntoView({ behavior: "smooth", block: "start" });
       setTimeout(function () { try { fFirst.focus({ preventScroll: true }); } catch (e) { fFirst.focus(); } }, 600);
-    });
+    }
+    enqBtn.addEventListener("click", goToForm);
+    enqBtn2.addEventListener("click", goToForm);
     cta.appendChild(el("h2", null, "Send your picks to our team"));
     cta.appendChild(el("p", "ilmb-lead", "We'll come back to you with a quote based on your units, and you could be booked in for induction within a week."));
     var form = el("form", "ilmb-form"); form.noValidate = true; cta.appendChild(form);
@@ -367,8 +371,9 @@
         rungs.appendChild(li);
       }
       done.textContent = "That's a full " + q.label + ". Send these picks to our team below.";
-      enqBtn.textContent = "Enquire about this " + q.label;
+      enqBtn.textContent = enqBtn2.textContent = "Enquire about this " + q.label;
       ladder.classList.toggle("full", full);
+      root.classList.toggle("ilmb-full", full);
       sum.textContent = summary();
     }
 
