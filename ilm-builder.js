@@ -1,5 +1,5 @@
 /*!
- * CST Training ILM unit builder widget (v8: remounts if theme re-renders content, styles ILM page content)
+ * CST Training ILM unit builder widget (v9: remounts if theme re-renders content, styles ILM page content)
  * Host on GitHub Pages, load with ?v=N cache buster.
  *
  * Mount on any page:
@@ -81,6 +81,10 @@
     ".ilmb h3{font-size:1.05rem;font-weight:600}",
     ".ilmb p{margin:0 0 .8em}",
     ".ilmb-lead{color:var(--mut);max-width:62ch;font-size:1.1rem;margin-top:10px!important}",
+    ".ilmb-ev{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-top:20px}",
+    ".ilmb-evc{background:var(--s);border:1px solid var(--ln);border-top:3px solid var(--o);border-radius:10px;padding:14px 16px}",
+    ".ilmb-evc b{display:block;font-family:var(--hd);font-weight:600;color:var(--n);margin-bottom:4px}",
+    ".ilmb-evc span{display:block;font-size:.93rem;color:var(--mut);line-height:1.45}",
     ".ilmb-tabs{display:flex;gap:8px;margin-top:22px;flex-wrap:wrap}",
     ".ilmb-tabs button,.ilmb-chip{font:inherit;font-weight:600;padding:9px 16px;border-radius:99px;border:1.5px solid var(--ln);background:var(--s);color:var(--ink);cursor:pointer}",
     ".ilmb-tabs button[aria-selected=true]{background:var(--n);border-color:var(--n);color:#fff}",
@@ -220,6 +224,19 @@
 
     var h = el("h2"); inner.appendChild(h);
     var lead = el("p", "ilmb-lead"); inner.appendChild(lead);
+
+    var evStrip = el("div", "ilmb-ev"); inner.appendChild(evStrip);
+    [
+      ["No exams or tests", "Every unit is evidenced from work you already do, with no written assignments."],
+      ["Recorded discussions", "One video call with your assessor often covers most of your units."],
+      ["Witness testimony", "A single statement from your manager can count across several units."],
+      ["Online portfolio", "Upload work plans, minutes or short videos and get feedback on each piece."]
+    ].forEach(function (e) {
+      var c = el("div", "ilmb-evc");
+      c.appendChild(el("b", null, e[0]));
+      c.appendChild(el("span", null, e[1]));
+      evStrip.appendChild(c);
+    });
 
     var tabs = el("div", "ilmb-tabs"); tabs.setAttribute("role", "tablist");
     if (qualAttr === "choose") {
