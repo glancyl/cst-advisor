@@ -1,5 +1,5 @@
 /*!
- * CST Training ILM unit builder widget (v11: remounts if theme re-renders content, styles ILM page content)
+ * CST Training ILM unit builder widget (v12: remounts if theme re-renders content, styles ILM page content)
  * Host on GitHub Pages, load with ?v=N cache buster.
  *
  * Mount on any page:
@@ -241,9 +241,9 @@
     });
 
     var tabsWrap = el("div", "ilmb-tabwrap");
-    tabsWrap.appendChild(el("span", "ilmb-tablabel", "Choose your qualification size:"));
+    tabsWrap.appendChild(el("span", "ilmb-tablabel", "Choose your qualification:"));
     var tabs = el("div", "ilmb-tabs"); tabs.setAttribute("role", "tablist");
-    tabs.setAttribute("aria-label", "Choose your qualification size");
+    tabs.setAttribute("aria-label", "Choose your qualification");
     tabsWrap.appendChild(tabs);
     if (qualAttr === "choose") {
       Object.keys(QUALS).forEach(function (k) {
