@@ -1,5 +1,5 @@
 /*!
- * CST Training ILM unit builder widget (v12: remounts if theme re-renders content, styles ILM page content)
+ * CST Training ILM unit builder widget (v13: remounts if theme re-renders content, styles ILM page content)
  * Host on GitHub Pages, load with ?v=N cache buster.
  *
  * Mount on any page:
@@ -13,7 +13,7 @@
   "use strict";
 
   var PORTAL_ID = "19996504";
-  var FORM_GUID = "e168b4b5-8155-4ae9-b9c5-8d705c2fefa9";
+  var FORM_GUID = "82962984-45f3-49f7-af62-fc7da9f14b2f"; // Course Builder Enquiry
   var DEFAULT_PHONE = "020 3488 4472";
 
   var QUALS = {
@@ -418,10 +418,10 @@
         { name: "email", value: email },
         { name: "phone", value: ph },
         { name: "message", value: summary() + (q ? "\n\nQuestions:\n" + q : "") },
-        { name: "ilm_qualification", value: qualName() },
-        { name: "ilm_units_selected", value: allCodes().join(";") },
-        { name: "ilm_learners", value: fLearners.value },
-        { name: "ilm_start", value: fStart.value }
+        { name: "enquiry_qualification", value: qualName() },
+        { name: "enquiry_options_selected", value: allCodes().map(function (c) { return c + " " + byCode[c].name; }).join("; ") },
+        { name: "enquiry_learners", value: fLearners.value },
+        { name: "enquiry_start", value: fStart.value }
       ];
       var ctx = { pageUri: location.href, pageName: document.title };
       var hutk = getCookie("hubspotutk"); if (hutk) ctx.hutk = hutk;
@@ -438,7 +438,7 @@
       }).then(function () {
         try {
           window.dataLayer = window.dataLayer || [];
-          window.dataLayer.push({ event: "ilm_builder_submit", ilm_qualification: qualName(), ilm_units: allCodes().join(";") });
+          window.dataLayer.push({ event: "course_builder_submit", enquiry_qualification: qualName(), enquiry_options: allCodes().join(";") });
         } catch (e) {}
         form.style.display = "none"; thanks.style.display = "block"; thanks.focus();
       }).catch(function () {
