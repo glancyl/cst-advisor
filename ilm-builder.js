@@ -1,5 +1,5 @@
 /*!
- * CST Training ILM unit builder widget (v15: site-matched colours, styles for the BoldGrid ILM page via .ilmx)
+ * CST Training ILM unit builder widget (v16: adds ILM Level 4, credit-based Award, Certificate and Diploma)
  * Host on GitHub Pages, load with ?v=N cache buster.
  *
  * Mount on any page:
@@ -22,6 +22,16 @@
     diploma:     { label: "Diploma",     optional: 8, induction: "2 hours", tutorial: "At least 7 hours" }
   };
 
+  // Level 4 is credit-based: each size has a credit range and Group 2 caps
+  var QUALS4 = {
+    award:       { label: "Award",       min: 5,  max: 12,   g1min: 0, g2max: 0,  range: "5 to 12",
+                   rule: "All of your units come from Group 1." },
+    certificate: { label: "Certificate", min: 13, max: 36,   g1min: 7, g2max: 6,  range: "13 to 36",
+                   rule: "At least 7 credits must come from Group 1, and no more than 6 from Group 2." },
+    diploma:     { label: "Diploma",     min: 37, max: null, g1min: 0, g2max: 18, range: "at least 37",
+                   rule: "Up to 18 credits can come from Group 2, and the two Diploma-only units are open to you." }
+  };
+
   var GROUPS = [
     { id: "self",   name: "You and your development" },
     { id: "people", name: "People and culture" },
@@ -32,6 +42,113 @@
   ];
 
   var LEVELS = {
+    4: {
+      mode: "credits",
+      title: "ILM Level 4 Leadership and Management",
+      // [code, name, group (1 or 2), focus area, credits, diploma only]
+      units: [
+        ["8605-400","Understanding the Management Role to Improve Management Performance",1,"self",4],
+        ["8605-401","Planning and Leading a Complex Team Activity",1,"people",4],
+        ["8605-402","Managing Equality and Diversity in Own Area",1,"people",4],
+        ["8605-403","Managing Risk in the Workplace",1,"ops",3],
+        ["8605-404","Delegating Authority in the Workplace",1,"people",3],
+        ["8605-405","Developing People in the Workplace",1,"people",5],
+        ["8605-406","Developing Your Leadership Styles",1,"self",4],
+        ["8605-407","Understanding Financial Management",1,"money",3],
+        ["8605-408","Management Communication",1,"rel",4],
+        ["8605-409","Managing Personal Development",1,"self",15,true],
+        ["8605-410","Managing the Analysis of Secondary Data",1,"money",4],
+        ["8605-411","Managing a Healthy and Safe Environment",1,"ops",2],
+        ["8605-412","Managing Meetings",1,"rel",3],
+        ["8605-413","Managing Marketing Activities",1,"strat",3],
+        ["8605-414","Data Collection and Analysis to Justify Management Decision Making",1,"money",2],
+        ["8605-415","Motivating People in the Workplace",1,"people",2],
+        ["8605-416","Solving Problems by Making Effective Decisions in the Workplace",1,"strat",3],
+        ["8605-417","Managing and Implementing Change in the Workplace",1,"strat",6],
+        ["8605-418","Understanding the Organisational Culture and Context",1,"strat",6],
+        ["8605-419","Understanding Work in Contemporary Society",1,"strat",3],
+        ["8605-420","Budgetary Planning and Control",1,"money",3],
+        ["8605-421","Interpreting Financial Statements to Assess Organisational Performance Using Financial Ratios",1,"money",3],
+        ["8605-422","Understanding the Importance of Marketing for an Organisation",1,"strat",4],
+        ["8605-423","Using Quantitative Methods to Solve Management Problems",1,"money",6],
+        ["8605-424","Understanding the Economics of the Marketplace",1,"strat",6],
+        ["8605-425","Developing Individual Mental Toughness",1,"self",2],
+        ["8605-426","Understanding the Macro Economic Environment",1,"strat",7],
+        ["8605-427","Developing a Culture to Support Innovation and Improvement",1,"strat",3],
+        ["8605-300","Solving Problems and Making Decisions",2,"strat",2],
+        ["8605-301","Understanding Innovation and Change in an Organisation",2,"strat",2],
+        ["8605-302","Planning Change in the Workplace",2,"strat",2],
+        ["8605-303","Planning and Allocating Work",2,"ops",2],
+        ["8605-304","Writing for Business",2,"rel",1],
+        ["8605-305","Contributing to Innovation and Creativity in the Workplace",2,"strat",2],
+        ["8605-306","Understanding Customer Service Standards and Requirements",2,"rel",2],
+        ["8605-307","Giving Briefings and Making Presentations",2,"rel",2],
+        ["8605-308","Understanding Leadership",2,"self",2],
+        ["8605-309","Understand How to Establish an Effective Team",2,"people",1],
+        ["8605-310","Understanding How to Motivate to Improve Performance",2,"people",2],
+        ["8605-311","Developing Yourself and Others",2,"self",2],
+        ["8605-312","Understanding Conflict Management in the Workplace",2,"people",1],
+        ["8605-313","Understanding Stress Management in the Workplace",2,"people",1],
+        ["8605-314","Understanding Discipline in the Workplace",2,"people",1],
+        ["8605-315","Understanding Recruitment and Selection of New Staff in the Workplace",2,"people",2],
+        ["8605-316","Understanding the Induction of New Staff in the Workplace",2,"people",1],
+        ["8605-317","Understanding Training and Coaching in the Workplace",2,"people",2],
+        ["8605-318","Understanding Quality Management in the Workplace",2,"ops",2],
+        ["8605-319","Understanding Organising and Delegating in the Workplace",2,"ops",1],
+        ["8605-320","Managing Workplace Projects",2,"ops",2],
+        ["8605-321","Understanding Health and Safety in the Workplace",2,"ops",2],
+        ["8605-322","Understand the Organisation and its Context",2,"strat",2],
+        ["8605-323","Understanding Performance Management",2,"people",2],
+        ["8605-324","Understand Costs and Budgets in an Organisation",2,"money",1],
+        ["8605-325","Understand How to Manage the Efficient Use of Materials and Equipment",2,"ops",2],
+        ["8605-326","Understanding the Communication Process in the Workplace",2,"rel",2],
+        ["8605-327","Understanding Negotiation and Networking in the Workplace",2,"rel",1],
+        ["8605-328","Understand How to Lead Effective Meetings",2,"rel",2],
+        ["8605-329","Understanding Workplace Information Systems",2,"ops",1],
+        ["8605-330","Understanding Marketing for Managers",2,"strat",1],
+        ["8605-331","Understanding Support Services Operations in an Organisation",2,"ops",3],
+        ["8605-332","Understanding Sustainability and Environmental Issues in an Organisation",2,"strat",3],
+        ["8605-333","Understanding Procurement and Supplier Management in the Workplace",2,"rel",2],
+        ["8605-334","Understanding and Developing Relationships in the Workplace",2,"rel",2],
+        ["8605-335","Understand How to Manage Contracts and Contractors in the Workplace",2,"rel",2],
+        ["8605-336","Understanding Incident Management and Disaster Recovery in the Workplace",2,"ops",2],
+        ["8605-337","Understanding Security Measures in the Workplace",2,"ops",2],
+        ["8605-338","Understanding How to Manage Remote Workers",2,"people",2],
+        ["8605-341","Leading and Motivating a Team Effectively",2,"people",2],
+        ["8605-359","Understanding Good Practice in Coaching within an Organisational Context",2,"people",3],
+        ["8605-361","Understanding Good Practice in Mentoring within an Organisational Context",2,"people",3],
+        ["8605-501","Managing Improvement",2,"ops",3],
+        ["8605-502","Making a Financial Case",2,"money",3],
+        ["8605-503","Developing Critical Thinking",2,"self",4],
+        ["8605-504","Leading Innovation and Change",2,"strat",5],
+        ["8605-505","Managing Individual Development",2,"people",4],
+        ["8605-506","Managing Stress and Conflict in the Organisation",2,"people",3],
+        ["8605-507","Understanding the Organisational Environment",2,"strat",5],
+        ["8605-508","Understanding Organisational Culture and Ethics",2,"strat",3],
+        ["8605-509","Managing Customer Relations",2,"rel",3],
+        ["8605-510","Managing for Efficiency and Effectiveness",2,"ops",4],
+        ["8605-511","Managing Projects in the Organisation",2,"ops",4],
+        ["8605-512","Managing Resources",2,"ops",4],
+        ["8605-513","Managing Information",2,"ops",4],
+        ["8605-514","Managing Recruitment",2,"people",5],
+        ["8605-515","Managing Work Analysis",2,"ops",3],
+        ["8605-516","Analysing and Interpreting Statistics to Inform Management Decisions",2,"money",2],
+        ["8605-517","Understanding the Management of Facilities",2,"ops",2],
+        ["8605-518","Making Professional Presentations",2,"rel",2],
+        ["8605-519","Developing and Leading Teams to Achieve Organisational Goals and Objectives",2,"people",4],
+        ["8605-520","Assessing Your Own Leadership Capability and Performance",2,"self",6],
+        ["8605-521","Managing Own Continuing Professional Development",2,"self",15,true],
+        ["8605-522","Becoming an Effective Leader",2,"self",5],
+        ["8605-523","Preparing to Apply Lean Production and Improvement Methodologies to Operational Problems in Service Delivery",2,"ops",8],
+        ["8605-525","Improving and Maintaining the Organisation's Environmental Performance",2,"strat",5],
+        ["8605-526","Managing Remote Workers",2,"people",5],
+        ["8605-527","Partnership Working",2,"rel",4],
+        ["8605-528","Understanding Governance of Organisations",2,"strat",6],
+        ["8605-529","Knowledge and Information Management",2,"ops",5],
+        ["8605-533","Managing Mental Health in the Workplace",2,"people",3],
+        ["8605-550","Understanding the Skills, Principles and Practice of Effective Coaching and Mentoring Within an Organisational Context",2,"people",6]
+      ]
+    },
     5: {
       title: "ILM Level 5 Operational Leadership and Management Skills",
       mandatory: "501",
@@ -145,6 +262,24 @@
     ".ilmb-cta .ilmb-btn.ghost{color:#fff;border-color:rgba(255,255,255,.4)}",
     ".ilmb-thanks{display:none;margin-top:22px;max-width:640px;background:rgba(255,255,255,.08);border-left:4px solid var(--o);border-radius:8px;padding:18px 20px}",
     ".ilmb-thanks h3{margin-bottom:6px;color:#fff}",
+    ".ilmb-unit .cr{display:inline-block;margin-top:8px;font-size:.82rem;font-weight:700;color:var(--n);background:var(--ns);border-radius:99px;padding:2px 10px}",
+    ".ilmb-tag{display:inline-block;margin-left:6px;font-size:.75rem;font-weight:700;color:var(--mut);border:1px solid var(--ln);border-radius:99px;padding:0 7px;vertical-align:1px}",
+    ".ilmb-tag.dip{color:#8a4b00;border-color:var(--o)}",
+    ".ilmb-bar{height:10px;border-radius:99px;background:var(--bg);overflow:hidden;margin:4px 0 12px}",
+    ".ilmb-bar i{display:block;height:100%;width:0;background:var(--o);transition:width .2s}",
+    ".ilmb-bar.ok i{background:var(--n)}",
+    ".ilmb-meter{font-size:.92rem;color:var(--mut);margin:0 0 4px!important}",
+    ".ilmb-meter b{color:var(--ink)}",
+    ".ilmb-picks{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;max-height:380px;overflow:auto}",
+    ".ilmb-pick{display:flex;gap:8px;align-items:center;background:var(--ns);border-left:4px solid var(--o);border-radius:7px;padding:6px 6px 6px 10px;font-size:.9rem;line-height:1.25;margin:0}",
+    ".ilmb-pick span{flex:1}",
+    ".ilmb-pick em{font-style:normal;font-weight:700;color:var(--n);white-space:nowrap}",
+    ".ilmb-pick button{font:inherit;border:0;background:transparent;color:var(--mut);cursor:pointer;font-size:1.15rem;line-height:1;padding:2px 6px}",
+    ".ilmb-empty{color:var(--mut);font-style:italic;font-size:.92rem;margin:12px 0 0!important}",
+    ".ilmb-g2bar{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;background:var(--s);border:1px dashed var(--ln);border-radius:10px;padding:12px 16px;margin:0 0 22px;font-size:.93rem;color:var(--mut)}",
+    ".ilmb-g2bar span{flex:1;min-width:220px}",
+    ".ilmb-hint{background:var(--bg);border-radius:8px;padding:10px 12px;font-size:.93rem;margin-top:12px}",
+    ".ilmb-ladder.full .ilmb-hint{display:none}",
     "@media(prefers-reduced-motion:reduce){.ilmb *{transition:none!important}}"
   ].join("");
 
@@ -206,6 +341,7 @@
     var level = root.getAttribute("data-level") || "5";
     var L = LEVELS[level];
     if (!L) return;
+    if (L.mode === "credits") return mountCredits(root, idx, L, level);
     var qualAttr = (root.getAttribute("data-qual") || "choose").toLowerCase();
     var formGuid = root.getAttribute("data-form-guid") || FORM_GUID;
     var phone = root.getAttribute("data-phone") || DEFAULT_PHONE;
@@ -449,6 +585,334 @@
         err("That didn't send. Please try again, or call " + phone + " and we'll take your picks over the phone.");
       });
     });
+
+    render();
+  }
+
+  // ---------- Credit-based builder (ILM Level 4) ----------
+  function mountCredits(root, idx, L, level) {
+    var Q = QUALS4;
+    var qualAttr = (root.getAttribute("data-qual") || "choose").toLowerCase();
+    var formGuid = root.getAttribute("data-form-guid") || FORM_GUID;
+    var phone = root.getAttribute("data-phone") || DEFAULT_PHONE;
+    var uid = "ilmb" + idx + "-";
+
+    var UNITS = L.units.map(function (u) { return { code: u[0], name: u[1], grp: u[2], topic: u[3], cr: u[4], dip: !!u[5] }; });
+    var byCode = {}; UNITS.forEach(function (u) { byCode[u.code] = u; });
+
+    var key = level + "|" + qualAttr + "|" + idx;
+    var state = STATES[key] || (STATES[key] = { qual: Q[qualAttr] ? qualAttr : "certificate", picks: [], focus: [] });
+    root._ilmbMounted = true;
+    function q() { return Q[state.qual]; }
+
+    function allowed(u) {
+      if (u.dip && state.qual !== "diploma") return false;
+      if (u.grp === 2 && q().g2max === 0) return false;
+      return true;
+    }
+    function totals(list) {
+      var t = { t: 0, g1: 0, g2: 0 };
+      list.forEach(function (c) { var u = byCode[c]; t.t += u.cr; if (u.grp === 1) t.g1 += u.cr; else t.g2 += u.cr; });
+      return t;
+    }
+    function fits(u, T) {
+      var Qq = q();
+      if (Qq.max != null && T.t + u.cr > Qq.max) return false;
+      if (u.grp === 2 && T.g2 + u.cr > Qq.g2max) return false;
+      return true;
+    }
+    function valid(T) {
+      var Qq = q();
+      return T.t >= Qq.min && (Qq.max == null || T.t <= Qq.max) && T.g1 >= Qq.g1min && T.g2 <= Qq.g2max;
+    }
+    function trim() {
+      var keep = [];
+      state.picks.forEach(function (c) { var u = byCode[c]; if (allowed(u) && fits(u, totals(keep))) keep.push(c); });
+      state.picks = keep;
+    }
+
+    root.classList.add("ilmb");
+    root.innerHTML = "";
+    var inner = el("div", "ilmb-in"); root.appendChild(inner);
+    var h = el("h2"); inner.appendChild(h);
+    var lead = el("p", "ilmb-lead"); inner.appendChild(lead);
+
+    var evStrip = el("div", "ilmb-ev"); inner.appendChild(evStrip);
+    [
+      ["No exams or tests", "Knowledge questions are answered at your own pace, in writing or on a call, and they aren't a test."],
+      ["Recorded discussions", "One video call with your assessor can cover most of your units."],
+      ["Witness testimony", "A statement from your manager can count as evidence across several units."],
+      ["Assignments from real work", "Written assignments and case studies are based on your own role, with your assessor guiding you."]
+    ].forEach(function (e) {
+      var c = el("div", "ilmb-evc");
+      c.appendChild(el("b", null, e[0]));
+      c.appendChild(el("span", null, e[1]));
+      evStrip.appendChild(c);
+    });
+
+    var tabsWrap = el("div", "ilmb-tabwrap");
+    tabsWrap.appendChild(el("span", "ilmb-tablabel", "Choose your qualification:"));
+    var tabs = el("div", "ilmb-tabs"); tabs.setAttribute("role", "tablist");
+    tabs.setAttribute("aria-label", "Choose your qualification");
+    tabsWrap.appendChild(tabs);
+    if (qualAttr === "choose") {
+      Object.keys(Q).forEach(function (k) {
+        var b = el("button", null, Q[k].label); b.type = "button"; b.setAttribute("role", "tab");
+        b.addEventListener("click", function () { state.qual = k; trim(); render(); });
+        b.setAttribute("data-k", k); tabs.appendChild(b);
+      });
+      inner.insertBefore(tabsWrap, h);
+    }
+
+    var grid = el("div", "ilmb-grid"); inner.appendChild(grid);
+    var left = el("div"); grid.appendChild(left);
+
+    var sug = el("div", "ilmb-suggest"); left.appendChild(sug);
+    sug.appendChild(el("p", null, "Not sure where to start? Choose up to three areas you spend most time on. We'll suggest units as soon as you pick three."));
+    var chips = el("div", "ilmb-chips"); sug.appendChild(chips);
+    var focusGroups = GROUPS.filter(function (g) { return g.id !== "self"; });
+    focusGroups.forEach(function (g) {
+      var c = el("button", "ilmb-chip", g.name); c.type = "button"; c.setAttribute("aria-pressed", "false");
+      c.addEventListener("click", function () {
+        var ix = state.focus.indexOf(g.id);
+        if (ix > -1) state.focus.splice(ix, 1);
+        else { if (state.focus.length >= 3) state.focus.shift(); state.focus.push(g.id); }
+        Array.prototype.forEach.call(chips.children, function (ch, k) {
+          ch.setAttribute("aria-pressed", state.focus.indexOf(focusGroups[k].id) > -1 ? "true" : "false");
+        });
+        if (state.focus.length === 3) suggest(false);
+      });
+      chips.appendChild(c);
+    });
+    var row = el("div", "ilmb-row"); sug.appendChild(row);
+    var sugBtn = el("button", "ilmb-btn", "Suggest units"); sugBtn.type = "button"; row.appendChild(sugBtn);
+    var clrBtn = el("button", "ilmb-btn ghost", "Clear picks"); clrBtn.type = "button"; row.appendChild(clrBtn);
+    var enqBtn = el("button", "ilmb-btn or ilmb-enq", "Enquire now"); enqBtn.type = "button"; row.appendChild(enqBtn);
+    var g2Btn = el("button", "ilmb-btn ghost ilmb-g2btn"); g2Btn.type = "button";
+    g2Btn.addEventListener("click", function () { state.showG2 = !state.showG2; render(); });
+
+    function suggest(scroll) {
+      var Qq = q(), picks = [];
+      function add(u) {
+        if (picks.indexOf(u.code) > -1 || !allowed(u) || u.dip || !fits(u, totals(picks))) return;
+        picks.push(u.code);
+      }
+      function short() { return totals(picks).t < Qq.min; }
+      var pools = (state.focus.length ? state.focus : ["people", "ops", "strat"]).map(function (t) {
+        return UNITS.filter(function (u) { return u.topic === t && u.grp === 1; });
+      });
+      var k = 0;
+      while (short() && pools.some(function (p) { return p.length; })) {
+        var p = pools[k % pools.length]; if (p.length) add(p.shift()); k++;
+      }
+      UNITS.forEach(function (u) { if (short() && u.grp === 1) add(u); });
+      UNITS.forEach(function (u) { if (short()) add(u); });
+      state.picks = picks;
+      render();
+      if (scroll) ladder.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+    sugBtn.addEventListener("click", function () { suggest(true); });
+    clrBtn.addEventListener("click", function () { state.picks = []; render(); });
+
+    function toggle(code) {
+      var ix = state.picks.indexOf(code);
+      if (ix > -1) state.picks.splice(ix, 1);
+      else { var u = byCode[code]; if (allowed(u) && fits(u, totals(state.picks))) state.picks.push(code); }
+      render();
+    }
+
+    var unitBtns = {}, groupBoxes = {};
+    GROUPS.forEach(function (g) {
+      var list = UNITS.filter(function (u) { return u.topic === g.id; })
+        .sort(function (a, b) { return a.grp - b.grp; });
+      if (!list.length) return;
+      if (!left.querySelector(".ilmb-g2bar")) {
+        var g2bar = el("div", "ilmb-g2bar");
+        g2bar.appendChild(el("span", null, "Group 1 units are shown. Group 2 units can be added within the limits for your qualification."));
+        g2bar.appendChild(g2Btn); left.appendChild(g2bar);
+      }
+      var box = el("div", "ilmb-group"); box.appendChild(el("h3", null, g.name));
+      var ug = el("div", "ilmb-units");
+      list.forEach(function (u) {
+        var b = el("button", "ilmb-unit"); b.type = "button";
+        var c = el("span", "c", u.code);
+        if (u.grp === 2) c.appendChild(el("span", "ilmb-tag", "Group 2"));
+        if (u.dip) c.appendChild(el("span", "ilmb-tag dip", "Diploma only"));
+        b.appendChild(c);
+        b.appendChild(el("span", "nm", u.name));
+        b.appendChild(el("span", "cr", u.cr + " credit" + (u.cr > 1 ? "s" : "")));
+        b.addEventListener("click", function () { toggle(u.code); });
+        unitBtns[u.code] = b; ug.appendChild(b);
+      });
+      box.appendChild(ug); left.appendChild(box); groupBoxes[g.id] = box;
+    });
+
+    var ladder = el("aside", "ilmb-ladder"); ladder.setAttribute("aria-live", "polite"); grid.appendChild(ladder);
+    var lt = el("div", "t"); ladder.appendChild(lt);
+    var lc = el("div", "ct"); ladder.appendChild(lc);
+    var bar = el("div", "ilmb-bar"); var barFill = el("i"); bar.appendChild(barFill); ladder.appendChild(bar);
+    var mNeed = el("p", "ilmb-meter"); ladder.appendChild(mNeed);
+    var mG2 = el("p", "ilmb-meter"); ladder.appendChild(mG2);
+    var picksList = el("ul", "ilmb-picks"); ladder.appendChild(picksList);
+    var empty = el("p", "ilmb-empty", "No units picked yet. Tap a unit to add it."); ladder.appendChild(empty);
+    var hint = el("div", "ilmb-hint"); ladder.appendChild(hint);
+    var done = el("div", "ilmb-done"); ladder.appendChild(done);
+    var enqBtn2 = el("button", "ilmb-btn or ilmb-enq ilmb-enq-l", "Enquire now"); enqBtn2.type = "button"; ladder.appendChild(enqBtn2);
+    ladder.appendChild(el("p", "ilmb-note", "You can change units at induction. Nothing here is final."));
+
+    // Enquiry form
+    var cta = el("div", "ilmb-cta"); cta.id = uid + "enquire"; inner.appendChild(cta);
+    function goToForm() {
+      cta.scrollIntoView({ behavior: "smooth", block: "start" });
+      setTimeout(function () { try { fFirst.focus({ preventScroll: true }); } catch (e) { fFirst.focus(); } }, 600);
+    }
+    enqBtn.addEventListener("click", goToForm);
+    enqBtn2.addEventListener("click", goToForm);
+    cta.appendChild(el("h2", null, "Send your picks to our team"));
+    cta.appendChild(el("p", "ilmb-lead", "We'll come back to you with a quote based on your units, and you could be booked in for induction within a week."));
+    var form = el("form", "ilmb-form"); form.noValidate = true; cta.appendChild(form);
+    var fFirst = field(form, uid + "first", "First name", "text", { auto: "given-name" });
+    var fLast = field(form, uid + "last", "Last name", "text", { auto: "family-name" });
+    var fEmail = field(form, uid + "email", "Email", "email", { auto: "email" });
+    var fPhone = field(form, uid + "phone", "Phone", "tel", { auto: "tel" });
+    var fLearners = field(form, uid + "learners", "How many learners?", "select", { options: ["1", "2", "3", "4", "5", "6 to 10", "More than 10"] });
+    var fStart = field(form, uid + "start", "When would you like to start?", "select", { options: ["As soon as possible", "Within 1 month", "1 to 3 months", "3 months or more", "Not sure yet"] });
+    var fQ = field(form, uid + "q", "Any questions for us? (optional)", "textarea", { full: true });
+    var sumWrap = el("div", "fl"); sumWrap.appendChild(el("label", null, "What we'll receive"));
+    var sum = el("div", "ilmb-sum"); sumWrap.appendChild(sum); form.appendChild(sumWrap);
+    form.appendChild(el("p", "ilmb-consent", "We'll use these details to reply about your qualification. See our privacy policy at csttraining.co.uk."));
+    var brow = el("div", "fl ilmb-row"); brow.style.marginTop = "0"; form.appendChild(brow);
+    var sendBtn = el("button", "ilmb-btn or", "Send my picks to CST Training"); sendBtn.type = "submit"; brow.appendChild(sendBtn);
+    var call = el("a", "ilmb-btn ghost", "Or call " + phone); call.href = "tel:" + phone.replace(/\s/g, ""); brow.appendChild(call);
+    var status = el("p", "ilmb-status"); status.setAttribute("role", "status"); form.appendChild(status);
+    var thanks = el("div", "ilmb-thanks"); thanks.tabIndex = -1; cta.appendChild(thanks);
+    thanks.appendChild(el("h3", null, "Thanks, we've got your picks."));
+    thanks.appendChild(el("p", null, "Our team will be in touch shortly. If it's urgent, call " + phone + "."));
+
+
+    function qualName() { return "ILM Level " + level + " " + q().label; }
+    function allCodes() { return state.picks.slice(); }
+
+    function summary() {
+      var T = totals(state.picks);
+      var lines = [qualName() + ": unit picks", ""];
+      if (!state.picks.length) lines.push("(no units picked yet)");
+      state.picks.forEach(function (c) { var u = byCode[c]; lines.push(c + " " + u.name + " (" + u.cr + " credits)"); });
+      lines.push("");
+      lines.push("Total: " + T.t + " credits (Group 1: " + T.g1 + ", Group 2: " + T.g2 + ")");
+      lines.push("Learners: " + fLearners.value);
+      lines.push("Planned start: " + fStart.value);
+      return lines.join("\n");
+    }
+
+    function render() {
+      var Qq = q(), T = totals(state.picks), ok = valid(T);
+      h.textContent = "Build your " + Qq.label;
+      lead.textContent = "The ILM Level " + level + " " + Qq.label + " needs " + Qq.range + " credits. " + Qq.rule +
+        " Each unit carries a credit value, so pick the ones that match the work you already do. Your assessor confirms the final choice with you at induction.";
+      Array.prototype.forEach.call(tabs.children, function (t) {
+        t.setAttribute("aria-selected", t.getAttribute("data-k") === state.qual ? "true" : "false");
+      });
+      Object.keys(groupBoxes).forEach(function (gid) {
+        var any = false;
+        UNITS.forEach(function (u) {
+          if (u.topic !== gid) return;
+          var b = unitBtns[u.code], on = state.picks.indexOf(u.code) > -1;
+          var show = allowed(u) && (u.grp === 1 || state.showG2 || on);
+          b.style.display = show ? "" : "none";
+          if (show) any = true;
+          b.setAttribute("aria-pressed", on ? "true" : "false");
+          b.disabled = !on && !fits(u, T);
+        });
+        groupBoxes[gid].style.display = any ? "" : "none";
+      });
+
+      var g2n = UNITS.filter(function (u) { return u.grp === 2 && allowed(u); }).length;
+      g2Btn.textContent = (state.showG2 ? "Hide" : "Show") + " Group 2 units (" + g2n + ")";
+      g2Btn.parentNode.style.display = Qq.g2max > 0 ? "" : "none";
+      lt.textContent = "Your " + Qq.label;
+      lc.textContent = T.t + " credit" + (T.t === 1 ? "" : "s") + " picked";
+      barFill.style.width = Math.min(100, Math.round(T.t / Qq.min * 100)) + "%";
+      bar.classList.toggle("ok", ok);
+      mNeed.innerHTML = "";
+      mNeed.appendChild(document.createTextNode("Needed: "));
+      mNeed.appendChild(el("b", null, Qq.range + " credits"));
+      mG2.innerHTML = "";
+      if (Qq.g2max > 0) {
+        mG2.appendChild(document.createTextNode("Group 2: "));
+        mG2.appendChild(el("b", null, T.g2 + " of " + Qq.g2max + " credits max"));
+        mG2.style.display = "";
+      } else mG2.style.display = "none";
+
+      picksList.innerHTML = "";
+      state.picks.forEach(function (c) {
+        var u = byCode[c], li = el("li", "ilmb-pick");
+        li.appendChild(el("span", null, u.name));
+        li.appendChild(el("em", null, u.cr + " cr"));
+        var x = el("button", null, "\u00d7"); x.type = "button"; x.setAttribute("aria-label", "Remove " + u.name);
+        x.addEventListener("click", function () { toggle(c); });
+        li.appendChild(x); picksList.appendChild(li);
+      });
+      empty.style.display = state.picks.length ? "none" : "";
+      var need = Qq.min - T.t;
+      hint.textContent = state.picks.length && need > 0
+        ? "Add " + need + " more credit" + (need === 1 ? "" : "s") + " to reach the minimum for a " + Qq.label + "."
+        : "";
+      hint.style.display = hint.textContent ? "" : "none";
+      done.textContent = "That's a full " + Qq.label + " at " + T.t + " credits. Send these picks to our team below.";
+      enqBtn.textContent = enqBtn2.textContent = "Enquire about this " + Qq.label;
+      ladder.classList.toggle("full", ok);
+      root.classList.toggle("ilmb-full", ok);
+      sum.textContent = summary();
+    }
+
+    fLearners.addEventListener("change", render);
+    fStart.addEventListener("change", render);
+
+    form.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      var first = fFirst.value.trim(), last = fLast.value.trim(), email = fEmail.value.trim(), ph = fPhone.value.trim();
+      function err(t, f) { status.className = "ilmb-status err"; status.textContent = t; if (f) f.focus(); }
+      if (!first || !last) return err("Add your first and last name.", first ? fLast : fFirst);
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return err("Enter a valid email address so we can reply.", fEmail);
+      if (!ph) return err("Add a phone number so our team can talk your units through with you.", fPhone);
+
+      var q = fQ.value.trim();
+      var fields = [
+        { name: "firstname", value: first },
+        { name: "lastname", value: last },
+        { name: "email", value: email },
+        { name: "phone", value: ph },
+        { name: "message", value: summary() + (q ? "\n\nQuestions:\n" + q : "") },
+        { name: "enquiry_qualification", value: qualName() },
+        { name: "enquiry_options_selected", value: allCodes().map(function (c) { return c + " " + byCode[c].name; }).join("; ") },
+        { name: "enquiry_learners", value: fLearners.value },
+        { name: "enquiry_start", value: fStart.value }
+      ];
+      var ctx = { pageUri: location.href, pageName: document.title };
+      var hutk = getCookie("hubspotutk"); if (hutk) ctx.hutk = hutk;
+
+      sendBtn.disabled = true; sendBtn.textContent = "Sending";
+      status.className = "ilmb-status"; status.textContent = "";
+
+      fetch("https://api.hsforms.com/submissions/v3/integration/submit/" + PORTAL_ID + "/" + formGuid, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fields: fields, context: ctx })
+      }).then(function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      }).then(function () {
+        try {
+          window.dataLayer = window.dataLayer || [];
+          window.dataLayer.push({ event: "course_builder_submit", enquiry_qualification: qualName(), enquiry_options: allCodes().join(";") });
+        } catch (e) {}
+        form.style.display = "none"; thanks.style.display = "block"; thanks.focus();
+      }).catch(function () {
+        sendBtn.disabled = false; sendBtn.textContent = "Send my picks to CST Training";
+        err("That didn't send. Please try again, or call " + phone + " and we'll take your picks over the phone.");
+      });
+    });
+
 
     render();
   }
