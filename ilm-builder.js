@@ -1,11 +1,11 @@
 /*!
- * CST Training ILM unit builder widget (v17: adds ILM Level 3, 7-unit Diploma)
+ * CST Training ILM unit builder widget (v18: adds ILM Level 2, Award and Certificate only)
  * Host on GitHub Pages, load with ?v=N cache buster.
  *
  * Mount on any page:
  * <div class="cst-ilm-builder" data-level="5" data-qual="choose"></div>
  *   data-level       5 (add more levels to LEVELS below)
- *   data-qual        award | certificate | diploma | choose (shows a switcher)
+ *   data-qual        award | certificate | diploma | choose (shows a switcher; Level 2 has no diploma)
  *   data-form-guid   optional, HubSpot form GUID (defaults to FORM_GUID below)
  *   data-phone       optional, phone number shown on the call button
  */
@@ -41,6 +41,11 @@
     { id: "rel",    name: "Relationships and partners" }
   ];
 
+  var QUALS2 = {
+    award:       { label: "Award",       optional: 1, induction: "1 hour", tutorial: "At least 2 hours" },
+    certificate: { label: "Certificate", optional: 7, induction: "1 hour", tutorial: "At least 2 hours" }
+  };
+
   var QUALS3 = {
     award:       { label: "Award",       optional: 1, induction: "1 hour",  tutorial: "At least 2 hours" },
     certificate: { label: "Certificate", optional: 3, induction: "2 hours", tutorial: "At least 4 hours" },
@@ -48,6 +53,29 @@
   };
 
   var LEVELS = {
+    2: {
+      title: "ILM Level 2 Developing Leadership and Team Skills",
+      quals: QUALS2,
+      mandatory: "201",
+      fallback: ["202", "204", "207", "212", "206", "214", "203"],
+      units: [
+        ["201","Personal and professional development as a senior team member","self","Reflect on your role in the team and plan your own development.",true],
+        ["202","Supporting team performance","people","Help your team hit its goals and work well together."],
+        ["203","Responding to disagreements in the workplace","people","Handle disagreements in the team calmly and fairly."],
+        ["204","Supporting the motivation of a team","people","Understand what motivates people and help keep your team engaged."],
+        ["205","Equity, diversity and inclusion in the workplace","people","Support a fair and inclusive workplace for everyone."],
+        ["206","Supporting organisational improvements","ops","Spot ways to improve how things are done and help put them in place."],
+        ["210","Record keeping and information management in the workplace","ops","Keep accurate records and manage information properly."],
+        ["211","Health, safety and wellbeing in the workplace","ops","Play your part in keeping people safe and well at work."],
+        ["208","Decision making using data","money","Use data to help make better decisions."],
+        ["207","Problem solving","strat","Work through problems in a structured way."],
+        ["209","The organisation and its environment","strat","Understand how your organisation works and what affects it."],
+        ["212","Effective communication","rel","Communicate clearly with your team and others."],
+        ["213","Communication tools and techniques in the workplace","rel","Choose and use the right communication tools for the job."],
+        ["214","Understanding stakeholders and meeting stakeholder needs","rel","Understand who your stakeholders are and what they need."],
+        ["215","Providing support to external stakeholders","rel","Support customers and other people outside your organisation."]
+      ]
+    },
     3: {
       title: "ILM Level 3 Leadership and Management Skills",
       quals: QUALS3,
@@ -384,7 +412,7 @@
     var optionalCount = UNITS.filter(function (u) { return !u.mandatory; }).length;
 
     var key = level + "|" + qualAttr + "|" + idx;
-    var state = STATES[key] || (STATES[key] = { qual: QL[qualAttr] ? qualAttr : "diploma", picks: [], focus: [] });
+    var state = STATES[key] || (STATES[key] = { qual: QL[qualAttr] ? qualAttr : (QL.diploma ? "diploma" : Object.keys(QL).slice(-1)[0]), picks: [], focus: [] });
     root._ilmbMounted = true;
     function max() { return QL[state.qual].optional; }
 
