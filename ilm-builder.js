@@ -1,5 +1,5 @@
 /*!
- * CST Training ILM unit builder widget (v16: adds ILM Level 4, credit-based Award, Certificate and Diploma)
+ * CST Training ILM unit builder widget (v17: adds ILM Level 3, 7-unit Diploma)
  * Host on GitHub Pages, load with ?v=N cache buster.
  *
  * Mount on any page:
@@ -41,7 +41,38 @@
     { id: "rel",    name: "Relationships and partners" }
   ];
 
+  var QUALS3 = {
+    award:       { label: "Award",       optional: 1, induction: "1 hour",  tutorial: "At least 2 hours" },
+    certificate: { label: "Certificate", optional: 3, induction: "2 hours", tutorial: "At least 4 hours" },
+    diploma:     { label: "Diploma",     optional: 6, induction: "2 hours", tutorial: "At least 7 hours" }
+  };
+
   var LEVELS = {
+    3: {
+      title: "ILM Level 3 Leadership and Management Skills",
+      quals: QUALS3,
+      mandatory: "301",
+      fallback: ["303", "308", "312", "306", "307", "315"],
+      units: [
+        ["301","Developing effective leadership skills","self","Understand how you lead and develop the skills to lead your team well.",true],
+        ["302","Managing personal and professional development","self","Plan, record and review your own development."],
+        ["303","Managing the performance of others","people","Set goals, give feedback and manage how your team performs."],
+        ["304","Supporting wellbeing in the workplace","people","Look after your team's wellbeing as part of the job."],
+        ["305","Effective recruitment","people","Plan and run recruitment that finds the right people."],
+        ["314","Supporting flexible working","people","Support flexible working arrangements in your team."],
+        ["315","Developing a high performing team","people","Build and lead a team that performs well."],
+        ["306","Developing project management skills","ops","Plan, run and review projects in your area."],
+        ["316","Legislation and compliance","ops","Understand the laws and rules that apply to your area of work."],
+        ["310","Analysing data to make decisions","money","Use data to inform and justify decisions."],
+        ["311","Organisational finance","money","Understand budgets, costs and how finance works in your organisation."],
+        ["307","Managing and implementing change","strat","Plan change and help your team through it."],
+        ["308","Problem solving and decision making","strat","Work through problems and make sound decisions."],
+        ["309","The organisation and its environmental responsibilities","strat","Understand your organisation's environmental duties and your part in them."],
+        ["312","Effective communication","rel","Communicate clearly with your team and others."],
+        ["313","Planning and leading structured workplace communication","rel","Plan and lead structured communication such as briefings and meetings."],
+        ["317","Managing external stakeholder relationships","rel","Build and keep good relationships with people outside your organisation."]
+      ]
+    },
     4: {
       mode: "credits",
       title: "ILM Level 4 Leadership and Management",
@@ -342,6 +373,7 @@
     var L = LEVELS[level];
     if (!L) return;
     if (L.mode === "credits") return mountCredits(root, idx, L, level);
+    var QL = L.quals || QUALS;
     var qualAttr = (root.getAttribute("data-qual") || "choose").toLowerCase();
     var formGuid = root.getAttribute("data-form-guid") || FORM_GUID;
     var phone = root.getAttribute("data-phone") || DEFAULT_PHONE;
@@ -352,9 +384,9 @@
     var optionalCount = UNITS.filter(function (u) { return !u.mandatory; }).length;
 
     var key = level + "|" + qualAttr + "|" + idx;
-    var state = STATES[key] || (STATES[key] = { qual: QUALS[qualAttr] ? qualAttr : "diploma", picks: [], focus: [] });
+    var state = STATES[key] || (STATES[key] = { qual: QL[qualAttr] ? qualAttr : "diploma", picks: [], focus: [] });
     root._ilmbMounted = true;
-    function max() { return QUALS[state.qual].optional; }
+    function max() { return QL[state.qual].optional; }
 
     root.classList.add("ilmb");
     root.innerHTML = "";
@@ -382,8 +414,8 @@
     tabs.setAttribute("aria-label", "Choose your qualification");
     tabsWrap.appendChild(tabs);
     if (qualAttr === "choose") {
-      Object.keys(QUALS).forEach(function (k) {
-        var b = el("button", null, QUALS[k].label); b.type = "button"; b.setAttribute("role", "tab");
+      Object.keys(QL).forEach(function (k) {
+        var b = el("button", null, QL[k].label); b.type = "button"; b.setAttribute("role", "tab");
         b.addEventListener("click", function () {
           state.qual = k; state.picks = state.picks.slice(0, max()); render();
         });
@@ -491,7 +523,7 @@
     thanks.appendChild(el("h3", null, "Thanks, we've got your picks."));
     thanks.appendChild(el("p", null, "Our team will be in touch shortly. If it's urgent, call " + phone + "."));
 
-    function qualName() { return "ILM Level " + level + " " + QUALS[state.qual].label; }
+    function qualName() { return "ILM Level " + level + " " + QL[state.qual].label; }
     function allCodes() { return [L.mandatory].concat(state.picks); }
 
     function summary() {
@@ -506,7 +538,7 @@
     }
 
     function render() {
-      var q = QUALS[state.qual], m = max(), full = state.picks.length >= m, total = m + 1;
+      var q = QL[state.qual], m = max(), full = state.picks.length >= m, total = m + 1;
       h.textContent = "Build your " + q.label;
       lead.textContent = "Every " + q.label + " starts with unit " + L.mandatory + ". You then choose " + m +
         " of the " + optionalCount + " optional unit" + (m > 1 ? "s" : "") +
