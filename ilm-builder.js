@@ -1,5 +1,5 @@
 /*!
- * CST Training ILM unit builder widget (v18: adds ILM Level 2, Award and Certificate only)
+ * CST Training ILM unit builder widget (v19: adds ILM Level 6, credit-based)
  * Host on GitHub Pages, load with ?v=N cache buster.
  *
  * Mount on any page:
@@ -44,6 +44,18 @@
   var QUALS2 = {
     award:       { label: "Award",       optional: 1, induction: "1 hour", tutorial: "At least 2 hours" },
     certificate: { label: "Certificate", optional: 7, induction: "1 hour", tutorial: "At least 2 hours" }
+  };
+
+  // Level 6: credit-based. "Group 1" is units 601 to 612; "Group 2" is the Level 5 and Level 7 units.
+  var QUALS6 = {
+    award:       { label: "Award",       min: 5,  max: null, g1min: 5,  g2max: 0,  range: "at least 5",
+                   rule: "All of your units come from 601 to 612." },
+    certificate: { label: "Certificate", min: 15, max: null, g1min: 8,  g2max: 7,  range: "at least 15",
+                   only: ["504", "514", "522", "529", "550", "717"],
+                   rule: "At least 8 credits must come from units 601 to 612, and no more than 7 from the Level 5 and Level 7 units." },
+    diploma:     { label: "Diploma",     min: 40, max: null, g1min: 21, g2max: 19, range: "at least 40",
+                   only: ["504", "514", "522", "529", "550", "703", "710", "711", "712", "713", "714", "715", "716", "717"],
+                   rule: "At least 21 credits must come from units 601 to 612, and no more than 19 from the Level 5 and Level 7 units." }
   };
 
   var QUALS3 = {
@@ -206,6 +218,41 @@
         ["8605-529","Knowledge and Information Management",2,"ops",5],
         ["8605-533","Managing Mental Health in the Workplace",2,"people",3],
         ["8605-550","Understanding the Skills, Principles and Practice of Effective Coaching and Mentoring Within an Organisational Context",2,"people",6]
+      ]
+    },
+    6: {
+      mode: "credits",
+      title: "ILM Level 6 Leadership and Management",
+      quals: QUALS6,
+      g1label: "Units 601 to 612", g2label: "Level 5 and 7 units",
+      g2tag: function (u) { return u.code.charAt(0) === "5" ? "Level 5" : "Level 7"; },
+      units: [
+        ["601","Developing personal effectiveness and impact",1,"self",6],
+        ["602","Developing critical thinking",1,"self",8],
+        ["603","Progressive discourse in modern leadership",1,"self",10],
+        ["604","Delivering outcomes through people",1,"people",12],
+        ["605","Optimising organisational capacity",1,"ops",10],
+        ["606","Maximising data efficiency for organisational success",1,"money",7],
+        ["607","Leading a sustainable and future focused organisation",1,"strat",5],
+        ["608","Delivering a commercially focused strategy",1,"strat",8],
+        ["609","Principles and practices of risk management",1,"ops",5],
+        ["610","Innovation, creativity and entrepreneurship",1,"strat",5],
+        ["611","Project management",1,"ops",7],
+        ["612","Introduction to strategic management",1,"strat",4],
+        ["703","Developing strategic leadership and management capability",2,"self",10],
+        ["710","Embedding a culture of developmental leadership",2,"people",12],
+        ["711","Strategic leadership development",2,"self",11],
+        ["712","Supporting a culture of innovation through change",2,"strat",12],
+        ["713","Strategic influencing and negotiation",2,"rel",13],
+        ["714","Strategic optimisation of people resources",2,"people",11],
+        ["715","Adopting a data led approach to strategic management",2,"money",10],
+        ["716","Developing a commercially focused organisation",2,"money",10],
+        ["717","Evolving approaches in leadership and management",2,"self",7],
+        ["504","Leading innovation and change",2,"strat",5],
+        ["514","Managing recruitment",2,"people",5],
+        ["522","Becoming an effective leader",2,"self",5],
+        ["529","Knowledge and information management",2,"ops",5],
+        ["550","Understanding the skills, principles and practice of effective coaching and mentoring within an organisational context",2,"people",6]
       ]
     },
     5: {
@@ -651,7 +698,9 @@
 
   // ---------- Credit-based builder (ILM Level 4) ----------
   function mountCredits(root, idx, L, level) {
-    var Q = QUALS4;
+    var Q = L.quals || QUALS4;
+    var G1 = L.g1label || "Group 1 units", G2 = L.g2label || "Group 2 units";
+    function g2tag(u) { return L.g2tag ? L.g2tag(u) : "Group 2"; }
     var qualAttr = (root.getAttribute("data-qual") || "choose").toLowerCase();
     var formGuid = root.getAttribute("data-form-guid") || FORM_GUID;
     var phone = root.getAttribute("data-phone") || DEFAULT_PHONE;
@@ -668,6 +717,7 @@
     function allowed(u) {
       if (u.dip && state.qual !== "diploma") return false;
       if (u.grp === 2 && q().g2max === 0) return false;
+      if (u.grp === 2 && q().only && q().only.indexOf(u.code) < 0) return false;
       return true;
     }
     function totals(list) {
@@ -759,7 +809,8 @@
       }
       function short() { return totals(picks).t < Qq.min; }
       var pools = (state.focus.length ? state.focus : ["people", "ops", "strat"]).map(function (t) {
-        return UNITS.filter(function (u) { return u.topic === t && u.grp === 1; });
+        return UNITS.filter(function (u) { return u.topic === t && u.grp === 1; })
+          .sort(function (x, y) { return x.cr - y.cr; });
       });
       var k = 0;
       while (short() && pools.some(function (p) { return p.length; })) {
@@ -788,7 +839,7 @@
       if (!list.length) return;
       if (!left.querySelector(".ilmb-g2bar")) {
         var g2bar = el("div", "ilmb-g2bar");
-        g2bar.appendChild(el("span", null, "Group 1 units are shown. Group 2 units can be added within the limits for your qualification."));
+        g2bar.appendChild(el("span", null, G1 + " are shown. " + G2 + " can be added within the limits for your qualification."));
         g2bar.appendChild(g2Btn); left.appendChild(g2bar);
       }
       var box = el("div", "ilmb-group"); box.appendChild(el("h3", null, g.name));
@@ -796,7 +847,7 @@
       list.forEach(function (u) {
         var b = el("button", "ilmb-unit"); b.type = "button";
         var c = el("span", "c", u.code);
-        if (u.grp === 2) c.appendChild(el("span", "ilmb-tag", "Group 2"));
+        if (u.grp === 2) c.appendChild(el("span", "ilmb-tag", g2tag(u)));
         if (u.dip) c.appendChild(el("span", "ilmb-tag dip", "Diploma only"));
         b.appendChild(c);
         b.appendChild(el("span", "nm", u.name));
@@ -859,7 +910,7 @@
       if (!state.picks.length) lines.push("(no units picked yet)");
       state.picks.forEach(function (c) { var u = byCode[c]; lines.push(c + " " + u.name + " (" + u.cr + " credits)"); });
       lines.push("");
-      lines.push("Total: " + T.t + " credits (Group 1: " + T.g1 + ", Group 2: " + T.g2 + ")");
+      lines.push("Total: " + T.t + " credits (" + G1 + ": " + T.g1 + ", " + G2 + ": " + T.g2 + ")");
       lines.push("Learners: " + fLearners.value);
       lines.push("Planned start: " + fStart.value);
       return lines.join("\n");
@@ -888,7 +939,7 @@
       });
 
       var g2n = UNITS.filter(function (u) { return u.grp === 2 && allowed(u); }).length;
-      g2Btn.textContent = (state.showG2 ? "Hide" : "Show") + " Group 2 units (" + g2n + ")";
+      g2Btn.textContent = (state.showG2 ? "Hide " : "Show ") + G2 + " (" + g2n + ")";
       g2Btn.parentNode.style.display = Qq.g2max > 0 ? "" : "none";
       lt.textContent = "Your " + Qq.label;
       lc.textContent = T.t + " credit" + (T.t === 1 ? "" : "s") + " picked";
@@ -899,7 +950,7 @@
       mNeed.appendChild(el("b", null, Qq.range + " credits"));
       mG2.innerHTML = "";
       if (Qq.g2max > 0) {
-        mG2.appendChild(document.createTextNode("Group 2: "));
+        mG2.appendChild(document.createTextNode(G2 + ": "));
         mG2.appendChild(el("b", null, T.g2 + " of " + Qq.g2max + " credits max"));
         mG2.style.display = "";
       } else mG2.style.display = "none";
