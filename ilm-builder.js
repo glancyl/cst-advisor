@@ -1,5 +1,5 @@
 /*!
- * CST Training ILM unit builder widget (v19: adds ILM Level 6, credit-based)
+ * CST Training ILM unit builder widget (v23: builder background runs full width on course pages)
  * Host on GitHub Pages, load with ?v=N cache buster.
  *
  * Mount on any page:
@@ -56,6 +56,23 @@
     diploma:     { label: "Diploma",     min: 40, max: null, g1min: 21, g2max: 19, range: "at least 40",
                    only: ["504", "514", "522", "529", "550", "703", "710", "711", "712", "713", "714", "715", "716", "717"],
                    rule: "At least 21 credits must come from units 601 to 612, and no more than 19 from the Level 5 and Level 7 units." }
+  };
+
+  // Level 7: credit-based with four sizes. "Group 1" is the Level 7 units; "Group 2" is the Level 6 units (and 800).
+  // Each size lists exactly which units it can use.
+  var QUALS7 = {
+    award:       { label: "Award", min: 7, max: null, g1min: 7, g2max: 0, range: "at least 7",
+                   allow: ["703", "715", "716", "717"],
+                   rule: "All of your units come from 703, 715, 716 and 717." },
+    certificate: { label: "Certificate", min: 15, max: null, g1min: 8, g2max: 7, range: "at least 15",
+                   allow: ["700", "701", "702", "703", "710", "711", "712", "713", "714", "715", "716", "717", "601", "606", "607", "609", "610", "611", "612"],
+                   rule: "At least 8 credits must come from Level 7 units, and no more than 7 from selected Level 6 units." },
+    diploma:     { label: "Diploma", min: 40, max: null, g1min: 21, g2max: 19, range: "at least 40",
+                   allow: ["700", "701", "702", "703", "710", "711", "712", "713", "714", "715", "716", "717", "601", "602", "603", "604", "605", "606", "607", "608", "609", "610", "611", "612"],
+                   rule: "At least 21 credits must come from Level 7 units, and no more than 19 from Level 6 units." },
+    extended:    { label: "Extended Diploma", min: 60, max: null, g1min: 31, g2max: 19, range: "at least 60",
+                   allow: ["700", "701", "702", "703", "710", "711", "712", "713", "714", "715", "716", "717", "601", "602", "603", "604", "605", "606", "607", "608", "609", "610", "611", "612", "800"],
+                   rule: "At least 31 credits must come from Level 7 units, and no more than 19 from Level 6 units. Unit 800, The impactful CEO, is only available on the Extended Diploma." }
   };
 
   var QUALS3 = {
@@ -116,7 +133,7 @@
     4: {
       mode: "credits",
       title: "ILM Level 4 Leadership and Management",
-      // [code, name, group (1 or 2), focus area, credits, diploma only]
+      // [code, name, group (1, 2, or 0 = outside both group limits), focus area, credits, diploma only]
       units: [
         ["8605-400","Understanding the Management Role to Improve Management Performance",1,"self",4],
         ["8605-401","Planning and Leading a Complex Team Activity",1,"people",4],
@@ -255,6 +272,41 @@
         ["550","Understanding the skills, principles and practice of effective coaching and mentoring within an organisational context",2,"people",6]
       ]
     },
+    7: {
+      mode: "credits",
+      title: "ILM Level 7 Strategic Leadership and Management",
+      quals: QUALS7,
+      dipQual: "extended", dipLabel: "Extended Diploma only",
+      g1label: "Level 7 units", g2label: "Level 6 units",
+      g2tag: function (u) { return u.code === "800" ? "" : "Level 6"; },
+      units: [
+        ["700","Developing leadership and management capability through enquiry",1,"self",20],
+        ["701","Developing a high-level business case",1,"money",20],
+        ["702","Developing and maintaining a high-performance culture and optimising resources",1,"people",20],
+        ["703","Developing strategic leadership and management capability",1,"self",10],
+        ["710","Embedding a culture of developmental leadership",1,"people",12],
+        ["711","Strategic leadership development",1,"self",11],
+        ["712","Supporting a culture of innovation through change",1,"strat",12],
+        ["713","Strategic influencing and negotiation",1,"rel",13],
+        ["714","Strategic optimisation of people resources",1,"people",11],
+        ["715","Adopting a data led approach to strategic management",1,"money",10],
+        ["716","Developing a commercially focused organisation",1,"money",10],
+        ["717","Evolving approaches in leadership and management",1,"self",7],
+        ["800","The impactful CEO",0,"strat",20,true],
+        ["601","Developing personal effectiveness and impact",2,"self",6],
+        ["602","Developing critical thinking",2,"self",8],
+        ["603","Progressive discourse in modern leadership",2,"self",10],
+        ["604","Delivering outcomes through people",2,"people",12],
+        ["605","Optimising organisational capacity",2,"ops",10],
+        ["606","Maximising data efficiency for organisational success",2,"money",7],
+        ["607","Leading a sustainable and future focused organisation",2,"strat",5],
+        ["608","Delivering a commercially focused strategy",2,"strat",8],
+        ["609","Principles and practices of risk management",2,"ops",5],
+        ["610","Innovation, creativity and entrepreneurship",2,"strat",5],
+        ["611","Project management",2,"ops",7],
+        ["612","Introduction to strategic management",2,"strat",4]
+      ]
+    },
     5: {
       title: "ILM Level 5 Operational Leadership and Management Skills",
       mandatory: "501",
@@ -295,7 +347,7 @@
     ".ilmb{--n:#1d2560;--o:#ff8c04;--bg:#F4F5F9;--s:#FFF;--ink:#1B1F33;--mut:#565C75;--ln:#DCDFEA;--ns:#E7E9F3;",
     "--hd:'Alata',ui-sans-serif,system-ui,-apple-system,'Segoe UI',Arial,sans-serif;",
     "--bd:'Asap',ui-sans-serif,system-ui,-apple-system,'Segoe UI',Arial,sans-serif;",
-    "font-family:var(--bd);color:var(--ink);font-size:1.0625rem;line-height:1.55;background:var(--bg);padding:40px 20px;border-radius:14px;box-sizing:border-box}",
+    "font-family:var(--bd);color:var(--ink);font-size:1.0625rem;line-height:1.55;background:var(--bg);padding:40px 20px;border-radius:0;box-sizing:border-box;box-shadow:0 0 0 100vmax var(--bg);clip-path:inset(0 -100vmax)}",
     ".ilmb *,.ilmb *::before,.ilmb *::after{box-sizing:border-box}",
     ".ilmb :focus-visible{outline:3px solid var(--o);outline-offset:2px;border-radius:4px}",
     ".ilmb-in{max-width:1120px;margin:0 auto}",
@@ -419,7 +471,7 @@
 
   // Styles for the ILM page content (.ilmp). WordPress strips <style> tags
   // from page content, so they are injected from here instead.
-  var PAGE_CSS = ".ilmp{--n:#1C2560;--o:#FF8A00;--bg:#F4F5F9;--ink:#1B1F33;--mut:#565C75;--ln:#DCDFEA;--ns:#E7E9F3;font-family:'Asap',ui-sans-serif,system-ui,-apple-system,'Segoe UI',Arial,sans-serif;color:var(--ink);font-size:1.0625rem;line-height:1.6}.ilmp *{box-sizing:border-box}.ilmp h1,.ilmp h2,.ilmp h3{font-family:'Alata',ui-sans-serif,system-ui,Arial,sans-serif;color:var(--n);line-height:1.2;margin:0 0 12px}.ilmp h1{font-size:clamp(1.9rem,4.6vw,2.8rem)}.ilmp h2{font-size:clamp(1.45rem,3vw,1.9rem)}.ilmp h3{font-size:1.1rem}.ilmp p{margin:0 0 .9em;max-width:none}.ilmp-sec{position:relative;padding:56px max(20px,calc((100% - 1120px)/2));background:#fff;box-shadow:0 0 0 100vmax #fff;clip-path:inset(0 -100vmax)}.ilmp-sec.alt{background:var(--bg);box-shadow:0 0 0 100vmax var(--bg)}.ilmp-sec.hero{background:#4c6bd8;box-shadow:0 0 0 100vmax #4c6bd8;color:#fff;padding-top:64px;padding-bottom:64px}.ilmp-sec.hero h1{color:#fff}.ilmp-sec.hero p{color:rgba(255,255,255,.88)}.ilmp-sec.hero .ilmp-lead{color:#fff}.ilmp-lead{font-size:1.15rem;color:var(--mut)}.ilmp-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:28px}.ilmp-fact{background:var(--bg);border-left:4px solid var(--o);border-radius:8px;padding:14px 16px}.ilmp-fact b{display:block;font-family:'Alata',sans-serif;font-size:1.5rem;color:var(--n)}.ilmp-fact span{font-size:.95rem;color:var(--mut)}.hero .ilmp-fact{background:rgba(255,255,255,.14);border-left-color:#fff}.hero .ilmp-fact b{color:#fff}.hero .ilmp-fact span{color:rgba(255,255,255,.9)}.ilmp-tw{overflow-x:auto;margin-top:20px;border:1px solid var(--ln);border-radius:10px}.ilmp table{border-collapse:collapse;width:100%;min-width:560px;background:#fff;margin:0}.ilmp th,.ilmp td{padding:13px 16px;text-align:left;border-bottom:1px solid var(--ln);vertical-align:top}.ilmp thead th{background:var(--n);color:#fff;font-family:'Alata',sans-serif;font-weight:400}.ilmp tbody th{font-weight:700;background:var(--bg)}.ilmp tr:last-child td,.ilmp tr:last-child th{border-bottom:0}.ilmp-steps{list-style:none;padding:0;margin:24px 0 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:0;counter-reset:s}.ilmp-steps li{counter-increment:s;padding:16px 18px 16px 0;border-top:3px solid var(--ln);margin:0}.ilmp-steps li.k{border-top-color:var(--o)}.ilmp-steps li::before{content:counter(s);display:block;font-family:'Alata',sans-serif;font-size:1.5rem;color:var(--n)}.ilmp-steps p{color:var(--mut);font-size:.98rem;margin:4px 0 0}.ilmp-ev{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:24px}.ilmp-ev>div{background:#fff;border:1px solid var(--ln);border-radius:10px;padding:18px 20px}.ilmp-ev p{font-size:.98rem;color:var(--mut);margin:0}.ilmp-ev ul{margin:8px 0 0;padding-left:1.1em;font-size:.98rem;color:var(--mut)}.ilmp details{border-bottom:1px solid var(--ln);padding:16px 0}.ilmp details:first-of-type{border-top:1px solid var(--ln)}.ilmp summary{cursor:pointer;font-weight:700;font-size:1.05rem;list-style:none;display:flex;justify-content:space-between;gap:16px}.ilmp summary::-webkit-details-marker{display:none}.ilmp summary::after{content:'+';font-size:1.4rem;line-height:1;color:var(--o);flex:none}.ilmp details[open] summary::after{content:'\u2212'}.ilmp details p{margin:10px 0 0;color:var(--mut)}.ilmp-faq{margin-top:20px}.ilmp :focus-visible{outline:3px solid var(--o);outline-offset:2px}.ilmp .ilmb{background:transparent;padding:0;border-radius:0}.ilmp-sec.usps{padding-top:28px;padding-bottom:28px;background:var(--bg);box-shadow:0 0 0 100vmax var(--bg)}.ilmp-usps{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.ilmp-usp{display:flex;gap:10px;align-items:flex-start;background:#fff;border:1px solid var(--ln);border-radius:10px;padding:14px 16px;font-size:.93rem;line-height:1.45;color:var(--mut)}.ilmp-usp svg{flex:none;width:20px;height:20px;margin-top:3px;color:var(--o)}.ilmp-usp b{display:block;font-family:'Alata',sans-serif;font-weight:400;font-size:1rem;color:var(--n);margin-bottom:2px}.ilmp .ilmb-lead{max-width:none}/* New BoldGrid ILM page (.ilmx) */.ilmx-tw{overflow-x:auto;border-radius:12px;margin-top:20px;border:1px solid #dcdfea}.ilmx-tw table{border-collapse:collapse;width:100%;min-width:560px;background:#fff;margin:0}.ilmx-tw th,.ilmx-tw td{padding:14px 16px;text-align:left;border-bottom:1px solid #dcdfea;vertical-align:top;font-size:16px}.ilmx-tw thead th{background:#1d2560;color:#fff;font-weight:700}.ilmx-tw tbody th{background:#f4f5f9;color:#1d2560;font-weight:700}.ilmx-tw tr:last-child td,.ilmx-tw tr:last-child th{border-bottom:0}.ilmx-ev{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;margin:10px 0 0}.ilmx-card{background:#fff;border-radius:15px;padding:24px 26px;height:100%}.ilmx-card h3{color:#1d2560;font-size:20px;font-weight:700;margin:0 0 8px}.ilmx-card p,.ilmx-card li{color:#565c75;font-size:16px;line-height:1.55;margin:0}.ilmx-card ul{margin:8px 0 0;padding-left:1.1em}.ilmx-faq details{border-bottom:1px solid #dcdfea;padding:18px 0}.ilmx-faq details:first-of-type{border-top:1px solid #dcdfea}.ilmx-faq summary{cursor:pointer;font-weight:700;font-size:18px;color:#1d2560;list-style:none;display:flex;justify-content:space-between;gap:16px}.ilmx-faq summary::-webkit-details-marker{display:none}.ilmx-faq summary::after{content:'+';font-size:26px;line-height:1;color:#ff8c04;flex:none}.ilmx-faq details[open] summary::after{content:'\u2212'}.ilmx-faq details p{margin:10px 0 0;color:#565c75}.ilmx-build .ilmb{background:transparent;padding:0;border-radius:0}.ilmx-build .ilmb-lead{max-width:none}";
+  var PAGE_CSS = ".ilmp{--n:#1C2560;--o:#FF8A00;--bg:#F4F5F9;--ink:#1B1F33;--mut:#565C75;--ln:#DCDFEA;--ns:#E7E9F3;font-family:'Asap',ui-sans-serif,system-ui,-apple-system,'Segoe UI',Arial,sans-serif;color:var(--ink);font-size:1.0625rem;line-height:1.6}.ilmp *{box-sizing:border-box}.ilmp h1,.ilmp h2,.ilmp h3{font-family:'Alata',ui-sans-serif,system-ui,Arial,sans-serif;color:var(--n);line-height:1.2;margin:0 0 12px}.ilmp h1{font-size:clamp(1.9rem,4.6vw,2.8rem)}.ilmp h2{font-size:clamp(1.45rem,3vw,1.9rem)}.ilmp h3{font-size:1.1rem}.ilmp p{margin:0 0 .9em;max-width:none}.ilmp-sec{position:relative;padding:56px max(20px,calc((100% - 1120px)/2));background:#fff;box-shadow:0 0 0 100vmax #fff;clip-path:inset(0 -100vmax)}.ilmp-sec.alt{background:var(--bg);box-shadow:0 0 0 100vmax var(--bg)}.ilmp-sec.hero{background:#4c6bd8;box-shadow:0 0 0 100vmax #4c6bd8;color:#fff;padding-top:64px;padding-bottom:64px}.ilmp-sec.hero h1{color:#fff}.ilmp-sec.hero p{color:rgba(255,255,255,.88)}.ilmp-sec.hero .ilmp-lead{color:#fff}.ilmp-lead{font-size:1.15rem;color:var(--mut)}.ilmp-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:28px}.ilmp-fact{background:var(--bg);border-left:4px solid var(--o);border-radius:8px;padding:14px 16px}.ilmp-fact b{display:block;font-family:'Alata',sans-serif;font-size:1.5rem;color:var(--n)}.ilmp-fact span{font-size:.95rem;color:var(--mut)}.hero .ilmp-fact{background:rgba(255,255,255,.14);border-left-color:#fff}.hero .ilmp-fact b{color:#fff}.hero .ilmp-fact span{color:rgba(255,255,255,.9)}.ilmp-tw{overflow-x:auto;margin-top:20px;border:1px solid var(--ln);border-radius:10px}.ilmp table{border-collapse:collapse;width:100%;min-width:560px;background:#fff;margin:0}.ilmp th,.ilmp td{padding:13px 16px;text-align:left;border-bottom:1px solid var(--ln);vertical-align:top}.ilmp thead th{background:var(--n);color:#fff;font-family:'Alata',sans-serif;font-weight:400}.ilmp tbody th{font-weight:700;background:var(--bg)}.ilmp tr:last-child td,.ilmp tr:last-child th{border-bottom:0}.ilmp-steps{list-style:none;padding:0;margin:24px 0 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:0;counter-reset:s}.ilmp-steps li{counter-increment:s;padding:16px 18px 16px 0;border-top:3px solid var(--ln);margin:0}.ilmp-steps li.k{border-top-color:var(--o)}.ilmp-steps li::before{content:counter(s);display:block;font-family:'Alata',sans-serif;font-size:1.5rem;color:var(--n)}.ilmp-steps p{color:var(--mut);font-size:.98rem;margin:4px 0 0}.ilmp-ev{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:24px}.ilmp-ev>div{background:#fff;border:1px solid var(--ln);border-radius:10px;padding:18px 20px}.ilmp-ev p{font-size:.98rem;color:var(--mut);margin:0}.ilmp-ev ul{margin:8px 0 0;padding-left:1.1em;font-size:.98rem;color:var(--mut)}.ilmp details{border-bottom:1px solid var(--ln);padding:16px 0}.ilmp details:first-of-type{border-top:1px solid var(--ln)}.ilmp summary{cursor:pointer;font-weight:700;font-size:1.05rem;list-style:none;display:flex;justify-content:space-between;gap:16px}.ilmp summary::-webkit-details-marker{display:none}.ilmp summary::after{content:'+';font-size:1.4rem;line-height:1;color:var(--o);flex:none}.ilmp details[open] summary::after{content:'\u2212'}.ilmp details p{margin:10px 0 0;color:var(--mut)}.ilmp-faq{margin-top:20px}.ilmp :focus-visible{outline:3px solid var(--o);outline-offset:2px}.ilmp .ilmb{background:transparent;padding:0;border-radius:0}.ilmp-sec.usps{padding-top:28px;padding-bottom:28px;background:var(--bg);box-shadow:0 0 0 100vmax var(--bg)}.ilmp-usps{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.ilmp-usp{display:flex;gap:10px;align-items:flex-start;background:#fff;border:1px solid var(--ln);border-radius:10px;padding:14px 16px;font-size:.93rem;line-height:1.45;color:var(--mut)}.ilmp-usp svg{flex:none;width:20px;height:20px;margin-top:3px;color:var(--o)}.ilmp-usp b{display:block;font-family:'Alata',sans-serif;font-weight:400;font-size:1rem;color:var(--n);margin-bottom:2px}.ilmp .ilmb-lead{max-width:none}/* New BoldGrid ILM page (.ilmx) */.ilmx-tw{overflow-x:auto;border-radius:12px;margin-top:20px;border:1px solid #dcdfea}.ilmx-tw table{border-collapse:collapse;width:100%;min-width:560px;background:#fff;margin:0}.ilmx-tw th,.ilmx-tw td{padding:14px 16px;text-align:left;border-bottom:1px solid #dcdfea;vertical-align:top;font-size:16px}.ilmx-tw thead th{background:#1d2560;color:#fff;font-weight:700}.ilmx-tw tbody th{background:#f4f5f9;color:#1d2560;font-weight:700}.ilmx-tw tr:last-child td,.ilmx-tw tr:last-child th{border-bottom:0}.ilmx-ev{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;margin:10px 0 0}.ilmx-card{background:#fff;border-radius:15px;padding:24px 26px;height:100%}.ilmx-card h3{color:#1d2560;font-size:20px;font-weight:700;margin:0 0 8px}.ilmx-card p,.ilmx-card li{color:#565c75;font-size:16px;line-height:1.55;margin:0}.ilmx-card ul{margin:8px 0 0;padding-left:1.1em}.ilmx-faq details{border-bottom:1px solid #dcdfea;padding:18px 0}.ilmx-faq details:first-of-type{border-top:1px solid #dcdfea}.ilmx-faq summary{cursor:pointer;font-weight:700;font-size:18px;color:#1d2560;list-style:none;display:flex;justify-content:space-between;gap:16px}.ilmx-faq summary::-webkit-details-marker{display:none}.ilmx-faq summary::after{content:'+';font-size:26px;line-height:1;color:#ff8c04;flex:none}.ilmx-faq details[open] summary::after{content:'\u2212'}.ilmx-faq details p{margin:10px 0 0;color:#565c75}.ilmx-build .ilmb{background:transparent;padding:0;border-radius:0;box-shadow:none;clip-path:none}.ilmx-build .ilmb-lead{max-width:none}";
 
   function injectPageCss() {
     if (document.getElementById("ilmp-css") || !document.querySelector(".ilmp,.ilmx")) return;
@@ -578,7 +630,7 @@
     enqBtn.addEventListener("click", goToForm);
     enqBtn2.addEventListener("click", goToForm);
     cta.appendChild(el("h2", null, "Send your picks to our team"));
-    cta.appendChild(el("p", "ilmb-lead", "We'll come back to you with a quote based on your units, and you could be booked in for induction within a week."));
+    cta.appendChild(el("p", "ilmb-lead", "We'll come back to you with a quote based on your units, and your induction is usually within 7 working days of registration."));
     var form = el("form", "ilmb-form"); form.noValidate = true; cta.appendChild(form);
     var fFirst = field(form, uid + "first", "First name", "text", { auto: "given-name" });
     var fLast = field(form, uid + "last", "Last name", "text", { auto: "family-name" });
@@ -616,7 +668,7 @@
       var q = QL[state.qual], m = max(), full = state.picks.length >= m, total = m + 1;
       h.textContent = "Build your " + q.label;
       lead.textContent = "Every " + q.label + " starts with unit " + L.mandatory + ". You then choose " + m +
-        " of the " + optionalCount + " optional unit" + (m > 1 ? "s" : "") +
+        " of the " + optionalCount + " optional units" +
         ". Pick the ones that match the work you already do, so your evidence largely comes from your normal week. Your assessor confirms the final choice with you at induction.";
       Array.prototype.forEach.call(tabs.children, function (t) {
         t.setAttribute("aria-selected", t.getAttribute("data-k") === state.qual ? "true" : "false");
@@ -714,15 +766,18 @@
     root._ilmbMounted = true;
     function q() { return Q[state.qual]; }
 
+    var dipQual = L.dipQual || "diploma", dipLabel = L.dipLabel || "Diploma only";
+    function g2l() { return q().g2label || G2; }
     function allowed(u) {
-      if (u.dip && state.qual !== "diploma") return false;
+      if (q().allow) return q().allow.indexOf(u.code) > -1;
+      if (u.dip && state.qual !== dipQual) return false;
       if (u.grp === 2 && q().g2max === 0) return false;
       if (u.grp === 2 && q().only && q().only.indexOf(u.code) < 0) return false;
       return true;
     }
     function totals(list) {
       var t = { t: 0, g1: 0, g2: 0 };
-      list.forEach(function (c) { var u = byCode[c]; t.t += u.cr; if (u.grp === 1) t.g1 += u.cr; else t.g2 += u.cr; });
+      list.forEach(function (c) { var u = byCode[c]; t.t += u.cr; if (u.grp === 1) t.g1 += u.cr; else if (u.grp === 2) t.g2 += u.cr; });
       return t;
     }
     function fits(u, T) {
@@ -839,7 +894,7 @@
       if (!list.length) return;
       if (!left.querySelector(".ilmb-g2bar")) {
         var g2bar = el("div", "ilmb-g2bar");
-        g2bar.appendChild(el("span", null, G1 + " are shown. " + G2 + " can be added within the limits for your qualification."));
+        g2bar.appendChild(el("span", "ilmb-g2txt"));
         g2bar.appendChild(g2Btn); left.appendChild(g2bar);
       }
       var box = el("div", "ilmb-group"); box.appendChild(el("h3", null, g.name));
@@ -847,8 +902,8 @@
       list.forEach(function (u) {
         var b = el("button", "ilmb-unit"); b.type = "button";
         var c = el("span", "c", u.code);
-        if (u.grp === 2) c.appendChild(el("span", "ilmb-tag", g2tag(u)));
-        if (u.dip) c.appendChild(el("span", "ilmb-tag dip", "Diploma only"));
+        if (u.grp === 2 && g2tag(u)) c.appendChild(el("span", "ilmb-tag", g2tag(u)));
+        if (u.dip) c.appendChild(el("span", "ilmb-tag dip", dipLabel));
         b.appendChild(c);
         b.appendChild(el("span", "nm", u.name));
         b.appendChild(el("span", "cr", u.cr + " credit" + (u.cr > 1 ? "s" : "")));
@@ -880,7 +935,7 @@
     enqBtn.addEventListener("click", goToForm);
     enqBtn2.addEventListener("click", goToForm);
     cta.appendChild(el("h2", null, "Send your picks to our team"));
-    cta.appendChild(el("p", "ilmb-lead", "We'll come back to you with a quote based on your units, and you could be booked in for induction within a week."));
+    cta.appendChild(el("p", "ilmb-lead", "We'll come back to you with a quote based on your units, and your induction is usually within 7 working days of registration."));
     var form = el("form", "ilmb-form"); form.noValidate = true; cta.appendChild(form);
     var fFirst = field(form, uid + "first", "First name", "text", { auto: "given-name" });
     var fLast = field(form, uid + "last", "Last name", "text", { auto: "family-name" });
@@ -910,7 +965,7 @@
       if (!state.picks.length) lines.push("(no units picked yet)");
       state.picks.forEach(function (c) { var u = byCode[c]; lines.push(c + " " + u.name + " (" + u.cr + " credits)"); });
       lines.push("");
-      lines.push("Total: " + T.t + " credits (" + G1 + ": " + T.g1 + ", " + G2 + ": " + T.g2 + ")");
+      lines.push("Total: " + T.t + " credits (" + G1 + ": " + T.g1 + ", " + g2l() + ": " + T.g2 + ")");
       lines.push("Learners: " + fLearners.value);
       lines.push("Planned start: " + fStart.value);
       return lines.join("\n");
@@ -929,7 +984,7 @@
         UNITS.forEach(function (u) {
           if (u.topic !== gid) return;
           var b = unitBtns[u.code], on = state.picks.indexOf(u.code) > -1;
-          var show = allowed(u) && (u.grp === 1 || state.showG2 || on);
+          var show = allowed(u) && (u.grp !== 2 || state.showG2 || on);
           b.style.display = show ? "" : "none";
           if (show) any = true;
           b.setAttribute("aria-pressed", on ? "true" : "false");
@@ -939,7 +994,8 @@
       });
 
       var g2n = UNITS.filter(function (u) { return u.grp === 2 && allowed(u); }).length;
-      g2Btn.textContent = (state.showG2 ? "Hide " : "Show ") + G2 + " (" + g2n + ")";
+      g2Btn.textContent = (state.showG2 ? "Hide " : "Show ") + g2l() + " (" + g2n + ")";
+      g2Btn.parentNode.querySelector(".ilmb-g2txt").textContent = G1 + " are shown. " + g2l() + " can be added within the limits for your qualification.";
       g2Btn.parentNode.style.display = Qq.g2max > 0 ? "" : "none";
       lt.textContent = "Your " + Qq.label;
       lc.textContent = T.t + " credit" + (T.t === 1 ? "" : "s") + " picked";
@@ -950,7 +1006,7 @@
       mNeed.appendChild(el("b", null, Qq.range + " credits"));
       mG2.innerHTML = "";
       if (Qq.g2max > 0) {
-        mG2.appendChild(document.createTextNode(G2 + ": "));
+        mG2.appendChild(document.createTextNode(g2l() + ": "));
         mG2.appendChild(el("b", null, T.g2 + " of " + Qq.g2max + " credits max"));
         mG2.style.display = "";
       } else mG2.style.display = "none";
