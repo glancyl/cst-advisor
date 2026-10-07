@@ -1,5 +1,5 @@
 /*!
- * CST Training ILM unit builder widget (v24: full-width intro paragraph; background runs full width on course pages)
+ * CST Training ILM unit builder widget (v25: centred enquiry form; full-width intro paragraph and background on course pages)
  * Host on GitHub Pages, load with ?v=N cache buster.
  *
  * Mount on any page:
@@ -406,6 +406,12 @@
     ".ilmb-note{font-size:.88rem;color:var(--mut);margin:12px 0 0!important}",
     ".ilmb-cta{background:var(--n);color:#fff;border-radius:12px;padding:32px 28px;margin-top:40px}",
     ".ilmb-cta h2{color:#fff}",
+    ".ilmb-cta{text-align:center}",
+    ".ilmb-cta .ilmb-lead{max-width:720px;margin-left:auto;margin-right:auto}",
+    ".ilmb-cta .ilmb-form{margin-left:auto;margin-right:auto;text-align:left}",
+    ".ilmb-cta .ilmb-form .ilmb-row{justify-content:center}",
+    ".ilmb-cta .ilmb-consent,.ilmb-cta .ilmb-status{text-align:center}",
+    ".ilmb-cta .ilmb-thanks{margin-left:auto;margin-right:auto;text-align:left}",
     ".ilmb-cta .ilmb-lead{color:rgba(255,255,255,.82)}",
     ".ilmb-form{margin-top:22px;display:grid;grid-template-columns:1fr 1fr;gap:14px 16px;max-width:720px}",
     ".ilmb-form .fl{grid-column:1/-1}",
