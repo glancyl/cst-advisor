@@ -1,5 +1,5 @@
 /*!
- * CST Training CMI unit builder widget (v2: adds Level 3 and Level 7 Diplomas and a level switcher)
+ * CST Training CMI unit builder widget (v3: centred enquiry form)
  * Separate from ilm-builder.js so the live ILM pages can't break.
  * Host on GitHub Pages, load with ?v=N cache buster (N matches this version).
  *
@@ -17,6 +17,7 @@
  * Version log
  *   v1  CMI Level 5 Award, Certificate and Diploma in Management and Leadership
  *   v2  CMI Level 3 and Level 7 Diplomas, level switcher, Group A minimum for Level 7
+ *   v3  Enquiry form centred on the page
  */
 (function () {
   "use strict";
@@ -311,7 +312,12 @@
   }
 
   // Extra styles for CMI-only bits (barred tag)
-  var CSS_CMI = ".ilmb-tag.bar{color:#9b1c1c;border-color:#e8b4b4}.ilmb-unit[disabled] .ilmb-tag.bar{opacity:1}";
+  var CSS_CMI = ".ilmb-tag.bar{color:#9b1c1c;border-color:#e8b4b4}.ilmb-unit[disabled] .ilmb-tag.bar{opacity:1}" +
+    // Centred enquiry form (CMI only, the ILM pages keep their layout)
+    ".cst-cmi-builder .ilmb-cta{text-align:center}.cst-cmi-builder .ilmb-cta .ilmb-lead{margin-left:auto;margin-right:auto}" +
+    ".cst-cmi-builder .ilmb-form{margin-left:auto;margin-right:auto;text-align:left}.cst-cmi-builder .ilmb-form .ilmb-row{justify-content:center}" +
+    ".cst-cmi-builder .ilmb-consent,.cst-cmi-builder .ilmb-status{text-align:center}" +
+    ".cst-cmi-builder .ilmb-thanks{margin-left:auto;margin-right:auto;text-align:left}";
 
   // FAQ dropdowns: handled at document level so they keep working even if
   // the theme re-renders the page content or blocks native toggling.
