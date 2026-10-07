@@ -1,5 +1,5 @@
 /*!
- * CST Training ILM unit builder widget (v23: builder background runs full width on course pages)
+ * CST Training ILM unit builder widget (v24: full-width intro paragraph; background runs full width on course pages)
  * Host on GitHub Pages, load with ?v=N cache buster.
  *
  * Mount on any page:
@@ -355,7 +355,7 @@
     ".ilmb h2{font-size:clamp(1.5rem,3.2vw,2rem);font-weight:700;color:var(--n)}",
     ".ilmb h3{font-size:1.05rem;font-weight:600}",
     ".ilmb p{margin:0 0 .8em}",
-    ".ilmb-lead{color:var(--mut);max-width:62ch;font-size:1.1rem;margin-top:10px!important}",
+    ".ilmb-lead{color:var(--mut);max-width:none;font-size:1.1rem;margin-top:10px!important}",
     ".ilmb-ev{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-top:20px}",
     ".ilmb-evc{background:var(--s);border:1px solid var(--ln);border-top:3px solid var(--o);border-radius:10px;padding:14px 16px}",
     ".ilmb-evc b{display:block;font-family:var(--hd);font-weight:600;color:var(--n);margin-bottom:4px}",
