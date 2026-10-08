@@ -1,5 +1,5 @@
 /*!
- * CST Training CMI unit builder widget (v4: Coaching and Mentoring Level 3 and Level 7)
+ * CST Training CMI unit builder widget (v5: CMI Project Management Level 3 and Level 5)
  * Separate from ilm-builder.js so the live ILM pages can't break.
  * Host on GitHub Pages, load with ?v=N cache buster (N matches this version).
  *
@@ -19,11 +19,19 @@
  *   data-quals       comma list of keys from COACH (2+ shows a switcher)
  *   data-qual        which one is selected first
  *
+ * Fixed-unit course page (every unit mandatory, so the learner picks a level, not units):
+ * <div class="cst-cmi-course" data-course="pm" data-default="l5"></div>
+ *   data-course      key in COURSES below (pm = Project Management)
+ *   data-default     option key selected first (l3 | l5)
+ *   data-heading     optional, replaces the section heading
+ *   (own class so older script versions ignore it rather than showing the wrong builder)
+ *
  * Version log
  *   v1  CMI Level 5 Award, Certificate and Diploma in Management and Leadership
  *   v2  CMI Level 3 and Level 7 Diplomas, level switcher, Group A minimum for Level 7
  *   v3  Enquiry form centred on the page
  *   v4  CMI Level 3 Diploma in Coaching and Mentoring and Level 7 Diploma in Leadership Coaching and Mentoring
+ *   v5  CMI Project Management (Level 3 Award, Level 5 Certificate): fixed-unit level picker with centred enquiry form
  */
 (function () {
   "use strict";
@@ -181,6 +189,30 @@
     }
   };
 
+  /*
+   * Fixed-unit courses: every unit is mandatory, so the learner chooses an
+   * option (usually a level) rather than units. All facts from the CST Training
+   * learner handbooks (v1, February 2024).
+   *   options  [key, tab label, full qualification name, price, best for, covers,
+   *             credits, total qualification time, guided learning hours, units [[code, name, credits]]]
+   */
+  var COURSES = {
+    pm: {
+      title: "CMI Project Management",
+      undecided: "Level 3 Award or Level 5 Certificate",
+      options: [
+        ["l3", "Level 3 Award", "CMI Level 3 Award in Project Management", "\u00a3300 + VAT",
+         "Supervisors and first line managers",
+         "How projects work, managing stakeholders and team roles, and planning and controlling a project.",
+         6, 60, 25, [["PM3001", "Introduction to Project Management", 6]]],
+        ["l5", "Level 5 Certificate", "CMI Level 5 Certificate in Project Management", "\u00a3600 + VAT",
+         "Middle managers leading projects",
+         "Managing projects through problems and challenges, then planning and managing a genuine workplace project or an academic enquiry.",
+         16, 160, 54, [["513", "Managing Projects to Achieve Results", 6], ["524", "Conducting a Management Project", 10]]]
+      ]
+    }
+  };
+
   var CSS = [
     ".ilmb{--n:#1d2560;--o:#ff8c04;--bg:#F4F5F9;--s:#FFF;--ink:#1B1F33;--mut:#565C75;--ln:#DCDFEA;--ns:#E7E9F3;",
     "--hd:'Alata',ui-sans-serif,system-ui,-apple-system,'Segoe UI',Arial,sans-serif;",
@@ -320,10 +352,26 @@
   // Extra styles for CMI-only bits (barred tag)
   var CSS_CMI = ".ilmb-tag.bar{color:#9b1c1c;border-color:#e8b4b4}.ilmb-unit[disabled] .ilmb-tag.bar{opacity:1}" +
     // Centred enquiry form (CMI only, the ILM pages keep their layout)
-    ".cst-cmi-builder .ilmb-cta{text-align:center}.cst-cmi-builder .ilmb-cta .ilmb-lead{margin-left:auto;margin-right:auto}" +
-    ".cst-cmi-builder .ilmb-form{margin-left:auto;margin-right:auto;text-align:left}.cst-cmi-builder .ilmb-form .ilmb-row{justify-content:center}" +
-    ".cst-cmi-builder .ilmb-consent,.cst-cmi-builder .ilmb-status{text-align:center}" +
-    ".cst-cmi-builder .ilmb-thanks{margin-left:auto;margin-right:auto;text-align:left}";
+    ".cst-cmi-builder .ilmb-cta,.cst-cmi-course .ilmb-cta{text-align:center}.cst-cmi-builder .ilmb-cta .ilmb-lead,.cst-cmi-course .ilmb-cta .ilmb-lead{margin-left:auto;margin-right:auto}" +
+    ".cst-cmi-builder .ilmb-form,.cst-cmi-course .ilmb-form{margin-left:auto;margin-right:auto;text-align:left}.cst-cmi-builder .ilmb-form .ilmb-row,.cst-cmi-course .ilmb-form .ilmb-row{justify-content:center}" +
+    ".cst-cmi-builder .ilmb-consent,.cst-cmi-builder .ilmb-status,.cst-cmi-course .ilmb-consent,.cst-cmi-course .ilmb-status{text-align:center}" +
+    ".cst-cmi-builder .ilmb-thanks,.cst-cmi-course .ilmb-thanks{margin-left:auto;margin-right:auto;text-align:left}" +
+    // Fixed-unit mode (Project Management): centred level cards above the form
+    ".cmib-fx .ilmb-in{max-width:980px}.cmib-fx>.ilmb-in>h2,.cmib-fx>.ilmb-in>.ilmb-lead{text-align:center;margin-left:auto;margin-right:auto}" +
+    ".cmib-opts{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:26px}@media(max-width:700px){.cmib-opts{grid-template-columns:1fr}}" +
+    ".cmib-opt{font:inherit;text-align:left;display:flex;flex-direction:column;gap:6px;width:100%;background:#fff;color:var(--ink);border:2px solid var(--ln);border-radius:14px;padding:20px 22px;cursor:pointer;transition:border-color .15s,box-shadow .15s}" +
+    ".cmib-opt:hover{border-color:var(--n)}.cmib-opt[aria-checked=true]{border-color:var(--o);box-shadow:inset 0 4px 0 var(--o)}" +
+    ".cmib-opt .lv{font-family:var(--hd);font-weight:600;font-size:.85rem;color:var(--mut)}.cmib-opt[aria-checked=true] .lv::after{content:' selected';color:var(--o)}" +
+    ".cmib-opt .nm{font-family:var(--hd);font-weight:700;font-size:1.2rem;color:var(--n);line-height:1.25}" +
+    ".cmib-opt .cv{color:var(--mut);font-size:.95rem;line-height:1.45}" +
+    ".cmib-opt ul{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}" +
+    ".cmib-opt li{margin:0;background:var(--ns);border-left:4px solid var(--n);border-radius:7px;padding:6px 10px;font-size:.92rem;line-height:1.3}" +
+    ".cmib-opt li b{font-family:var(--hd);font-weight:600;margin-right:6px}" +
+    ".cmib-opt .ft{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 12px;margin-top:auto;padding-top:10px;border-top:1px solid var(--ln);font-size:.92rem;color:var(--mut)}" +
+    ".cmib-opt .ft b{color:var(--n);font-size:1.05rem}" +
+    ".cmib-und{display:block;margin:16px auto 0;font:inherit;font-weight:600;background:transparent;border:1.5px dashed var(--ln);border-radius:99px;padding:9px 18px;color:var(--ink);cursor:pointer}" +
+    ".cmib-und[aria-checked=true]{border-style:solid;border-color:var(--o);background:rgba(255,138,0,.14)}" +
+    ".cmib-fx .ilmb-cta{margin-top:30px}";
 
   // FAQ dropdowns: handled at document level so they keep working even if
   // the theme re-renders the page content or blocks native toggling.
@@ -1064,15 +1112,160 @@
     build();
   }
 
+  // ---------- Fixed-unit courses (every unit mandatory) ----------
+  function mountFixed(root, idx, C) {
+    var formGuid = root.getAttribute("data-form-guid") || FORM_GUID;
+    var phone = root.getAttribute("data-phone") || DEFAULT_PHONE;
+    var uid = "cmif" + idx + "-";
+    var OPTS = C.options.map(function (a) {
+      return { key: a[0], tab: a[1], name: a[2], price: a[3], best: a[4], covers: a[5], cr: a[6], tqt: a[7], glh: a[8],
+               units: a[9].map(function (u) { return { code: u[0], name: u[1], cr: u[2] }; }) };
+    });
+    var byKey = {}; OPTS.forEach(function (o) { byKey[o.key] = o; });
+    var def = root.getAttribute("data-default");
+    var key = "cmif|" + root.getAttribute("data-course") + "|" + idx;
+    var state = STATES[key] || (STATES[key] = { opt: byKey[def] ? def : OPTS[OPTS.length - 1].key });
+    root._cmibMounted = true;
+    function cur() { return byKey[state.opt] || null; }
+
+    root.classList.add("ilmb"); root.classList.add("cmib-fx");
+    root.innerHTML = "";
+    var inner = el("div", "ilmb-in"); root.appendChild(inner);
+    inner.appendChild(el("h2", null, root.getAttribute("data-heading") || "Choose your qualification: Level 3 or Level 5"));
+    inner.appendChild(el("p", "ilmb-lead", "Every unit in both qualifications is mandatory, so there are no units to pick. Choose the level that fits your role and our team will come back to you with everything you need to get started."));
+
+    var opts = el("div", "cmib-opts"); opts.setAttribute("role", "radiogroup");
+    opts.setAttribute("aria-label", "Choose your " + C.title + " qualification");
+    inner.appendChild(opts);
+    var cards = {};
+    OPTS.forEach(function (o) {
+      var b = el("button", "cmib-opt"); b.type = "button"; b.setAttribute("role", "radio");
+      b.appendChild(el("span", "lv", o.tab));
+      b.appendChild(el("span", "nm", o.name));
+      b.appendChild(el("span", "cv", o.covers));
+      var ul = el("ul");
+      o.units.forEach(function (u) {
+        var li = el("li"); li.appendChild(el("b", null, u.code));
+        li.appendChild(document.createTextNode(u.name + " (" + u.cr + " credits)")); ul.appendChild(li);
+      });
+      b.appendChild(ul);
+      var ft = el("span", "ft");
+      ft.appendChild(el("span", null, o.cr + " credits | " + o.tqt + " hours total"));
+      ft.appendChild(el("b", null, o.price));
+      b.appendChild(ft);
+      b.addEventListener("click", function () { state.opt = o.key; render(); });
+      cards[o.key] = b; opts.appendChild(b);
+    });
+    var und = el("button", "cmib-und", "Not sure yet? Ask our team to help you choose"); und.type = "button";
+    und.setAttribute("role", "radio");
+    und.addEventListener("click", function () { state.opt = "undecided"; render(); });
+    inner.appendChild(und);
+
+    // Enquiry form (centred via the CMI CSS)
+    var cta = el("div", "ilmb-cta"); cta.id = uid + "enquire"; inner.appendChild(cta);
+    var ch = el("h2"); cta.appendChild(ch);
+    cta.appendChild(el("p", "ilmb-lead", "We'll come back to you with a quote and answer any questions. Induction is usually within 7 working days of registration."));
+    var form = el("form", "ilmb-form"); form.noValidate = true; cta.appendChild(form);
+    var fFirst = field(form, uid + "first", "First name", "text", { auto: "given-name" });
+    var fLast = field(form, uid + "last", "Last name", "text", { auto: "family-name" });
+    var fEmail = field(form, uid + "email", "Email", "email", { auto: "email" });
+    var fPhone = field(form, uid + "phone", "Phone", "tel", { auto: "tel" });
+    var fLearners = field(form, uid + "learners", "How many learners?", "select", { options: ["1", "2", "3", "4", "5", "6 to 10", "More than 10"] });
+    var fStart = field(form, uid + "start", "When would you like to start?", "select", { options: ["As soon as possible", "Within 1 month", "1 to 3 months", "3 months or more", "Not sure yet"] });
+    var fQ = field(form, uid + "q", "Any questions for us? (optional)", "textarea", { full: true });
+    var sumWrap = el("div", "fl"); sumWrap.appendChild(el("label", null, "What we'll receive"));
+    var sum = el("div", "ilmb-sum"); sumWrap.appendChild(sum); form.appendChild(sumWrap);
+    form.appendChild(el("p", "ilmb-consent", "We'll use these details to reply about your qualification. See our privacy policy at csttraining.co.uk."));
+    var brow = el("div", "fl ilmb-row"); brow.style.marginTop = "0"; form.appendChild(brow);
+    var SEND = "Send my enquiry to CST Training";
+    var sendBtn = el("button", "ilmb-btn or", SEND); sendBtn.type = "submit"; brow.appendChild(sendBtn);
+    var call = el("a", "ilmb-btn ghost", "Or call " + phone); call.href = "tel:" + phone.replace(/\s/g, ""); brow.appendChild(call);
+    var status = el("p", "ilmb-status"); status.setAttribute("role", "status"); form.appendChild(status);
+    var thanks = el("div", "ilmb-thanks"); thanks.tabIndex = -1; cta.appendChild(thanks);
+    thanks.appendChild(el("h3", null, "Thanks, we've got your enquiry."));
+    thanks.appendChild(el("p", null, "Our team will be in touch shortly. If it's urgent, call " + phone + "."));
+
+    function qualName() { var o = cur(); return o ? o.name : C.title + " (undecided: " + C.undecided + ")"; }
+    function optionsText() {
+      var o = cur();
+      return o ? o.units.map(function (u) { return u.code + " " + u.name; }).join("; ") : "Undecided: " + C.undecided;
+    }
+    function summary() {
+      var o = cur(), lines = [qualName() + ": enquiry", ""];
+      if (o) {
+        o.units.forEach(function (u) { lines.push(u.code + " " + u.name + " (" + u.cr + " credits, mandatory)"); });
+        lines.push(""); lines.push("Total: " + o.cr + " credits"); lines.push("Price: " + o.price);
+      } else lines.push("Help needed choosing between the " + C.undecided + ".");
+      lines.push("Learners: " + fLearners.value);
+      lines.push("Planned start: " + fStart.value);
+      return lines.join("\n");
+    }
+    function render() {
+      OPTS.forEach(function (o) { cards[o.key].setAttribute("aria-checked", state.opt === o.key ? "true" : "false"); });
+      und.setAttribute("aria-checked", cur() ? "false" : "true");
+      var o = cur();
+      ch.textContent = o ? "Enquire about the " + o.tab : "Enquire and we'll help you choose";
+      sum.textContent = summary();
+    }
+    fLearners.addEventListener("change", render);
+    fStart.addEventListener("change", render);
+
+    form.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      var first = fFirst.value.trim(), last = fLast.value.trim(), email = fEmail.value.trim(), ph = fPhone.value.trim();
+      function err(tx, f) { status.className = "ilmb-status err"; status.textContent = tx; if (f) f.focus(); }
+      if (!first || !last) return err("Add your first and last name.", first ? fLast : fFirst);
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return err("Enter a valid email address so we can reply.", fEmail);
+      if (!ph) return err("Add a phone number so our team can talk your options through with you.", fPhone);
+
+      var qx = fQ.value.trim();
+      var fields = [
+        { name: "firstname", value: first },
+        { name: "lastname", value: last },
+        { name: "email", value: email },
+        { name: "phone", value: ph },
+        { name: "message", value: summary() + (qx ? "\n\nQuestions:\n" + qx : "") },
+        { name: "enquiry_qualification", value: qualName() },
+        { name: "enquiry_options_selected", value: optionsText() },
+        { name: "enquiry_learners", value: fLearners.value },
+        { name: "enquiry_start", value: fStart.value }
+      ];
+      var ctx = { pageUri: location.href, pageName: document.title };
+      var hutk = getCookie("hubspotutk"); if (hutk) ctx.hutk = hutk;
+
+      sendBtn.disabled = true; sendBtn.textContent = "Sending";
+      status.className = "ilmb-status"; status.textContent = "";
+
+      fetch("https://api.hsforms.com/submissions/v3/integration/submit/" + PORTAL_ID + "/" + formGuid, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fields: fields, context: ctx })
+      }).then(function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      }).then(function () {
+        try {
+          window.dataLayer = window.dataLayer || [];
+          window.dataLayer.push({ event: "course_builder_submit", enquiry_qualification: qualName(), enquiry_options: cur() ? cur().units.map(function (u) { return u.code; }).join(";") : "undecided" });
+        } catch (e) {}
+        form.style.display = "none"; thanks.style.display = "block"; thanks.focus();
+      }).catch(function () {
+        sendBtn.disabled = false; sendBtn.textContent = SEND;
+        err("That didn't send. Please try again, or call " + phone + " and we'll take your enquiry over the phone.");
+      });
+    });
+
+    render();
+  }
+
   function init() {
     try {
       injectPageCss();
-      var roots = document.querySelectorAll(".cst-cmi-builder");
+      var roots = document.querySelectorAll(".cst-cmi-builder,.cst-cmi-course");
       if (!roots.length) return;
       injectCss();
       Array.prototype.forEach.call(roots, function (r, i) {
         if (r._cmibMounted) return;
-        try { if (r.hasAttribute("data-quals")) mountCoaching(r, i); else mount(r, i); } catch (e) { if (window.console) console.error("CMI builder:", e); }
+        try { var ck = r.getAttribute("data-course"); if (ck) { if (COURSES[ck]) mountFixed(r, i, COURSES[ck]); } else if (r.hasAttribute("data-quals")) mountCoaching(r, i); else mount(r, i); } catch (e) { if (window.console) console.error("CMI builder:", e); }
       });
     } catch (e) {}
   }
