@@ -1,5 +1,5 @@
 /*!
- * CST Training NEBOSH hub (v1: course matcher and hub page styles)
+ * CST Training NEBOSH hub (v2: redesigned course cards with navy headers; stats band styles)
  * Host on GitHub Pages, load with ?v=N cache buster.
  * Mount point: <div class="cst-nebosh-matcher"></div>
  * WordPress strips <style> tags from page content, so this script also injects the hub's page CSS.
@@ -409,6 +409,42 @@
     ".nbx-body li{margin:0 0 4px}",
     ".nbx-wide{grid-column:1/-1}",
     ".nbx-links{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:12px}",
+    /* Course cards (v2) */
+    ".nbx-gh{border-left:6px solid #ff8c04;padding:2px 0 2px 16px;margin:34px 0 18px}",
+    ".nbx-gh h3.nbx-gt{color:#1d2560!important;font-size:26px!important;line-height:1.25!important;margin:0 0 4px!important}",
+    ".nbx-gh p.nbx-gp{margin:0!important;color:#565c75;font-size:16px}",
+    ".nbx-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;align-items:start}",
+    ".nbx-cc{background:#fff;border:1px solid #dcdfea;border-radius:14px;overflow:hidden;display:flex;flex-direction:column}",
+    ".nbx-cc-top{background:#1d2560;padding:18px 20px 16px;border-bottom:4px solid #ff8c04}",
+    ".nbx-cc-top p.nbx-cc-type{color:#ff8c04!important;font-weight:700;font-size:14px!important;margin:0 0 4px!important;line-height:1.3}",
+    ".nbx-cc-top h4.nbx-cc-name{color:#fff!important;font-size:19px!important;line-height:1.3!important;margin:0!important;font-weight:700}",
+    ".nbx-cc-facts{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #e7e9f3;background:#f4f5f9}",
+    ".nbx-cc-fact{padding:12px 16px 12px 20px}",
+    ".nbx-cc-fact+.nbx-cc-fact{border-left:1px solid #e7e9f3}",
+    ".nbx-cc-fact p.nbx-l{margin:0!important;font-size:13px;color:#565c75;line-height:1.3}",
+    ".nbx-cc-fact p.nbx-v{margin:2px 0 0!important;font-size:15px;font-weight:700;color:#1d2560;line-height:1.35}",
+    ".nbx-cc-fact p.nbx-v.pr{color:#b35f00}",
+    ".nbx-cc p.nbx-cc-who{padding:14px 20px 0;margin:0!important;font-size:15px;color:#3a3f55;line-height:1.5;flex:1}",
+    "details.nbx-cc-more{margin:12px 20px 0;border-top:1px solid #e7e9f3;padding-top:10px}",
+    ".nbx-cc-more summary{list-style:none;cursor:pointer;font-weight:700;font-size:15px;color:#1d2560;display:flex;justify-content:space-between;gap:10px}",
+    ".nbx-cc-more summary::-webkit-details-marker{display:none}",
+    ".nbx-cc-more summary::after{content:'+';color:#ff8c04;font-size:22px;line-height:1}",
+    ".nbx-cc-more[open] summary::after{content:'\\2212'}",
+    ".nbx-cc-more summary:focus-visible{outline:3px solid #ff8c04;outline-offset:2px}",
+    ".nbx-cc-more p.nbx-h{margin:12px 0 2px!important;font-weight:700;color:#1d2560;font-size:14px}",
+    ".nbx-cc-more p.nbx-t,.nbx-cc-more li{margin:0!important;font-size:14px;color:#3a3f55;line-height:1.5}",
+    ".nbx-cc-more ul.nbx-ul{margin:0!important;padding-left:1.1em!important}",
+    ".nbx-cc-btns{padding:16px 20px 20px;display:flex;flex-wrap:wrap;gap:8px}",
+    ".nbx-btn{display:inline-block;font-weight:700;font-size:15px;border-radius:30px;padding:10px 18px;text-decoration:none!important;line-height:1.2;border:2px solid #1d2560}",
+    ".nbx-btn.or{background:#ff8c04;border-color:#ff8c04;color:#1b1f33!important}",
+    ".nbx-btn.gh{background:#fff;color:#1d2560!important}",
+    ".nbx-btn:focus-visible{outline:3px solid #ff8c04;outline-offset:2px}",
+    /* Stats band */
+    ".nbx-stats{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:10px}",
+    "@media(max-width:760px){.nbx-stats{grid-template-columns:1fr}}",
+    ".nbx-stat{border:2px solid rgba(255,255,255,.18);border-radius:14px;padding:24px 28px;text-align:center}",
+    ".nbx-stat p.nbx-n{margin:0!important;color:#ff8c04!important;font-size:72px!important;line-height:1!important;font-weight:700}",
+    ".nbx-stat p.nbx-d{margin:10px 0 0!important;color:#fff!important;font-size:19px;line-height:1.45}",
     /* Comparison table and FAQs */
     ".nbx-tw{overflow-x:auto;border-radius:12px;margin-top:20px;border:1px solid #dcdfea;background:#fff}",
     ".nbx-tw table{border-collapse:collapse;width:100%;min-width:640px;background:#fff;margin:0}",
