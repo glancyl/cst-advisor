@@ -1,5 +1,5 @@
 /*!
- * CST Training CMI unit builder widget (v5: CMI Project Management Level 3 and Level 5)
+ * CST Training CMI unit builder widget (v6: CMI Professional Consulting comparison)
  * Separate from ilm-builder.js so the live ILM pages can't break.
  * Host on GitHub Pages, load with ?v=N cache buster (N matches this version).
  *
@@ -26,12 +26,19 @@
  *   data-heading     optional, replaces the section heading
  *   (own class so older script versions ignore it rather than showing the wrong builder)
  *
+ * Consulting comparison page (three courses, then size, then units):
+ * <div class="cst-cmi-consult" data-course="choose" data-qual="choose"></div>
+ *   data-course      l5-pmc | l5-mcp | l7-pc | choose (shows a course switcher)
+ *   data-qual        award | certificate | diploma | choose (shows a size switcher)
+ *
  * Version log
  *   v1  CMI Level 5 Award, Certificate and Diploma in Management and Leadership
  *   v2  CMI Level 3 and Level 7 Diplomas, level switcher, Group A minimum for Level 7
  *   v3  Enquiry form centred on the page
  *   v4  CMI Level 3 Diploma in Coaching and Mentoring and Level 7 Diploma in Leadership Coaching and Mentoring
  *   v5  CMI Project Management (Level 3 Award, Level 5 Certificate): fixed-unit level picker with centred enquiry form
+ *   v6  CMI Professional Consulting comparison: Level 5 Principles of Management Consulting (Award, Certificate),
+ *       Level 5 Management Consulting Practice (Award, Certificate, Diploma) and Level 7 Diploma in Professional Consulting
  */
 (function () {
   "use strict";
@@ -391,7 +398,7 @@
   }
   function addCmiCss() {
     if (document.getElementById("cmib-css")) return;
-    var s = document.createElement("style"); s.id = "cmib-css"; s.textContent = CSS_CMI;
+    var s = document.createElement("style"); s.id = "cmib-css"; s.textContent = CSS_CMI + CSS_CONSULT;
     document.head.appendChild(s);
   }
 
@@ -1257,15 +1264,428 @@
     render();
   }
 
+  // ---------- Consulting comparison builder (v6) ----------
+  // Units: [code, title, credits, group]. Group "A" = mandatory.
+  var L5_UNITS_B = [
+    ["540", "Principles of Management Consulting", 8, "B"],
+    ["541", "The Management Consulting Role", 7, "B"],
+    ["542", "Project and Programme Management in Management Consulting", 8, "B"],
+    ["543", "Principles of Management and Leadership in Management Consulting", 7, "B"],
+    ["544", "Principles of Change in Management Consulting", 8, "B"],
+    ["545", "Managing Problems and Decision Making in Management Consulting", 7, "B"],
+    ["546", "Organisational Analysis in Management Consulting", 7, "B"],
+    ["548", "Professional Development in Management Consulting", 7, "B"]
+  ];
+
+  // Sizes: min = minimum total credits, minUnits = minimum number of units,
+  // lockedOnly = the size is the mandatory unit alone.
+  var CONSULT = {
+    "l5-pmc": {
+      tab: "Level 5 Principles",
+      title: "CMI Level 5 Principles of Management Consulting",
+      about: "The theory-based route. You learn the principles behind management consulting, so you don't need to be consulting yet.",
+      units: L5_UNITS_B.map(function (u) { return [u[0], u[1], u[2], "U"]; }),
+      groups: [["U", "Units"]],
+      order: ["540", "541", "545", "546", "544", "543", "542", "548"],
+      sizes: {
+        award:       { label: "Award",       min: 7,  minUnits: 1, range: "7",
+                       rule: "Choose units worth at least 7 credits. Any one unit does this." },
+        certificate: { label: "Certificate", min: 14, minUnits: 1, range: "14",
+                       rule: "Choose units worth at least 14 credits. Any two units do this." }
+      }
+    },
+    "l5-mcp": {
+      tab: "Level 5 Practice",
+      title: "CMI Level 5 Management Consulting Practice",
+      about: "The practical route. Mandatory unit 547 is evidenced from consulting you carry out at work, so you must be practising consulting.",
+      units: [["547", "Management Consulting Practice", 7, "A"]].concat(L5_UNITS_B),
+      groups: [["A", "Mandatory unit (Group A)"], ["B", "Optional units (Group B)"]],
+      order: ["540", "541", "545", "546", "544", "543", "542", "548"],
+      sizes: {
+        award:       { label: "Award",       min: 7,  minUnits: 1, range: "7", lockedOnly: true,
+                       rule: "The Award is unit 547 on its own, so there's nothing else to choose." },
+        certificate: { label: "Certificate", min: 14, minUnits: 1, range: "14",
+                       rule: "Unit 547 gives you 7 credits, then you add at least 7 credits from Group B." },
+        diploma:     { label: "Diploma",     min: 43, minUnits: 1, range: "43",
+                       rule: "Unit 547 gives you 7 credits, then you add at least 36 credits from Group B." }
+      }
+    },
+    "l7-pc": {
+      tab: "Level 7 Diploma",
+      title: "CMI Level 7 Diploma in Professional Consulting",
+      about: "The senior route, for professional consultants driving consultancy work at a senior level. Total qualification time is 420 hours, including 126 guided learning hours.",
+      units: [
+        ["720", "Principles of Professional Consulting", 10, "U"],
+        ["721", "Leadership in professional consulting", 9, "U"],
+        ["722", "Practice of professional consulting", 10, "U"],
+        ["704", "Developing Organisational Strategy", 9, "U"],
+        ["723", "Leading innovation and change through professional consulting", 9, "U"],
+        ["724", "Personal and professional development for professional consultants", 7, "U"],
+        ["726", "Delivering client requirements through professional consulting", 7, "U"]
+      ],
+      groups: [["U", "Units"]],
+      order: ["720", "722", "721", "726", "723", "704", "724"],
+      sizes: {
+        diploma: { label: "Diploma", min: 37, minUnits: 4, range: "37",
+                   rule: "Choose at least 4 units that add up to at least 37 credits." }
+      }
+    }
+  };
+
+
+  // Consulting comparison builder (.cst-cmi-consult): course intro line,
+  // mandatory tag and centred enquiry form
+  var CSS_CONSULT = [
+    ".ilmb-about{background:var(--s);border:1px solid var(--ln);border-left:4px solid var(--o);border-radius:10px;padding:12px 16px;margin:16px 0 0;color:var(--mut);font-size:.98rem}",
+    ".cst-cmi-consult .ilmb-tabwrap+.ilmb-tabwrap{margin-top:-8px}",
+    ".cst-cmi-consult .ilmb-tablabel{min-width:150px}",
+    ".ilmb-lock{display:inline-block;margin-left:6px;font-size:.75rem;font-weight:700;color:var(--n);border:1px solid var(--n);border-radius:99px;padding:0 7px;vertical-align:1px}",
+    ".ilmb-pick.lkp{border-left-color:var(--n)}",
+    ".cst-cmi-consult .ilmb-cta{text-align:center}",
+    ".cst-cmi-consult .ilmb-cta .ilmb-lead{margin-left:auto!important;margin-right:auto!important}",
+    ".cst-cmi-consult .ilmb-form{margin:22px auto 0;text-align:left}",
+    ".cst-cmi-consult .ilmb-form .ilmb-row{justify-content:center}",
+    ".cst-cmi-consult .ilmb-consent,.cst-cmi-consult .ilmb-status{text-align:center}",
+    ".cst-cmi-consult .ilmb-thanks{margin:22px auto 0;text-align:left}"
+  ].join("");
+
+  function mountConsult(root, idx) {
+    var courseAttr = (root.getAttribute("data-course") || "choose").toLowerCase();
+    var qualAttr = (root.getAttribute("data-qual") || "choose").toLowerCase();
+    var formGuid = root.getAttribute("data-form-guid") || FORM_GUID;
+    var phone = root.getAttribute("data-phone") || DEFAULT_PHONE;
+    var uid = "cmic" + idx + "-";
+    var courseKeys = courseAttr === "choose" ? Object.keys(CONSULT) : [courseAttr];
+    if (!CONSULT[courseKeys[0]]) return;
+
+    var key = "consult|" + courseAttr + "|" + qualAttr + "|" + idx;
+    var state = STATES[key] || (STATES[key] = { course: courseKeys[0], qual: null, picks: [] });
+    root._cmibMounted = true;
+
+    function C() { return CONSULT[state.course]; }
+    function Q() { return C().sizes[state.qual]; }
+    function units() { return C().units; }
+    function unit(code) { return units().filter(function (u) { return u[0] === code; })[0]; }
+    function locked() { return units().filter(function (u) { return u[3] === "A"; }).map(function (u) { return u[0]; }); }
+    function all() { return locked().concat(state.picks); }
+    function total(list) { return (list || all()).reduce(function (t, c) { return t + unit(c)[2]; }, 0); }
+    function valid(list) { list = list || all(); return total(list) >= Q().min && list.length >= Q().minUnits; }
+    function canAdd(u) { return !Q().lockedOnly && u[3] !== "A" && !valid(); }
+    function pickSize() {
+      var sz = C().sizes;
+      if (state.qual && sz[state.qual]) return;
+      state.qual = (qualAttr !== "choose" && sz[qualAttr]) ? qualAttr : Object.keys(sz)[0];
+    }
+    function trim() {
+      var keep = [];
+      state.picks.forEach(function (c) {
+        var u = unit(c);
+        if (!u || u[3] === "A" || Q().lockedOnly) return;
+        if (!valid(locked().concat(keep))) keep.push(c);
+      });
+      state.picks = keep;
+    }
+    pickSize();
+
+    root.classList.add("ilmb");
+    root.innerHTML = "";
+    var inner = el("div", "ilmb-in"); root.appendChild(inner);
+
+    // Course switcher
+    var cWrap = el("div", "ilmb-tabwrap");
+    cWrap.appendChild(el("span", "ilmb-tablabel", "Choose your course:"));
+    var cTabs = el("div", "ilmb-tabs"); cTabs.setAttribute("role", "tablist");
+    cTabs.setAttribute("aria-label", "Choose your course"); cWrap.appendChild(cTabs);
+    if (courseKeys.length > 1) {
+      courseKeys.forEach(function (k) {
+        var b = el("button", null, CONSULT[k].tab); b.type = "button"; b.setAttribute("role", "tab");
+        b.setAttribute("data-k", k);
+        b.addEventListener("click", function () {
+          if (state.course === k) return;
+          state.course = k; state.qual = null; state.picks = []; pickSize(); build(); render();
+        });
+        cTabs.appendChild(b);
+      });
+      inner.appendChild(cWrap);
+    }
+
+    // Size switcher
+    var sWrap = el("div", "ilmb-tabwrap");
+    sWrap.appendChild(el("span", "ilmb-tablabel", "Choose your size:"));
+    var sTabs = el("div", "ilmb-tabs"); sTabs.setAttribute("role", "tablist");
+    sTabs.setAttribute("aria-label", "Choose your qualification size"); sWrap.appendChild(sTabs);
+    inner.appendChild(sWrap);
+
+    var h = el("h2"); inner.appendChild(h);
+    var about = el("p", "ilmb-about"); inner.appendChild(about);
+    var lead = el("p", "ilmb-lead"); inner.appendChild(lead);
+
+    var evStrip = el("div", "ilmb-ev"); inner.appendChild(evStrip);
+    [
+      ["Workbooks and recorded material", "Unit workbooks and pre-recorded material from CST Training's trainers, alongside 1-1 tuition."],
+      ["Assignments and reports", "Set by your trainer for the units you choose and assessed as a whole."],
+      ["Presentations", "Where your trainer decides they suit your units, you present your learning to them."],
+      ["Online portfolio", "Upload your work to Quals Direct, get feedback on each piece and track your progress."]
+    ].forEach(function (e) {
+      var c = el("div", "ilmb-evc");
+      c.appendChild(el("b", null, e[0]));
+      c.appendChild(el("span", null, e[1]));
+      evStrip.appendChild(c);
+    });
+
+    var grid = el("div", "ilmb-grid"); inner.appendChild(grid);
+    var left = el("div"); grid.appendChild(left);
+
+    var sug = el("div", "ilmb-suggest"); left.appendChild(sug);
+    var sugP = el("p"); sug.appendChild(sugP);
+    var row = el("div", "ilmb-row"); sug.appendChild(row);
+    var sugBtn = el("button", "ilmb-btn", "Suggest units"); sugBtn.type = "button"; row.appendChild(sugBtn);
+    var clrBtn = el("button", "ilmb-btn ghost", "Clear picks"); clrBtn.type = "button"; row.appendChild(clrBtn);
+    var enqBtn = el("button", "ilmb-btn or ilmb-enq", "Enquire now"); enqBtn.type = "button"; row.appendChild(enqBtn);
+
+    function suggest(scroll) {
+      state.picks = [];
+      if (!Q().lockedOnly) {
+        C().order.forEach(function (c) { if (!valid()) state.picks.push(c); });
+      }
+      render();
+      if (scroll) ladder.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+    sugBtn.addEventListener("click", function () { suggest(true); });
+    clrBtn.addEventListener("click", function () { state.picks = []; render(); });
+
+    function toggle(code) {
+      var ix = state.picks.indexOf(code);
+      if (ix > -1) state.picks.splice(ix, 1);
+      else if (canAdd(unit(code))) state.picks.push(code);
+      render();
+    }
+
+    var unitWrap = el("div"); left.appendChild(unitWrap);
+    var unitBtns = {};
+    function build() {
+      unitWrap.innerHTML = ""; unitBtns = {};
+      sTabs.innerHTML = "";
+      var sz = C().sizes;
+      Object.keys(sz).forEach(function (k) {
+        if (qualAttr !== "choose" && k !== qualAttr && sz[qualAttr]) return;
+        var b = el("button", null, sz[k].label); b.type = "button"; b.setAttribute("role", "tab");
+        b.setAttribute("data-k", k);
+        b.addEventListener("click", function () { state.qual = k; trim(); render(); });
+        sTabs.appendChild(b);
+      });
+      C().groups.forEach(function (g) {
+        var list = units().filter(function (u) { return u[3] === g[0]; });
+        if (!list.length) return;
+        var box = el("div", "ilmb-group"); box.appendChild(el("h3", null, g[1]));
+        var ug = el("div", "ilmb-units");
+        list.forEach(function (u) {
+          var lk = u[3] === "A";
+          var b = el("button", "ilmb-unit" + (lk ? " lk" : "")); b.type = "button";
+          var c = el("span", "c", "Unit " + u[0]);
+          if (lk) c.appendChild(el("span", "ilmb-lock", "Mandatory"));
+          b.appendChild(c);
+          b.appendChild(el("span", "nm", u[1]));
+          b.appendChild(el("span", "cr", cr(u[2])));
+          if (lk) { b.setAttribute("aria-pressed", "true"); b.setAttribute("aria-disabled", "true"); }
+          else b.addEventListener("click", function () { toggle(u[0]); });
+          unitBtns[u[0]] = b; ug.appendChild(b);
+        });
+        box.appendChild(ug); unitWrap.appendChild(box);
+      });
+    }
+
+    var ladder = el("aside", "ilmb-ladder"); ladder.setAttribute("aria-live", "polite"); grid.appendChild(ladder);
+    var lt = el("div", "t"); ladder.appendChild(lt);
+    var lc = el("div", "ct"); ladder.appendChild(lc);
+    var bar = el("div", "ilmb-bar"); var barFill = el("i"); bar.appendChild(barFill); ladder.appendChild(bar);
+    var mNeed = el("p", "ilmb-meter"); ladder.appendChild(mNeed);
+    var mUnits = el("p", "ilmb-meter"); ladder.appendChild(mUnits);
+    var picksList = el("ul", "ilmb-picks"); ladder.appendChild(picksList);
+    var empty = el("p", "ilmb-empty", "No units picked yet. Tap a unit to add it."); ladder.appendChild(empty);
+    var hint = el("div", "ilmb-hint"); ladder.appendChild(hint);
+    var done = el("div", "ilmb-done"); ladder.appendChild(done);
+    var enqBtn2 = el("button", "ilmb-btn or ilmb-enq ilmb-enq-l", "Enquire now"); enqBtn2.type = "button"; ladder.appendChild(enqBtn2);
+    ladder.appendChild(el("p", "ilmb-note", "You can change units at induction. Nothing here is final."));
+
+    // Enquiry form (centred)
+    var cta = el("div", "ilmb-cta"); cta.id = uid + "enquire"; inner.appendChild(cta);
+    function goToForm() {
+      cta.scrollIntoView({ behavior: "smooth", block: "start" });
+      setTimeout(function () { try { fFirst.focus({ preventScroll: true }); } catch (e) { fFirst.focus(); } }, 600);
+    }
+    enqBtn.addEventListener("click", goToForm);
+    enqBtn2.addEventListener("click", goToForm);
+    cta.appendChild(el("h2", null, "Send your picks to our team"));
+    cta.appendChild(el("p", "ilmb-lead", "We'll come back to you with a quote based on your units. Once you're registered, your induction is usually within 7 working days."));
+    var form = el("form", "ilmb-form"); form.noValidate = true; cta.appendChild(form);
+    var fFirst = field(form, uid + "first", "First name", "text", { auto: "given-name" });
+    var fLast = field(form, uid + "last", "Last name", "text", { auto: "family-name" });
+    var fEmail = field(form, uid + "email", "Email", "email", { auto: "email" });
+    var fPhone = field(form, uid + "phone", "Phone", "tel", { auto: "tel" });
+    var fLearners = field(form, uid + "learners", "How many learners?", "select", { options: ["1", "2", "3", "4", "5", "6 to 10", "More than 10"] });
+    var fStart = field(form, uid + "start", "When would you like to start?", "select", { options: ["As soon as possible", "Within 1 month", "1 to 3 months", "3 months or more", "Not sure yet"] });
+    var fQ = field(form, uid + "q", "Any questions for us? (optional)", "textarea", { full: true });
+    var sumWrap = el("div", "fl"); sumWrap.appendChild(el("label", null, "What we'll receive"));
+    var sum = el("div", "ilmb-sum"); sumWrap.appendChild(sum); form.appendChild(sumWrap);
+    form.appendChild(el("p", "ilmb-consent", "We'll use these details to reply about your qualification. See our privacy policy at csttraining.co.uk."));
+    var brow = el("div", "fl ilmb-row"); brow.style.marginTop = "0"; form.appendChild(brow);
+    var sendBtn = el("button", "ilmb-btn or", "Send my picks to CST Training"); sendBtn.type = "submit"; brow.appendChild(sendBtn);
+    var call = el("a", "ilmb-btn ghost", "Or call " + phone); call.href = "tel:" + phone.replace(/\s/g, ""); brow.appendChild(call);
+    var status = el("p", "ilmb-status"); status.setAttribute("role", "status"); form.appendChild(status);
+    var thanks = el("div", "ilmb-thanks"); thanks.tabIndex = -1; cta.appendChild(thanks);
+    thanks.appendChild(el("h3", null, "Thanks, we've got your picks."));
+    thanks.appendChild(el("p", null, "Our team will be in touch shortly. If it's urgent, call " + phone + "."));
+
+    function qualName() {
+      var c = C(), q = Q();
+      if (state.course === "l7-pc") return c.title;
+      return c.title + " " + q.label;
+    }
+    function summary() {
+      var lines = [qualName() + ": unit picks", ""];
+      if (!all().length) lines.push("(no units picked yet)");
+      all().forEach(function (c) {
+        var u = unit(c);
+        lines.push(u[0] + " " + u[1] + " (" + cr(u[2]) + (u[3] === "A" ? ", mandatory" : "") + ")");
+      });
+      lines.push("");
+      lines.push("Total: " + cr(total()) + " across " + all().length + " unit" + (all().length === 1 ? "" : "s"));
+      lines.push("Learners: " + fLearners.value);
+      lines.push("Planned start: " + fStart.value);
+      return lines.join("\n");
+    }
+
+    function render() {
+      var c = C(), q = Q(), T = total(), ok = valid();
+      Array.prototype.forEach.call(cTabs.children, function (t) {
+        t.setAttribute("aria-selected", t.getAttribute("data-k") === state.course ? "true" : "false");
+      });
+      Array.prototype.forEach.call(sTabs.children, function (t) {
+        t.setAttribute("aria-selected", t.getAttribute("data-k") === state.qual ? "true" : "false");
+      });
+      sWrap.style.display = sTabs.children.length > 1 ? "" : "none";
+      h.textContent = state.course === "l7-pc" ? "Build your Level 7 Diploma" : "Build your " + c.tab + " " + q.label;
+      about.textContent = c.about;
+      lead.textContent = "The " + qualName() + " needs " + q.range + " credits. " + q.rule +
+        (q.lockedOnly ? "" : " Pick the units closest to your work and interests. Your assessor confirms the final choice with you at induction.");
+      sugP.textContent = q.lockedOnly
+        ? "This size is the mandatory unit only. Switch to the Certificate or Diploma to add optional units."
+        : "Not sure where to start? We'll suggest a set of units that meets the rules, and you can swap any of them.";
+      sugBtn.style.display = q.lockedOnly ? "none" : "";
+      clrBtn.style.display = q.lockedOnly ? "none" : "";
+
+      units().forEach(function (u) {
+        if (u[3] === "A") return;
+        var b = unitBtns[u[0]], on = state.picks.indexOf(u[0]) > -1;
+        b.setAttribute("aria-pressed", on ? "true" : "false");
+        b.disabled = !on && !canAdd(u);
+      });
+
+      lt.textContent = "Your " + (state.course === "l7-pc" ? "Diploma" : q.label);
+      lc.textContent = cr(T) + " picked";
+      barFill.style.width = Math.min(100, Math.round(T / q.min * 100)) + "%";
+      bar.classList.toggle("ok", ok);
+      mNeed.innerHTML = "";
+      mNeed.appendChild(document.createTextNode("Needed: "));
+      mNeed.appendChild(el("b", null, "at least " + q.range + " credits"));
+      mUnits.innerHTML = "";
+      if (q.minUnits > 1) {
+        mUnits.appendChild(document.createTextNode("Units: "));
+        mUnits.appendChild(el("b", null, all().length + " of at least " + q.minUnits));
+        mUnits.style.display = "";
+      } else mUnits.style.display = "none";
+
+      picksList.innerHTML = "";
+      all().forEach(function (code) {
+        var u = unit(code), lk = u[3] === "A", li = el("li", "ilmb-pick" + (lk ? " lkp" : ""));
+        li.appendChild(el("span", null, u[0] + " " + u[1]));
+        li.appendChild(el("em", null, u[2] + " cr"));
+        if (!lk) {
+          var x = el("button", null, "\u00d7"); x.type = "button"; x.setAttribute("aria-label", "Remove " + u[1]);
+          x.addEventListener("click", function () { toggle(code); });
+          li.appendChild(x);
+        }
+        picksList.appendChild(li);
+      });
+      empty.style.display = all().length ? "none" : "";
+      var need = q.min - T, needU = q.minUnits - all().length, msg = "";
+      if (all().length && !ok) {
+        var parts = [];
+        if (need > 0) parts.push(need + " more credit" + (need === 1 ? "" : "s"));
+        if (needU > 0) parts.push(needU + " more unit" + (needU === 1 ? "" : "s"));
+        msg = "Add at least " + parts.join(" and ") + " to reach the minimum for this qualification.";
+      }
+      hint.textContent = msg;
+      hint.style.display = msg ? "" : "none";
+      done.textContent = "That's a full " + (state.course === "l7-pc" ? "Diploma" : q.label) + " at " + cr(T) + ". Send these picks to our team below.";
+      enqBtn.textContent = enqBtn2.textContent = "Enquire about this " + (state.course === "l7-pc" ? "Diploma" : q.label);
+      ladder.classList.toggle("full", ok);
+      root.classList.toggle("ilmb-full", ok);
+      sum.textContent = summary();
+    }
+
+    fLearners.addEventListener("change", render);
+    fStart.addEventListener("change", render);
+
+    form.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      var first = fFirst.value.trim(), last = fLast.value.trim(), email = fEmail.value.trim(), ph = fPhone.value.trim();
+      function err(t, f) { status.className = "ilmb-status err"; status.textContent = t; if (f) f.focus(); }
+      if (!first || !last) return err("Add your first and last name.", first ? fLast : fFirst);
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return err("Enter a valid email address so we can reply.", fEmail);
+      if (!ph) return err("Add a phone number so our team can talk your units through with you.", fPhone);
+
+      var qq = fQ.value.trim();
+      var fields = [
+        { name: "firstname", value: first },
+        { name: "lastname", value: last },
+        { name: "email", value: email },
+        { name: "phone", value: ph },
+        { name: "message", value: summary() + (qq ? "\n\nQuestions:\n" + qq : "") },
+        { name: "enquiry_qualification", value: qualName() },
+        { name: "enquiry_options_selected", value: all().map(function (c) { return c + " " + unit(c)[1]; }).join("; ") },
+        { name: "enquiry_learners", value: fLearners.value },
+        { name: "enquiry_start", value: fStart.value }
+      ];
+      var ctx = { pageUri: location.href, pageName: document.title };
+      var hutk = getCookie("hubspotutk"); if (hutk) ctx.hutk = hutk;
+
+      sendBtn.disabled = true; sendBtn.textContent = "Sending";
+      status.className = "ilmb-status"; status.textContent = "";
+
+      fetch("https://api.hsforms.com/submissions/v3/integration/submit/" + PORTAL_ID + "/" + formGuid, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fields: fields, context: ctx })
+      }).then(function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      }).then(function () {
+        try {
+          window.dataLayer = window.dataLayer || [];
+          window.dataLayer.push({ event: "course_builder_submit", enquiry_qualification: qualName(), enquiry_options: all().join(";") });
+        } catch (e) {}
+        form.style.display = "none"; thanks.style.display = "block"; thanks.focus();
+      }).catch(function () {
+        sendBtn.disabled = false; sendBtn.textContent = "Send my picks to CST Training";
+        err("That didn't send. Please try again, or call " + phone + " and we'll take your picks over the phone.");
+      });
+    });
+
+    build();
+    render();
+    root._cmib = { state: state, render: render };
+  }
+
   function init() {
     try {
       injectPageCss();
-      var roots = document.querySelectorAll(".cst-cmi-builder,.cst-cmi-course");
+      var roots = document.querySelectorAll(".cst-cmi-builder,.cst-cmi-course,.cst-cmi-consult");
       if (!roots.length) return;
       injectCss();
       Array.prototype.forEach.call(roots, function (r, i) {
         if (r._cmibMounted) return;
-        try { var ck = r.getAttribute("data-course"); if (ck) { if (COURSES[ck]) mountFixed(r, i, COURSES[ck]); } else if (r.hasAttribute("data-quals")) mountCoaching(r, i); else mount(r, i); } catch (e) { if (window.console) console.error("CMI builder:", e); }
+        try { if (r.classList.contains("cst-cmi-consult")) { mountConsult(r, i); return; } var ck = r.getAttribute("data-course"); if (ck) { if (COURSES[ck]) mountFixed(r, i, COURSES[ck]); } else if (r.hasAttribute("data-quals")) mountCoaching(r, i); else mount(r, i); } catch (e) { if (window.console) console.error("CMI builder:", e); }
       });
     } catch (e) {}
   }
