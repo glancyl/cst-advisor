@@ -1,0 +1,531 @@
+/*!
+ * CST Training NEBOSH hub (v1: course matcher and hub page styles)
+ * Host on GitHub Pages, load with ?v=N cache buster.
+ * Mount point: <div class="cst-nebosh-matcher"></div>
+ * WordPress strips <style> tags from page content, so this script also injects the hub's page CSS.
+ */
+(function () {
+  "use strict";
+  var SITE = "https://www.csttraining.co.uk";
+  var C = {
+ "ngc": {
+  "name": "NEBOSH National General Certificate in Occupational Health and Safety",
+  "short": "National General Certificate",
+  "type": "Certificate",
+  "url": "/nebosh-general-certificate-health-safety/",
+  "length": "10 days live online",
+  "price": 1175,
+  "fin": true,
+  "who": "The usual first certificate for a career in health and safety, in any sector.",
+  "why": [
+   "The usual first certificate for a career in health and safety, in any sector",
+   "Meets the academic requirement for Tech IOSH membership",
+   "Starts every Monday, live online"
+  ],
+  "outcomes": [
+   "Carry out a workplace risk assessment you can use the next day",
+   "Advise on legal duties and what good health and safety management looks like",
+   "Take part in incident investigations and support audits"
+  ],
+  "assess": "Two parts: a 24-hour scenario-based exam taken at home, and a risk assessment of a real workplace submitted online.",
+  "notfor": "If you work on construction sites, the Construction certificate fits better and lets you apply for the CSCS AQP card."
+ },
+ "cn": {
+  "name": "NEBOSH Health and Safety Management for Construction (UK)",
+  "short": "Construction Certificate",
+  "type": "Certificate",
+  "url": "/nebosh-health-safety-management-construction/",
+  "length": "10 days live online",
+  "price": 1175,
+  "fin": true,
+  "who": "For site managers, supervisors and anyone moving into construction health and safety.",
+  "why": [
+   "Built around construction sites and CDM 2015",
+   "Holders can apply for the CSCS Academically Qualified Person (AQP) card",
+   "SCQF Level 7, comparable to RQF Level 4"
+  ],
+  "outcomes": [
+   "Manage site risk, contractors and CDM duties with confidence",
+   "Spot and control the high-risk activities on a construction site",
+   "Move into a site health and safety adviser or site management role"
+  ],
+  "assess": "One 48-hour scenario-based exam taken at home, with no separate practical.",
+  "notfor": "It doesn't meet the Tech IOSH requirement. If that's your goal, take the General Certificate."
+ },
+ "fire": {
+  "name": "NEBOSH Certificate in Fire Safety",
+  "short": "Fire Safety Certificate",
+  "type": "Certificate",
+  "url": "/nebosh-certificate-in-fire-safety-course/",
+  "length": "4 days live online",
+  "price": 1200,
+  "fin": true,
+  "who": "For anyone responsible for fire risk assessments in a building.",
+  "why": [
+   "For anyone responsible for fire risk assessments in a building",
+   "Four days live online",
+   "Includes a real fire risk assessment as part of the NEBOSH assessment"
+  ],
+  "outcomes": [
+   "Carry out a fire risk assessment for a low to medium risk workplace",
+   "Choose sensible fire prevention and protection measures",
+   "Plan evacuation and emergency arrangements"
+  ],
+  "assess": "Two parts: a 24-hour scenario-based exam and a practical fire risk assessment.",
+  "notfor": "It's a specialist fire qualification, not a general health and safety certificate."
+ },
+ "emc": {
+  "name": "NEBOSH Environmental Management Certificate",
+  "short": "Environmental Management Certificate",
+  "type": "Certificate",
+  "url": "/nebosh-environmental-management-certificate-course/",
+  "length": "5 days live online",
+  "price": 950,
+  "fin": true,
+  "who": "For people responsible for environmental performance or moving into sustainability.",
+  "why": [
+   "For people responsible for environmental performance or moving into sustainability",
+   "Five days live online",
+   "Includes a practical assessment of a real workplace"
+  ],
+  "outcomes": [
+   "Assess environmental aspects and impacts in your workplace",
+   "Understand environmental legal duties and management systems",
+   "Plan for environmental emergencies and reduce waste and emissions"
+  ],
+  "assess": "Two parts: a 24-hour scenario-based exam and a practical assessment of environmental aspects and impacts in a workplace.",
+  "notfor": "If you only need an introduction, Environmental Awareness is a shorter starting point."
+ },
+ "psm": {
+  "name": "NEBOSH HSE Certificate in Process Safety Management",
+  "short": "Process Safety Management",
+  "type": "Specialist certificate",
+  "url": "/nebosh-hse-cert-process-safety-management/",
+  "length": "4 days live online",
+  "price": 750,
+  "fin": true,
+  "who": "For supervisors and managers in oil and gas, chemicals and other high-hazard process industries.",
+  "why": [
+   "For supervisors and managers in oil and gas, chemicals and other high-hazard process industries",
+   "Developed by NEBOSH with the HSE",
+   "Four days live online"
+  ],
+  "outcomes": [
+   "Understand how major process incidents happen",
+   "Support a process safety management system",
+   "Recognise the controls for reactions, storage, fire and explosion"
+  ],
+  "assess": "A 40-question multiple-choice exam, 90 minutes, online.",
+  "notfor": "It isn't designed for experienced process safety engineers working on plant design."
+ },
+ "hsw": {
+  "name": "NEBOSH Health and Safety at Work Award",
+  "short": "Health and Safety at Work Award",
+  "type": "Award",
+  "url": "/health-and-safety-nebosh-award/",
+  "length": "3 days live online",
+  "price": 450,
+  "fin": false,
+  "who": "A practical grounding for team leaders, supervisors, HR and facilities staff.",
+  "why": [
+   "A practical grounding for team leaders, supervisors, HR and facilities staff",
+   "Three days live online",
+   "The natural first step towards the General Certificate"
+  ],
+  "outcomes": [
+   "Carry out simple workplace inspections and spot common hazards",
+   "Assess risks and suggest sensible controls",
+   "Understand why accidents happen and how to investigate them"
+  ],
+  "assess": "A workplace-based health and safety review at the end of the course.",
+  "notfor": "If you want a health and safety career, go straight to the General Certificate."
+ },
+ "le": {
+  "name": "NEBOSH HSE Certificate in Health and Safety Leadership Excellence",
+  "short": "Leadership Excellence",
+  "type": "Short course",
+  "url": "/nebosh-hse-certificate-in-leadership-excellence/",
+  "length": "1 day live online",
+  "price": 250,
+  "fin": false,
+  "who": "One day for directors, owners and senior leaders.",
+  "why": [
+   "One day for directors, owners and senior leaders",
+   "Developed with the HSE",
+   "Works best booked for a whole leadership team"
+  ],
+  "outcomes": [
+   "Understand your legal and moral leadership duties",
+   "See how leadership shapes safety culture",
+   "Leave with a plan for your own organisation"
+  ],
+  "assess": "A reflective statement during the day, with no exam.",
+  "notfor": "It's about leading safety culture, not managing day-to-day risk."
+ },
+ "mr": {
+  "name": "NEBOSH HSE Award in Managing Risks and Risk Assessment at Work",
+  "short": "Managing Risks and Risk Assessment",
+  "type": "Award",
+  "url": "/nebosh-hse-managing-risks-at-work/",
+  "length": "E-learning or 1 day live",
+  "price": 415,
+  "fin": false,
+  "who": "For anyone who manages health and safety risks or carries out risk assessments.",
+  "why": [
+   "Practical, proportionate risk assessment the way the HSE recommends",
+   "Start today online, or spend one day with a tutor",
+   "A good first step towards the General Certificate"
+  ],
+  "outcomes": [
+   "Identify the hazards that matter",
+   "Assess risk in a sensible, proportionate way",
+   "Choose controls and record them properly"
+  ],
+  "assess": null,
+  "notfor": "It's an award, not a professional health and safety qualification."
+ },
+ "ii": {
+  "name": "NEBOSH HSE Introduction to Incident Investigation",
+  "short": "Incident Investigation",
+  "type": "Short course",
+  "url": "/nebosh-course-incident-investigation/",
+  "length": "1 day live online",
+  "price": 270,
+  "fin": false,
+  "who": "For supervisors, safety reps and anyone who investigates incidents.",
+  "why": [
+   "For supervisors, safety reps and anyone who investigates incidents",
+   "One day, live online",
+   "Assessed on a realistic set of incident evidence"
+  ],
+  "outcomes": [
+   "Investigate straightforward incidents yourself",
+   "Gather evidence and interview witnesses well",
+   "Write actions that stop it happening again"
+  ],
+  "assess": "A practical review of incident evidence, ending in an action plan.",
+  "notfor": "It's an introduction, so for complex investigations combine it with the General Certificate."
+ },
+ "ms": {
+  "name": "NEBOSH HSE Certificate in Managing Stress at Work",
+  "short": "Managing Stress at Work",
+  "type": "Short course",
+  "url": "/nebosh-hse-certificate-in-managing-stress-at-work/",
+  "length": "E-learning or live",
+  "price": 320,
+  "fin": false,
+  "who": "For line managers, HR teams and health and safety practitioners.",
+  "why": [
+   "For line managers, HR teams and health and safety practitioners",
+   "Uses the HSE Management Standards",
+   "Start today online, or learn with a tutor"
+  ],
+  "outcomes": [
+   "Recognise the early signs of work-related stress",
+   "Assess stress risk with the HSE Management Standards",
+   "Plan practical interventions"
+  ],
+  "assess": null,
+  "notfor": "It's about organisational stress risk, not counselling individuals."
+ },
+ "mh": {
+  "name": "NEBOSH HSE Certificate in Manual Handling Risk Assessment",
+  "short": "Manual Handling Risk Assessment",
+  "type": "Short course",
+  "url": "/nebosh-hse-manual-handling-risk-assessment/",
+  "length": "E-learning or live",
+  "price": 320,
+  "fin": false,
+  "who": "For safety champions, supervisors and occupational health teams.",
+  "why": [
+   "For safety champions, supervisors and occupational health teams",
+   "Uses the HSE's own assessment tools",
+   "Start today online, or learn with a tutor"
+  ],
+  "outcomes": [
+   "Assess manual handling tasks with recognised HSE tools",
+   "Spot the factors that cause musculoskeletal injuries",
+   "Recommend practical controls"
+  ],
+  "assess": "A practical task: assess a filmed manual handling activity using the HSE's tools.",
+  "notfor": "It's about assessing tasks, not lifting technique training for operatives."
+ },
+ "wwb": {
+  "name": "NEBOSH Working with Wellbeing",
+  "short": "Working with Wellbeing",
+  "type": "Short course",
+  "url": "/working-with-wellbeing-nebosh/",
+  "length": "E-learning or live",
+  "price": 150,
+  "fin": false,
+  "who": "For managers, HR and anyone supporting people at work.",
+  "why": [
+   "For managers, HR and anyone supporting people at work",
+   "Built on the NEBOSH wellbeing tree",
+   "Start today online, or learn with a tutor"
+  ],
+  "outcomes": [
+   "Understand the factors that shape wellbeing at work",
+   "Review how your organisation is doing",
+   "Plan and measure three practical initiatives"
+  ],
+  "assess": "A two-part written task: review your workplace, then plan three wellbeing initiatives.",
+  "notfor": "It's about workplace wellbeing, not mental health first aid."
+ },
+ "ea": {
+  "name": "NEBOSH Award in Environmental Awareness at Work",
+  "short": "Environmental Awareness",
+  "type": "Award",
+  "url": "/nebosh-award-environmental-awareness/",
+  "length": "E-learning or live",
+  "price": 300,
+  "fin": false,
+  "who": "An introduction for team leaders, supervisors and facilities staff.",
+  "why": [
+   "An introduction for team leaders, supervisors and facilities staff",
+   "Start today online, or learn with a tutor",
+   "Leads on to the Environmental Management Certificate"
+  ],
+  "outcomes": [
+   "Understand how everyday work affects the environment",
+   "Know your part in an environmental management system",
+   "Respond to environmental incidents"
+  ],
+  "assess": "An online multiple-choice assessment.",
+  "notfor": "If you manage environmental performance, take the Environmental Management Certificate."
+ }
+};
+
+  var ROLES = [
+    ["site", "a site operative or tradesperson"],
+    ["sitemgr", "a site supervisor or manager"],
+    ["hs", "working in health and safety"],
+    ["mgr", "a manager, or in HR or facilities"],
+    ["leader", "a director or senior leader"],
+    ["process", "in a process or high-hazard industry"],
+    ["env", "in an environmental or sustainability role"],
+    ["other", "in another role outside construction"]
+  ];
+  var GOALS = [
+    ["career", "start or build a career in health and safety"],
+    ["moveup", "move up into site management"],
+    ["manage", "manage health and safety in my team"],
+    ["culture", "lead a safer culture"],
+    ["risk", "get on top of a specific risk"],
+    ["env", "improve environmental performance"],
+    ["team", "train my team"]
+  ];
+  var RISKS = [
+    ["fire", "fire safety"], ["ra", "risk assessment"], ["inc", "investigating incidents"],
+    ["mh", "manual handling"], ["stress", "work-related stress"], ["wb", "wellbeing"], ["process", "process safety"]
+  ];
+  var RISK_COURSE = { fire: "fire", ra: "mr", inc: "ii", mh: "mh", stress: "ms", wb: "wwb", process: "psm" };
+
+  // One rules table for the hub (keep in step with the course pages' "is this right for you" verdicts)
+  function recommend(role, goal, risk) {
+    var site = role === "site" || role === "sitemgr";
+    if (goal === "risk") {
+      var p = RISK_COURSE[risk];
+      return p ? { main: p, alt: p === "mr" ? "hsw" : "mr" } : null;
+    }
+    if (goal === "career") {
+      if (site) return { main: "cn", alt: "ngc" };
+      if (role === "process") return { main: "ngc", alt: "psm" };
+      if (role === "env") return { main: "ngc", alt: "emc" };
+      return { main: "ngc", alt: "cn" };
+    }
+    if (goal === "moveup") return site ? { main: "cn", alt: "ngc" } : { main: "ngc", alt: "cn" };
+    if (goal === "manage") {
+      if (site) return { main: "cn", alt: "hsw" };
+      if (role === "leader") return { main: "le", alt: "hsw" };
+      if (role === "process") return { main: "psm", alt: "mr" };
+      return { main: "hsw", alt: "ngc" };
+    }
+    if (goal === "culture") return { main: "le", alt: "hsw" };
+    if (goal === "env") return role === "env" ? { main: "emc", alt: "ea" } : { main: "ea", alt: "emc" };
+    if (goal === "team") {
+      if (site) return { main: "cn", alt: "mr", team: true };
+      if (role === "leader") return { main: "le", alt: "hsw", team: true };
+      if (role === "process") return { main: "psm", alt: "mr", team: true };
+      if (role === "env") return { main: "emc", alt: "ea", team: true };
+      return { main: "hsw", alt: "mr", team: true };
+    }
+    return null;
+  }
+
+  var CSS = [
+    /* Matcher */
+    ".nbm{--n:#1d2560;--o:#ff8c04;--bg:#f4f5f9;--mut:#565c75;--ln:#dcdfea;--ns:#e7e9f3;color:#1b1f33;font-size:17px;line-height:1.55}",
+    ".nbm *{box-sizing:border-box}",
+    ".nbm-q{background:#fff;border:1px solid var(--ln);border-radius:14px;padding:26px 28px;font-size:22px;line-height:2.1;color:var(--n);font-weight:700}",
+    ".nbm-q label{display:inline}",
+    ".nbm-sel{position:relative;display:inline-block;margin:0 4px;vertical-align:middle}",
+    ".nbm-sel select{-webkit-appearance:none;appearance:none;font:inherit;font-size:18px;font-weight:700;color:var(--n);background:var(--bg);border:2px solid var(--ln);border-radius:30px;padding:6px 40px 6px 18px;cursor:pointer;max-width:100%;line-height:1.4}",
+    ".nbm-sel select:focus-visible{outline:3px solid var(--o);outline-offset:2px}",
+    ".nbm-sel.set select{border-color:var(--o);background:#fff6ea}",
+    ".nbm-sel::after{content:'';position:absolute;right:16px;top:50%;width:8px;height:8px;border-right:2px solid var(--n);border-bottom:2px solid var(--n);transform:translateY(-70%) rotate(45deg);pointer-events:none}",
+    ".nbm-risk{display:none}.nbm-risk.on{display:inline}",
+    ".nbm-hint{margin:14px 0 0;font-size:15px;color:var(--mut);font-weight:400;line-height:1.5}",
+    ".nbm-res{margin-top:22px;display:none}.nbm-res.on{display:block}",
+    ".nbm-card{background:#fff;border:1px solid var(--ln);border-left:6px solid var(--o);border-radius:14px;padding:28px 30px}",
+    ".nbm-tag{display:inline-block;background:var(--n);color:#fff;font-size:13px;font-weight:700;border-radius:30px;padding:3px 12px;margin-bottom:10px}",
+    ".nbm-card h3{color:var(--n);font-size:26px;line-height:1.25;margin:0 0 12px}",
+    ".nbm-facts{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px}",
+    ".nbm-facts span{background:var(--ns);color:var(--n);font-size:14px;font-weight:700;border-radius:30px;padding:5px 14px}",
+    ".nbm-cols{display:grid;grid-template-columns:1fr 1fr;gap:24px}",
+    "@media(max-width:760px){.nbm-cols{grid-template-columns:1fr}.nbm-q{font-size:19px;padding:20px}.nbm-sel{display:block;margin:6px 0}.nbm-sel select{width:100%}}",
+    ".nbm-card h4{color:var(--n);font-size:17px;margin:0 0 8px}",
+    ".nbm-card ul{margin:0;padding-left:1.15em}.nbm-card li{margin:0 0 6px;color:#1b1f33}",
+    ".nbm-note{background:var(--bg);border-radius:10px;padding:12px 16px;margin:18px 0 0;font-size:15px;color:var(--mut)}",
+    ".nbm-note b{color:var(--n)}",
+    ".nbm-btns{display:flex;flex-wrap:wrap;gap:12px;margin-top:22px}",
+    ".nbm-btn{display:inline-block;font-weight:700;font-size:16px;border-radius:30px;padding:12px 26px;text-decoration:none!important;border:2px solid var(--n)}",
+    ".nbm-btn.or{background:var(--o);border-color:var(--o);color:#1b1f33!important}",
+    ".nbm-btn.nv{background:var(--n);color:#fff!important}",
+    ".nbm-btn.gh{background:#fff;color:var(--n)!important}",
+    ".nbm-btn:focus-visible{outline:3px solid var(--o);outline-offset:2px}",
+    ".nbm-alt{margin-top:16px;background:#fff;border:1px dashed var(--ln);border-radius:12px;padding:16px 20px;font-size:16px}",
+    ".nbm-alt a{color:var(--n);font-weight:700}",
+    ".nbm-reset{background:none;border:0;color:var(--mut);text-decoration:underline;cursor:pointer;font:inherit;font-size:15px;margin-top:14px;padding:0}",
+    /* Course explorer cards */
+    ".nbx-group{margin:0 0 34px}",
+    ".nbx-group>p{margin:0 0 16px}",
+    "details.nbx-course{background:#fff;border:1px solid #dcdfea;border-radius:12px;margin:0 0 12px;overflow:hidden}",
+    "details.nbx-course[open]{border-color:#1d2560}",
+    ".nbx-course summary{list-style:none;cursor:pointer;display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding:18px 22px}",
+    ".nbx-course summary::-webkit-details-marker{display:none}",
+    ".nbx-course summary:focus-visible{outline:3px solid #ff8c04;outline-offset:-3px}",
+    ".nbx-name{flex:1 1 320px;color:#1d2560;font-weight:700;font-size:18px;line-height:1.35}",
+    ".nbx-meta{display:flex;flex-wrap:wrap;gap:8px}",
+    ".nbx-meta span{background:#e7e9f3;color:#1d2560;font-size:14px;font-weight:700;border-radius:30px;padding:4px 12px;white-space:nowrap}",
+    ".nbx-meta span.pr{background:#fff6ea;color:#8a4b00}",
+    ".nbx-course summary::after{content:'+';font-size:28px;line-height:1;color:#ff8c04;font-weight:700;flex:none}",
+    ".nbx-course[open] summary::after{content:'\\2212'}",
+    ".nbx-body{padding:0 22px 22px;display:grid;grid-template-columns:1fr 1fr;gap:20px 28px;border-top:1px solid #e7e9f3;padding-top:18px}",
+    "@media(max-width:760px){.nbx-body{grid-template-columns:1fr}}",
+    ".nbx-body h4{color:#1d2560;font-size:16px;margin:0 0 6px}",
+    ".nbx-body p{margin:0;color:#3a3f55;font-size:16px}",
+    ".nbx-body ul{margin:0;padding-left:1.15em;color:#3a3f55;font-size:16px}",
+    ".nbx-body li{margin:0 0 4px}",
+    ".nbx-wide{grid-column:1/-1}",
+    ".nbx-links{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:12px}",
+    /* Comparison table and FAQs */
+    ".nbx-tw{overflow-x:auto;border-radius:12px;margin-top:20px;border:1px solid #dcdfea;background:#fff}",
+    ".nbx-tw table{border-collapse:collapse;width:100%;min-width:640px;background:#fff;margin:0}",
+    ".nbx-tw th,.nbx-tw td{padding:14px 16px;text-align:left;border-bottom:1px solid #dcdfea;vertical-align:top;font-size:16px;color:#1b1f33}",
+    ".nbx-tw thead th{background:#1d2560;color:#fff;font-weight:700}",
+    ".nbx-tw tbody th{background:#f4f5f9;color:#1d2560;font-weight:700}",
+    ".nbx-tw tr:last-child td,.nbx-tw tr:last-child th{border-bottom:0}",
+    ".nbx-faq details{border-bottom:1px solid #dcdfea;padding:18px 0}",
+    ".nbx-faq details:first-of-type{border-top:1px solid #dcdfea}",
+    ".nbx-faq summary{cursor:pointer;font-weight:700;font-size:18px;color:#1d2560;list-style:none;display:flex;justify-content:space-between;gap:16px}",
+    ".nbx-faq summary::-webkit-details-marker{display:none}",
+    ".nbx-faq summary::after{content:'+';font-size:26px;line-height:1;color:#ff8c04;flex:none}",
+    ".nbx-faq details[open] summary::after{content:'\\2212'}",
+    ".nbx-faq details p{margin:10px 0 0;color:#565c75}",
+    "@media(prefers-reduced-motion:reduce){.nbm *,.nbx-course *{transition:none!important}}"
+  ].join("");
+
+  function injectCss() {
+    if (document.getElementById("nbx-css")) return;
+    var s = document.createElement("style"); s.id = "nbx-css"; s.textContent = CSS;
+    document.head.appendChild(s);
+  }
+  function el(t, c, txt) { var e = document.createElement(t); if (c) e.className = c; if (txt != null) e.textContent = txt; return e; }
+  function money(n) { return "£" + n.toLocaleString("en-GB"); }
+  function select(id, label, opts) {
+    var w = el("span", "nbm-sel");
+    var s = el("select"); s.id = id; s.setAttribute("aria-label", label);
+    var o0 = el("option", null, "choose..."); o0.value = ""; s.appendChild(o0);
+    opts.forEach(function (o) { var op = el("option", null, o[1]); op.value = o[0]; s.appendChild(op); });
+    w.appendChild(s); return w;
+  }
+  function btn(href, cls, txt) { var a = el("a", "nbm-btn " + cls, txt); a.href = href; return a; }
+
+  function mount(root, idx) {
+    if (root._nbm) return; root._nbm = true;
+    root.classList.add("nbm"); root.innerHTML = "";
+    var uid = "nbm" + idx + "-";
+    var q = el("div", "nbm-q"); root.appendChild(q);
+    q.appendChild(document.createTextNode("I'm "));
+    var sRole = select(uid + "role", "Your role", ROLES); q.appendChild(sRole);
+    q.appendChild(document.createTextNode(" and I want to "));
+    var sGoal = select(uid + "goal", "What you want to achieve", GOALS); q.appendChild(sGoal);
+    var riskWrap = el("span", "nbm-risk"); riskWrap.appendChild(document.createTextNode(", mainly "));
+    var sRisk = select(uid + "risk", "Which risk", RISKS); riskWrap.appendChild(sRisk); q.appendChild(riskWrap);
+    q.appendChild(document.createTextNode("."));
+    q.appendChild(el("p", "nbm-hint", "Pick both and your recommended course appears straight away. No email needed."));
+    var res = el("div", "nbm-res"); res.setAttribute("aria-live", "polite"); root.appendChild(res);
+
+    var selects = [sRole, sGoal, sRisk];
+    selects.forEach(function (w) {
+      w.querySelector("select").addEventListener("change", function () { update(true); });
+    });
+
+    function update(track) {
+      var role = sRole.querySelector("select").value, goal = sGoal.querySelector("select").value;
+      var risk = goal === "risk" ? sRisk.querySelector("select").value : "";
+      selects.forEach(function (w) { w.classList.toggle("set", !!w.querySelector("select").value); });
+      riskWrap.classList.toggle("on", goal === "risk");
+      res.innerHTML = ""; res.classList.remove("on");
+      if (!role || !goal || (goal === "risk" && !risk)) return;
+      var r = recommend(role, goal, risk); if (!r) return;
+      render(r);
+      if (track) {
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({ event: "nebosh_matcher", matcher_role: role, matcher_goal: goal, matcher_risk: risk || "", matcher_course: r.main });
+      }
+    }
+
+    function render(r) {
+      var c = C[r.main], a = C[r.alt];
+      var card = el("div", "nbm-card");
+      card.appendChild(el("span", "nbm-tag", "Our recommendation"));
+      card.appendChild(el("h3", null, c.name));
+      var facts = el("div", "nbm-facts");
+      [c.type, c.length, "From " + money(c.price) + " + VAT"].concat(c.fin ? ["0% finance over 10 months"] : [])
+        .forEach(function (f) { facts.appendChild(el("span", null, f)); });
+      card.appendChild(facts);
+      var cols = el("div", "nbm-cols"); card.appendChild(cols);
+      var c1 = el("div"); c1.appendChild(el("h4", null, "Why it fits")); var u1 = el("ul");
+      c.why.forEach(function (w) { u1.appendChild(el("li", null, w)); }); c1.appendChild(u1); cols.appendChild(c1);
+      var c2 = el("div"); c2.appendChild(el("h4", null, "You'll be able to")); var u2 = el("ul");
+      c.outcomes.forEach(function (w) { u2.appendChild(el("li", null, w)); }); c2.appendChild(u2); cols.appendChild(c2);
+      if (c.assess) {
+        var n1 = el("p", "nbm-note"); n1.appendChild(el("b", null, "How you're assessed: ")); n1.appendChild(document.createTextNode(c.assess)); card.appendChild(n1);
+      }
+      var n2 = el("p", "nbm-note"); n2.appendChild(el("b", null, "Worth knowing: ")); n2.appendChild(document.createTextNode(c.notfor)); card.appendChild(n2);
+      if (r.team) {
+        var n3 = el("p", "nbm-note"); n3.appendChild(el("b", null, "Booking for a team? ")); n3.appendChild(document.createTextNode("Call us on 020 3488 4472 for group pricing, or ask about running the course in-house.")); card.appendChild(n3);
+      }
+      var b = el("div", "nbm-btns");
+      b.appendChild(btn(SITE + c.url, "or", "View the " + c.short));
+      b.appendChild(btn(SITE + "/contact/", "nv", "Enquire now"));
+      card.appendChild(b);
+      res.appendChild(card);
+      var alt = el("div", "nbm-alt");
+      alt.appendChild(document.createTextNode("Also worth a look: "));
+      var al = el("a", null, a.name); al.href = SITE + a.url; alt.appendChild(al);
+      alt.appendChild(document.createTextNode(". " + a.who));
+      res.appendChild(alt);
+      var rs = el("button", "nbm-reset", "Start again"); rs.type = "button";
+      rs.addEventListener("click", function () {
+        selects.forEach(function (w) { w.querySelector("select").value = ""; }); update(false);
+        sRole.querySelector("select").focus();
+      });
+      res.appendChild(rs);
+      res.classList.add("on");
+    }
+  }
+
+  function init() {
+    injectCss();
+    Array.prototype.forEach.call(document.querySelectorAll(".cst-nebosh-matcher"), function (r, i) { mount(r, i); });
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
+  // Re-mount if the theme re-renders page content
+  if (window.MutationObserver) new MutationObserver(function () {
+    if (!document.getElementById("nbx-css")) injectCss();
+    Array.prototype.forEach.call(document.querySelectorAll(".cst-nebosh-matcher"), function (r, i) { if (!r._nbm || !r.firstChild) { r._nbm = false; mount(r, i); } });
+  }).observe(document.documentElement, { childList: true, subtree: true });
+})();
