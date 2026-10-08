@@ -1,5 +1,5 @@
 /*!
- * CST Training NEBOSH hub (v2: redesigned course cards with navy headers; stats band styles)
+ * CST Training NEBOSH hub (v4: equal card heights handled by CSS, re-measured on any size change)
  * Host on GitHub Pages, load with ?v=N cache buster.
  * Mount point: <div class="cst-nebosh-matcher"></div>
  * WordPress strips <style> tags from page content, so this script also injects the hub's page CSS.
@@ -413,7 +413,8 @@
     ".nbx-gh{border-left:6px solid #ff8c04;padding:2px 0 2px 16px;margin:34px 0 18px}",
     ".nbx-gh h3.nbx-gt{color:#1d2560!important;font-size:26px!important;line-height:1.25!important;margin:0 0 4px!important}",
     ".nbx-gh p.nbx-gp{margin:0!important;color:#565c75;font-size:16px}",
-    ".nbx-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;align-items:start}",
+    ".nbx-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;align-items:stretch}",
+    ".nbx-grid:has(details[open]){align-items:start}",
     ".nbx-cc{background:#fff;border:1px solid #dcdfea;border-radius:14px;overflow:hidden;display:flex;flex-direction:column}",
     ".nbx-cc-top{background:#1d2560;padding:18px 20px 16px;border-bottom:4px solid #ff8c04}",
     ".nbx-cc-top p.nbx-cc-type{color:#ff8c04!important;font-weight:700;font-size:14px!important;margin:0 0 4px!important;line-height:1.3}",
@@ -554,8 +555,36 @@
     }
   }
 
+  // Give closed cards in the same row the same height, so "What you'll learn" and the buttons line up.
+  // An opened card grows on its own without stretching its neighbours.
+  function equalise() {
+    Array.prototype.forEach.call(document.querySelectorAll(".nbx-grid"), function (g) {
+      var cards = Array.prototype.slice.call(g.querySelectorAll(".nbx-cc"));
+      cards.forEach(function (c) { c.style.minHeight = ""; });
+      if (!g.querySelector("details[open]")) return;
+      var rows = {};
+      cards.forEach(function (c) { (rows[c.offsetTop] = rows[c.offsetTop] || []).push(c); });
+      Object.keys(rows).forEach(function (k) {
+        var max = 0;
+        rows[k].forEach(function (c) { var d = c.querySelector("details"); if (!d || !d.open) max = Math.max(max, c.offsetHeight); });
+        if (max) rows[k].forEach(function (c) { c.style.minHeight = max + "px"; });
+      });
+    });
+  }
+  var eqTimer;
+  function equaliseSoon() { clearTimeout(eqTimer); eqTimer = setTimeout(equalise, 60); }
+
   function init() {
     injectCss();
+    equalise();
+    window.addEventListener("resize", equaliseSoon);
+    window.addEventListener("load", equalise);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(equalise);
+    if (window.ResizeObserver) {
+      var ro = new ResizeObserver(equaliseSoon);
+      Array.prototype.forEach.call(document.querySelectorAll(".nbx-grid"), function (g) { ro.observe(g); });
+    }
+    document.addEventListener("toggle", function (e) { if (e.target.closest && e.target.closest(".nbx-cc")) equalise(); }, true);
     Array.prototype.forEach.call(document.querySelectorAll(".cst-nebosh-matcher"), function (r, i) { mount(r, i); });
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
