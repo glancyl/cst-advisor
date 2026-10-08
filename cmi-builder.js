@@ -1,5 +1,5 @@
 /*!
- * CST Training CMI unit builder widget (v3: centred enquiry form)
+ * CST Training CMI unit builder widget (v4: Coaching and Mentoring Level 3 and Level 7)
  * Separate from ilm-builder.js so the live ILM pages can't break.
  * Host on GitHub Pages, load with ?v=N cache buster (N matches this version).
  *
@@ -14,10 +14,16 @@
  *   data-form-guid   optional, HubSpot form GUID (defaults to FORM_GUID below)
  *   data-phone       optional, phone number shown on the call button
  *
+ * Coaching and Mentoring comparison (mandatory units plus optional units):
+ * <div class="cst-cmi-builder" data-quals="cm3,cm7" data-qual="cm3"></div>
+ *   data-quals       comma list of keys from COACH (2+ shows a switcher)
+ *   data-qual        which one is selected first
+ *
  * Version log
  *   v1  CMI Level 5 Award, Certificate and Diploma in Management and Leadership
  *   v2  CMI Level 3 and Level 7 Diplomas, level switcher, Group A minimum for Level 7
  *   v3  Enquiry form centred on the page
+ *   v4  CMI Level 3 Diploma in Coaching and Mentoring and Level 7 Diploma in Leadership Coaching and Mentoring
  */
 (function () {
   "use strict";
@@ -721,6 +727,343 @@
     render();
   }
 
+  /* ---------- Coaching and Mentoring (v4) ----------
+   * Fixed mandatory units plus optional units to a minimum credit total.
+   * Mount: <div class="cst-cmi-builder" data-quals="cm3,cm7" data-qual="cm3"></div>
+   * Each unit is [code, title, credits, short description, mandatory?, focus label].
+   */
+  var COACH = {
+    // Source: Level3_CMICoachingandMentoring_Handbook_v1 (Feb 2024)
+    cm3: {
+      tab: "Level 3 Diploma",
+      short: "Level 3 Diploma",
+      title: "CMI Level 3 Diploma in Coaching and Mentoring",
+      optMin: 7,
+      fallback: ["4004", "4003", "4008", "3016"],
+      units: [
+        ["3011", "Principles, skills and impact of coaching and mentoring", 7, "The core principles and skills of coaching and mentoring, and the difference they make.", true],
+        ["3012", "Coaching and mentoring for individual and team needs", 6, "Work out what individuals and teams need, and how coaching and mentoring can meet it.", true],
+        ["3013", "Coaching and mentoring relationships", 5, "Build and manage effective coaching and mentoring relationships.", true],
+        ["3014", "Coaching and mentoring processes", 7, "Plan and run coaching and mentoring sessions using a clear process.", true],
+        ["3015", "Completing the coaching and mentoring process", 5, "Bring a coaching or mentoring programme to a close and review it.", true],
+        ["3016", "Coaching and mentoring process evaluation", 5, "Evaluate how well your coaching and mentoring has worked.", false, "Evaluating results"],
+        ["4003", "Understanding organisational culture, values and behaviour", 7, "How culture and values shape behaviour where you work.", false, "Culture and values"],
+        ["4004", "Understanding team dynamics", 7, "How teams form and work together, and how to get the best from them.", false, "Team dynamics"],
+        ["4008", "Promoting equality and diversity", 7, "Promote fair, inclusive practice in your team.", false, "Equality and diversity"]
+      ]
+    },
+    // Source: Level7_CMILeadershipCoachingandMentoring_Handbook_v1 (Feb 2024)
+    cm7: {
+      tab: "Level 7 Diploma",
+      short: "Level 7 Diploma",
+      title: "CMI Level 7 Diploma in Leadership Coaching and Mentoring",
+      optMin: 7,
+      fallback: ["7019", "7010", "6001", "6004"],
+      units: [
+        ["7015", "Coaching and mentoring within organisational culture", 7, "How coaching and mentoring fit with, and shape, the culture of your organisation.", true],
+        ["7016", "Coaching and mentoring policies", 6, "Develop the policies that govern coaching and mentoring across the organisation.", true],
+        ["7017", "Organisational coaching and mentoring", 6, "Design coaching and mentoring at organisational level.", true],
+        ["7018", "Strategic impact of coaching and mentoring", 6, "Measure and show the strategic value of coaching and mentoring.", true],
+        ["7002", "Developing performance management strategies", 7, "Build strategies that improve performance across the organisation.", true],
+        ["7020", "Leadership coaching and mentoring skills", 7, "The advanced coaching and mentoring skills needed by senior leaders.", true],
+        ["7019", "Embedding coaching and mentoring in the organisation", 7, "Make coaching and mentoring part of how the organisation works.", false, "Embedding coaching"],
+        ["7010", "Implementing organisational change strategies", 7, "Lead change strategies through the organisation.", false, "Leading change"],
+        ["6001", "Managing organisational culture", 7, "Understand and influence the culture of your organisation.", false, "Organisational culture"],
+        ["6004", "Leading equality and diversity", 7, "Lead equality, diversity and inclusion at a senior level.", false, "Equality and diversity"]
+      ]
+    }
+  };
+
+  function cr(n) { return n + " credit" + (n === 1 ? "" : "s"); }
+
+  var COACH_STATES = {};
+
+  function mountCoaching(root, idx) {
+    var keys = (root.getAttribute("data-quals") || root.getAttribute("data-qual") || "")
+      .split(",").map(function (k) { return k.trim(); }).filter(function (k) { return COACH[k]; });
+    if (!keys.length) return;
+    var first = root.getAttribute("data-qual");
+    var formGuid = root.getAttribute("data-form-guid") || FORM_GUID;
+    var phone = root.getAttribute("data-phone") || DEFAULT_PHONE;
+    var uid = "cmic" + idx + "-";
+
+    var stKey = keys.join(",") + "|" + idx;
+    var state = COACH_STATES[stKey] || (COACH_STATES[stKey] = {
+      qual: keys.indexOf(first) > -1 ? first : keys[0], picks: {}, focus: {}
+    });
+    keys.forEach(function (k) { state.picks[k] = state.picks[k] || []; state.focus[k] = state.focus[k] || []; });
+    root._cmibMounted = true;
+
+    var DATA = {};
+    keys.forEach(function (k) {
+      var Q = COACH[k];
+      var units = Q.units.map(function (u) { return { code: u[0], name: u[1], cr: u[2], desc: u[3], mand: !!u[4], focus: u[5] }; });
+      var by = {}; units.forEach(function (u) { by[u.code] = u; });
+      var mandCr = units.filter(function (u) { return u.mand; }).reduce(function (a, u) { return a + u.cr; }, 0);
+      DATA[k] = { Q: Q, units: units, by: by, mandCr: mandCr };
+    });
+    function D() { return DATA[state.qual]; }
+    function picks() { return state.picks[state.qual]; }
+    function optCr(list) { return list.reduce(function (a, c) { return a + D().by[c].cr; }, 0); }
+
+    root.classList.add("ilmb");
+    root.innerHTML = "";
+    var inner = el("div", "ilmb-in"); root.appendChild(inner);
+
+    var tabs = el("div", "ilmb-tabs");
+    if (keys.length > 1) {
+      var tabsWrap = el("div", "ilmb-tabwrap");
+      tabsWrap.appendChild(el("span", "ilmb-tablabel", "Choose your qualification:"));
+      tabs.setAttribute("role", "tablist"); tabs.setAttribute("aria-label", "Choose your qualification");
+      tabsWrap.appendChild(tabs); inner.appendChild(tabsWrap);
+      keys.forEach(function (k) {
+        var b = el("button", null, COACH[k].tab); b.type = "button"; b.setAttribute("role", "tab");
+        b.setAttribute("data-k", k);
+        b.addEventListener("click", function () { state.qual = k; build(); });
+        tabs.appendChild(b);
+      });
+    }
+
+    var h = el("h2"); inner.appendChild(h);
+    var lead = el("p", "ilmb-lead"); inner.appendChild(lead);
+
+    var evStrip = el("div", "ilmb-ev"); inner.appendChild(evStrip);
+    [
+      ["Assignments from your role", "Assignments, reports and work product, set by your trainer and tailored to your job at induction."],
+      ["Online portfolio", "Upload evidence, get feedback on every piece and track your progress at any time."],
+      ["1-1 tuition", "CST Training workbooks and pre-recorded material, alongside 1-1 sessions with your trainer."],
+      ["CMI Management Direct", "CMI's resources portal, open throughout and for 3 months after you finish."]
+    ].forEach(function (e) {
+      var c = el("div", "ilmb-evc");
+      c.appendChild(el("b", null, e[0]));
+      c.appendChild(el("span", null, e[1]));
+      evStrip.appendChild(c);
+    });
+
+    var grid = el("div", "ilmb-grid"); inner.appendChild(grid);
+    var left = el("div"); grid.appendChild(left);
+
+    var ladder = el("aside", "ilmb-ladder"); ladder.setAttribute("aria-live", "polite"); grid.appendChild(ladder);
+    var lt = el("div", "t"); ladder.appendChild(lt);
+    var lc = el("div", "ct"); ladder.appendChild(lc);
+    var bar = el("div", "ilmb-bar"); var barFill = el("i"); bar.appendChild(barFill); ladder.appendChild(bar);
+    var mMand = el("p", "ilmb-meter"); ladder.appendChild(mMand);
+    var mOpt = el("p", "ilmb-meter"); ladder.appendChild(mOpt);
+    var picksList = el("ul", "ilmb-picks"); ladder.appendChild(picksList);
+    var empty = el("p", "ilmb-empty", "No optional units picked yet. Tap one to add it."); ladder.appendChild(empty);
+    var hint = el("div", "ilmb-hint"); ladder.appendChild(hint);
+    var done = el("div", "ilmb-done"); ladder.appendChild(done);
+    var enqBtn2 = el("button", "ilmb-btn or ilmb-enq ilmb-enq-l", "Enquire now"); enqBtn2.type = "button"; ladder.appendChild(enqBtn2);
+    ladder.appendChild(el("p", "ilmb-note", "You can change units at induction. Nothing here is final."));
+
+    // Enquiry form, centred below the builder
+    var cta = el("div", "ilmb-cta"); cta.id = uid + "enquire"; inner.appendChild(cta);
+    function goToForm() {
+      cta.scrollIntoView({ behavior: "smooth", block: "start" });
+      setTimeout(function () { try { fFirst.focus({ preventScroll: true }); } catch (e) { fFirst.focus(); } }, 600);
+    }
+    enqBtn2.addEventListener("click", goToForm);
+    cta.appendChild(el("h2", null, "Send your picks to our team"));
+    cta.appendChild(el("p", "ilmb-lead", "We'll come back to you with a quote, and your induction is usually booked within 7 working days of registration."));
+    var form = el("form", "ilmb-form"); form.noValidate = true; cta.appendChild(form);
+    var fFirst = field(form, uid + "first", "First name", "text", { auto: "given-name" });
+    var fLast = field(form, uid + "last", "Last name", "text", { auto: "family-name" });
+    var fEmail = field(form, uid + "email", "Email", "email", { auto: "email" });
+    var fPhone = field(form, uid + "phone", "Phone", "tel", { auto: "tel" });
+    var fLearners = field(form, uid + "learners", "How many learners?", "select", { options: ["1", "2", "3", "4", "5", "6 to 10", "More than 10"] });
+    var fStart = field(form, uid + "start", "When would you like to start?", "select", { options: ["As soon as possible", "Within 1 month", "1 to 3 months", "3 months or more", "Not sure yet"] });
+    var fQ = field(form, uid + "q", "Any questions for us? (optional)", "textarea", { full: true });
+    var sumWrap = el("div", "fl"); sumWrap.appendChild(el("label", null, "What we'll receive"));
+    var sum = el("div", "ilmb-sum"); sumWrap.appendChild(sum); form.appendChild(sumWrap);
+    form.appendChild(el("p", "ilmb-consent", "We'll use these details to reply about your qualification. See our privacy policy at csttraining.co.uk."));
+    var brow = el("div", "fl ilmb-row"); form.appendChild(brow);
+    var sendBtn = el("button", "ilmb-btn or", "Send my picks to CST Training"); sendBtn.type = "submit"; brow.appendChild(sendBtn);
+    var call = el("a", "ilmb-btn ghost", "Or call " + phone); call.href = "tel:" + phone.replace(/\s/g, ""); brow.appendChild(call);
+    var status = el("p", "ilmb-status"); status.setAttribute("role", "status"); form.appendChild(status);
+    var thanks = el("div", "ilmb-thanks"); thanks.tabIndex = -1; cta.appendChild(thanks);
+    thanks.appendChild(el("h3", null, "Thanks, we've got your picks."));
+    thanks.appendChild(el("p", null, "Our team will be in touch shortly. If it's urgent, call " + phone + "."));
+
+    var unitBtns = {}, chipBtns = [], sugBtn, enqBtn;
+
+    function toggle(code) {
+      var p = picks(), ix = p.indexOf(code);
+      if (ix > -1) p.splice(ix, 1); else p.push(code);
+      render();
+    }
+
+    function suggest(scroll) {
+      var d = D(), p = [], f = state.focus[state.qual];
+      d.units.forEach(function (u) { if (!u.mand && f.indexOf(u.code) > -1) p.push(u.code); });
+      d.Q.fallback.forEach(function (c) { if (optCr(p) < d.Q.optMin && p.indexOf(c) < 0) p.push(c); });
+      state.picks[state.qual] = p;
+      render();
+      if (scroll) ladder.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    // Rebuild the unit list for the selected qualification
+    function build() {
+      left.innerHTML = ""; unitBtns = {}; chipBtns = [];
+      var d = D(), opt = d.units.filter(function (u) { return !u.mand; });
+
+      var sug = el("div", "ilmb-suggest"); left.appendChild(sug);
+      sug.appendChild(el("p", null, "Not sure which optional unit? Pick what matters most in your role and we'll suggest units that reach the " + d.Q.optMin + " credits you need."));
+      var chips = el("div", "ilmb-chips"); sug.appendChild(chips);
+      opt.forEach(function (u) {
+        var c = el("button", "ilmb-chip", u.focus); c.type = "button";
+        c.setAttribute("aria-pressed", state.focus[state.qual].indexOf(u.code) > -1 ? "true" : "false");
+        c.addEventListener("click", function () {
+          var f = state.focus[state.qual], ix = f.indexOf(u.code);
+          if (ix > -1) f.splice(ix, 1); else f.push(u.code);
+          c.setAttribute("aria-pressed", ix > -1 ? "false" : "true");
+          suggest(false);
+        });
+        chipBtns.push(c); chips.appendChild(c);
+      });
+      var row = el("div", "ilmb-row"); sug.appendChild(row);
+      sugBtn = el("button", "ilmb-btn", "Suggest units"); sugBtn.type = "button"; row.appendChild(sugBtn);
+      sugBtn.addEventListener("click", function () { suggest(true); });
+      var clr = el("button", "ilmb-btn ghost", "Clear picks"); clr.type = "button"; row.appendChild(clr);
+      clr.addEventListener("click", function () {
+        state.picks[state.qual] = []; state.focus[state.qual] = [];
+        chipBtns.forEach(function (c) { c.setAttribute("aria-pressed", "false"); });
+        render();
+      });
+      enqBtn = el("button", "ilmb-btn or ilmb-enq", "Enquire now"); enqBtn.type = "button"; row.appendChild(enqBtn);
+      enqBtn.addEventListener("click", goToForm);
+
+      [["Mandatory units (all included)", true], ["Optional units", false]].forEach(function (g) {
+        var box = el("div", "ilmb-group"); box.appendChild(el("h3", null, g[0]));
+        var ug = el("div", "ilmb-units");
+        d.units.filter(function (u) { return u.mand === g[1]; }).forEach(function (u) {
+          var b = el("button", "ilmb-unit" + (u.mand ? " lk" : "")); b.type = "button";
+          b.appendChild(el("span", "c", "Unit " + u.code + (u.mand ? " mandatory" : "")));
+          b.appendChild(el("span", "nm", u.name));
+          b.appendChild(el("span", "d", u.desc));
+          b.appendChild(el("span", "cr", cr(u.cr)));
+          if (u.mand) { b.setAttribute("aria-pressed", "true"); b.setAttribute("aria-disabled", "true"); }
+          else b.addEventListener("click", function () { toggle(u.code); });
+          unitBtns[u.code] = b; ug.appendChild(b);
+        });
+        box.appendChild(ug); left.appendChild(box);
+      });
+      render();
+    }
+
+    function qualName() { return D().Q.title; }
+    function allCodes() {
+      return D().units.filter(function (u) { return u.mand; }).map(function (u) { return u.code; }).concat(picks());
+    }
+    function summary() {
+      var d = D(), oc = optCr(picks());
+      var lines = [qualName() + ": unit picks", ""];
+      lines.push("Mandatory units (" + cr(d.mandCr) + "):");
+      d.units.forEach(function (u) { if (u.mand) lines.push("Unit " + u.code + " " + u.name); });
+      lines.push("");
+      lines.push("Optional units (" + cr(oc) + "):");
+      if (!picks().length) lines.push("(none picked yet)");
+      picks().forEach(function (c) { lines.push("Unit " + c + " " + d.by[c].name + " (" + cr(d.by[c].cr) + ")"); });
+      lines.push("");
+      lines.push("Total: " + cr(d.mandCr + oc));
+      lines.push("Learners: " + fLearners.value);
+      lines.push("Planned start: " + fStart.value);
+      return lines.join("\n");
+    }
+
+    function render() {
+      var d = D(), Q = d.Q, p = picks(), oc = optCr(p), ok = oc >= Q.optMin, total = d.mandCr + oc;
+      var nMand = d.units.filter(function (u) { return u.mand; }).length;
+      var nOpt = d.units.length - nMand;
+      h.textContent = "Build your " + Q.short;
+      lead.textContent = "The " + Q.title + " includes " + nMand + " mandatory units worth " + d.mandCr +
+        " credits. You then choose from " + nOpt + " optional units to add at least " + Q.optMin +
+        " more credits. Pick the ones closest to the work you already do, and your assessor confirms the final choice with you at induction.";
+      Array.prototype.forEach.call(tabs.children, function (t) {
+        t.setAttribute("aria-selected", t.getAttribute("data-k") === state.qual ? "true" : "false");
+      });
+      d.units.forEach(function (u) {
+        if (u.mand) return;
+        unitBtns[u.code].setAttribute("aria-pressed", p.indexOf(u.code) > -1 ? "true" : "false");
+      });
+      lt.textContent = "Your " + Q.short;
+      lc.textContent = cr(total) + " in total";
+      barFill.style.width = Math.min(100, Math.round(oc / Q.optMin * 100)) + "%";
+      bar.classList.toggle("ok", ok);
+      mMand.innerHTML = ""; mMand.appendChild(document.createTextNode("Mandatory: "));
+      mMand.appendChild(el("b", null, cr(d.mandCr) + " included"));
+      mOpt.innerHTML = ""; mOpt.appendChild(document.createTextNode("Optional: "));
+      mOpt.appendChild(el("b", null, oc + " of at least " + Q.optMin + " credits"));
+
+      picksList.innerHTML = "";
+      p.forEach(function (c) {
+        var u = d.by[c], li = el("li", "ilmb-pick");
+        li.appendChild(el("span", null, u.name));
+        li.appendChild(el("em", null, u.cr + " cr"));
+        var x = el("button", null, "\u00d7"); x.type = "button"; x.setAttribute("aria-label", "Remove " + u.name);
+        x.addEventListener("click", function () { toggle(c); });
+        li.appendChild(x); picksList.appendChild(li);
+      });
+      empty.style.display = p.length ? "none" : "";
+      var need = Q.optMin - oc;
+      hint.textContent = p.length && need > 0 ? "Add " + cr(need) + " more from the optional units to complete your " + Q.short + "." : "";
+      hint.style.display = hint.textContent ? "" : "none";
+      done.textContent = "That's a complete " + Q.short + " at " + cr(total) + ". Send these picks to our team below.";
+      enqBtn.textContent = enqBtn2.textContent = "Enquire about this " + Q.short;
+      ladder.classList.toggle("full", ok);
+      root.classList.toggle("ilmb-full", ok);
+      sum.textContent = summary();
+    }
+
+    fLearners.addEventListener("change", render);
+    fStart.addEventListener("change", render);
+
+    form.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      var first = fFirst.value.trim(), last = fLast.value.trim(), email = fEmail.value.trim(), ph = fPhone.value.trim();
+      function err(t, f) { status.className = "ilmb-status err"; status.textContent = t; if (f) f.focus(); }
+      if (!first || !last) return err("Add your first and last name.", first ? fLast : fFirst);
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return err("Enter a valid email address so we can reply.", fEmail);
+      if (!ph) return err("Add a phone number so our team can talk your units through with you.", fPhone);
+
+      var q = fQ.value.trim(), d = D();
+      var fields = [
+        { name: "firstname", value: first },
+        { name: "lastname", value: last },
+        { name: "email", value: email },
+        { name: "phone", value: ph },
+        { name: "message", value: summary() + (q ? "\n\nQuestions:\n" + q : "") },
+        { name: "enquiry_qualification", value: qualName() },
+        { name: "enquiry_options_selected", value: allCodes().map(function (c) { return c + " " + d.by[c].name; }).join("; ") },
+        { name: "enquiry_learners", value: fLearners.value },
+        { name: "enquiry_start", value: fStart.value }
+      ];
+      var ctx = { pageUri: location.href, pageName: document.title };
+      var hutk = getCookie("hubspotutk"); if (hutk) ctx.hutk = hutk;
+
+      sendBtn.disabled = true; sendBtn.textContent = "Sending";
+      status.className = "ilmb-status"; status.textContent = "";
+
+      fetch("https://api.hsforms.com/submissions/v3/integration/submit/" + PORTAL_ID + "/" + formGuid, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fields: fields, context: ctx })
+      }).then(function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      }).then(function () {
+        try {
+          window.dataLayer = window.dataLayer || [];
+          window.dataLayer.push({ event: "course_builder_submit", enquiry_qualification: qualName(), enquiry_options: allCodes().join(";") });
+        } catch (e) {}
+        form.style.display = "none"; thanks.style.display = "block"; thanks.focus();
+      }).catch(function () {
+        sendBtn.disabled = false; sendBtn.textContent = "Send my picks to CST Training";
+        err("That didn't send. Please try again, or call " + phone + " and we'll take your picks over the phone.");
+      });
+    });
+
+    build();
+  }
+
   function init() {
     try {
       injectPageCss();
@@ -729,7 +1072,7 @@
       injectCss();
       Array.prototype.forEach.call(roots, function (r, i) {
         if (r._cmibMounted) return;
-        try { mount(r, i); } catch (e) { if (window.console) console.error("CMI builder:", e); }
+        try { if (r.hasAttribute("data-quals")) mountCoaching(r, i); else mount(r, i); } catch (e) { if (window.console) console.error("CMI builder:", e); }
       });
     } catch (e) {}
   }
