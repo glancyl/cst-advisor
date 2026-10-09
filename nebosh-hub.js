@@ -1,5 +1,5 @@
 /*!
- * CST Training NEBOSH hub (v4: equal card heights handled by CSS, re-measured on any size change)
+ * CST Training NEBOSH hub (v5: styles for the individual NEBOSH course pages)
  * Host on GitHub Pages, load with ?v=N cache buster.
  * Mount point: <div class="cst-nebosh-matcher"></div>
  * WordPress strips <style> tags from page content, so this script also injects the hub's page CSS.
@@ -446,6 +446,31 @@
     ".nbx-stat{border:2px solid rgba(255,255,255,.18);border-radius:14px;padding:24px 28px;text-align:center}",
     ".nbx-stat p.nbx-n{margin:0!important;color:#ff8c04!important;font-size:72px!important;line-height:1!important;font-weight:700}",
     ".nbx-stat p.nbx-d{margin:10px 0 0!important;color:#fff!important;font-size:19px;line-height:1.45}",
+    /* Individual course pages (v5) */
+    ".nbx-kf .nbx-cc-facts{grid-template-columns:1fr 1fr}",
+    ".nbx-kf .nbx-cc-fact{border-top:1px solid #e7e9f3}",
+    ".nbx-kf .nbx-cc-fact:nth-child(-n+2){border-top:0}",
+    ".nbx-kf .nbx-cc-fact:nth-child(odd){border-left:0}",
+    ".nbx-fit{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:10px}",
+    "@media(max-width:760px){.nbx-fit{grid-template-columns:1fr}}",
+    ".nbx-fit .nbx-cc-top.no{background:#565c75}",
+    "ul.nbx-check{list-style:none!important;margin:0!important;padding:16px 20px 20px!important}",
+    "ul.nbx-check li.nbx-ci{position:relative;padding:0 0 0 30px!important;margin:0 0 10px!important;font-size:16px;line-height:1.5;color:#3a3f55}",
+    "ul.nbx-check li.nbx-ci::before{content:'';position:absolute;left:4px;top:4px;width:8px;height:14px;border:solid #ff8c04;border-width:0 3px 3px 0;transform:rotate(45deg)}",
+    "ul.nbx-check.x li.nbx-ci::before{width:14px;height:3px;border:0;background:#565c75;transform:none;top:11px;left:2px}",
+    ".nbx-els{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin-top:10px}",
+    ".nbx-el{display:flex;align-items:center;gap:14px;background:#fff;border-radius:12px;padding:14px 16px}",
+    ".nbx-el p.nbx-eln{flex:none;width:40px;height:40px;border-radius:50%;background:#1d2560;color:#fff!important;font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center;margin:0!important}",
+    ".nbx-el p.nbx-elt{margin:0!important;color:#1d2560;font-weight:700;font-size:16px;line-height:1.35}",
+    ".nbx-steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:10px;counter-reset:nbs}",
+    ".nbx-step{background:#fff;border:1px solid #dcdfea;border-top:4px solid #ff8c04;border-radius:12px;padding:18px 18px 20px;counter-increment:nbs}",
+    ".nbx-step::before{content:counter(nbs);display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:#1d2560;color:#fff;font-weight:700;margin-bottom:10px}",
+    ".nbx-step p.nbx-sh{margin:0 0 4px!important;color:#1d2560;font-weight:700;font-size:17px}",
+    ".nbx-step p.nbx-st{margin:0!important;color:#3a3f55;font-size:15px;line-height:1.5}",
+    ".nbx-fmts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin:10px 0 30px}",
+    ".nbx-fmt{background:#1d2560;border-radius:12px;padding:20px 22px;border-bottom:4px solid #ff8c04}",
+    ".nbx-fmt p.nbx-fh{margin:0 0 4px!important;color:#ff8c04!important;font-weight:700;font-size:15px}",
+    ".nbx-fmt p.nbx-ft{margin:0!important;color:#fff!important;font-weight:700;font-size:19px;line-height:1.35}",
     /* Comparison table and FAQs */
     ".nbx-tw{overflow-x:auto;border-radius:12px;margin-top:20px;border:1px solid #dcdfea;background:#fff}",
     ".nbx-tw table{border-collapse:collapse;width:100%;min-width:640px;background:#fff;margin:0}",
