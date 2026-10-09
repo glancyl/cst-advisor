@@ -1,5 +1,5 @@
 /*!
- * CST Training NEBOSH hub (v10: dates search several title patterns; light blue selected tab)
+ * CST Training NEBOSH hub (v11: weekend format recognised in live dates)
  * Host on GitHub Pages, load with ?v=N cache buster.
  * Mount point: <div class="cst-nebosh-matcher"></div>
  * Live dates:  <div class="cst-nebosh-dates" data-search="NEBOSH Construction"></div>
@@ -610,9 +610,10 @@
   // ---------- Live course dates (v7) ----------
   // Reads WooCommerce products by search term and groups them by format, parsed from the title.
   var FORMATS = [
-    { id: "block",   label: "Two-week block",  test: function (t) { return !/classroom/i.test(t) && !/day.?release/i.test(t); }, note: "Online, Monday to Friday over 2 weeks" },
+    { id: "block",   label: "Two-week block",  test: function (t) { return !/classroom|weekend|day.?release/i.test(t); }, note: "Online, Monday to Friday over 2 weeks" },
     { id: "day",     label: "Day release",     test: function (t) { return /\(day release\)/i.test(t); },                         note: "Online, 1 day a week over 10 weeks" },
     { id: "twoday",  label: "Two-day release", test: function (t) { return /2 day day.?release/i.test(t); },                     note: "Online, 2 days a week over 5 weeks" },
+    { id: "weekend", label: "Weekend",         test: function (t) { return /weekend/i.test(t) && !/classroom/i.test(t); },     note: "Online at weekends" },
     { id: "class",   label: "Classroom",       test: function (t) { return /classroom/i.test(t); },                                note: "Classroom" }
   ];
   var MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
