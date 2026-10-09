@@ -1,5 +1,5 @@
 /*!
- * CST Training NEBOSH hub (v9: live dates survive the theme re-copying page content; load timeout)
+ * CST Training NEBOSH hub (v10: dates search several title patterns; light blue selected tab)
  * Host on GitHub Pages, load with ?v=N cache buster.
  * Mount point: <div class="cst-nebosh-matcher"></div>
  * Live dates:  <div class="cst-nebosh-dates" data-search="NEBOSH Construction"></div>
@@ -477,8 +477,8 @@
     /* Live dates (v7) */
     ".nbd{--n:#1d2560;--o:#ff8c04;color:#1b1f33}",
     ".nbd-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;margin:0 0 18px}",
-    ".nbd-tab{font:inherit;font-weight:700;font-size:15px;padding:9px 18px;border-radius:30px;border:2px solid #dcdfea;background:#fff;color:#1d2560;cursor:pointer}",
-    ".nbd-tab[aria-pressed=true]{background:#1d2560;border-color:#1d2560;color:#fff}",
+    ".nbd-tab{font:inherit;font-weight:700;font-size:15px;padding:9px 18px;border-radius:30px;border:2px solid #dcdfea;background:#fff!important;color:#1d2560!important;cursor:pointer}",
+    ".nbd-tab[aria-pressed=true]{background:#4c6bd8!important;border-color:#4c6bd8!important;color:#fff!important}",
     ".nbd-tab:focus-visible,.nbd-loc:focus-visible,.nbd-more:focus-visible{outline:3px solid #ff8c04;outline-offset:2px}",
     ".nbd-loc{font:inherit;font-size:15px;font-weight:700;color:#1d2560;padding:9px 14px;border-radius:30px;border:2px solid #ff8c04;background:#fff6ea}",
     ".nbd-list{display:flex;flex-direction:column;gap:10px}",
@@ -496,7 +496,6 @@
     ".nbd-msg a{color:#1d2560;font-weight:700}",
     /* Dark section (data-theme=\"dark\"): orange selected tab, white outline button */
     ".nbd.nbd-dark .nbd-tab{border-color:#fff}",
-    ".nbd.nbd-dark .nbd-tab[aria-pressed=true]{background:#ff8c04;border-color:#ff8c04;color:#1b1f33}",
     ".nbd.nbd-dark .nbd-more{background:transparent;border-color:#fff;color:#fff}",
     /* Comparison table and FAQs */
     ".nbx-tw{overflow-x:auto;border-radius:12px;margin-top:20px;border:1px solid #dcdfea;background:#fff}",
@@ -637,10 +636,17 @@
     };
   }
   var FETCHES = {};
-  function fetchAll(base, search) {
+  function fetchOne(base, search) {
     var k = base + "|" + search;
     if (!FETCHES[k]) FETCHES[k] = fetchPages(base, search).catch(function (e) { delete FETCHES[k]; throw e; });
     return FETCHES[k];
+  }
+  function fetchAll(base, searches) {
+    return Promise.all(searches.map(function (q) { return fetchOne(base, q); })).then(function (lists) {
+      var seen = {}, out = [];
+      lists.forEach(function (l) { (l || []).forEach(function (p) { if (!seen[p.id]) { seen[p.id] = 1; out.push(p); } }); });
+      return out;
+    });
   }
   function fetchPages(base, search) {
     var out = [], sep = base.indexOf("?") > -1 ? "&" : "?";
@@ -655,7 +661,8 @@
   function mountDates(root) {
     if (root._nbd) return; root._nbd = true;
     root.classList.add("nbd"); if (root.getAttribute("data-theme") === "dark") root.classList.add("nbd-dark"); root.innerHTML = "";
-    var search = root.getAttribute("data-search") || "NEBOSH Construction";
+    var searches = (root.getAttribute("data-search") || "NEBOSH Construction").split("|").map(function (x) { return x.trim(); }).filter(Boolean);
+    var must = (root.getAttribute("data-match") || "").split("|").map(function (x) { return x.trim().toLowerCase(); }).filter(Boolean);
     var base = root.getAttribute("data-endpoint") || "/wp-json/wc/store/v1/products";
     var vat = root.getAttribute("data-vat-label") || " + VAT";
     var fallback = root.getAttribute("data-fallback") || SITE + "/nebosh-course-type/";
@@ -711,8 +718,9 @@
     var today = new Date(); today.setHours(0, 0, 0, 0);
     var settled = false;
     setTimeout(function () { if (!settled && root.isConnected) msg("The dates are taking longer than usual to load."); }, 12000);
-    fetchAll(base, search).then(function (data) {
+    fetchAll(base, searches).then(function (data) {
       settled = true;
+      if (must.length) data = (data || []).filter(function (p) { var n = decode(p.name || "").toLowerCase(); return must.every(function (w) { return n.indexOf(w) > -1; }); });
       items = (data || []).map(parseProduct).filter(function (i) { return i && i.inStock && i.date >= today; })
         .sort(function (a, b) { return a.date - b.date; });
       if (!items.length) { msg("No upcoming dates are listed online right now."); return; }
