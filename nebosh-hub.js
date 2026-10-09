@@ -1,7 +1,10 @@
 /*!
- * CST Training NEBOSH hub (v5: styles for the individual NEBOSH course pages)
+ * CST Training NEBOSH hub (v7: live course dates from WooCommerce)
  * Host on GitHub Pages, load with ?v=N cache buster.
  * Mount point: <div class="cst-nebosh-matcher"></div>
+ * Live dates:  <div class="cst-nebosh-dates" data-search="NEBOSH Construction"></div>
+ *   Reads published WooCommerce products through the Store API. Product titles must follow
+ *   "Course name (format) | DD-MM-YYYY | Location". Fully booked and past dates are hidden.
  * WordPress strips <style> tags from page content, so this script also injects the hub's page CSS.
  */
 (function () {
@@ -13,7 +16,7 @@
   "short": "National General Certificate",
   "type": "Certificate",
   "url": "/nebosh-general-certificate-health-safety/",
-  "length": "10 days live online",
+  "length": "10 days online or classroom",
   "price": 1175,
   "fin": true,
   "who": "The usual first certificate for a career in health and safety, in any sector.",
@@ -35,7 +38,7 @@
   "short": "Construction Certificate",
   "type": "Certificate",
   "url": "/nebosh-health-safety-management-construction/",
-  "length": "10 days live online",
+  "length": "10 days online or classroom",
   "price": 1175,
   "fin": true,
   "who": "For site managers, supervisors and anyone moving into construction health and safety.",
@@ -45,11 +48,11 @@
    "SCQF Level 7, comparable to RQF Level 4"
   ],
   "outcomes": [
-   "Manage site risk, contractors and CDM duties with confidence",
-   "Spot and control the high-risk activities on a construction site",
-   "Move into a site health and safety adviser or site management role"
+   "Recognise, assess and control a range of common construction hazards",
+   "Develop safe systems of work and help manage contractors",
+   "Advise on the roles, competencies and duties under construction legislation"
   ],
-  "assess": "One 48-hour scenario-based exam taken at home, with no separate practical.",
+  "assess": "A digital, scenario-based exam taken directly with NEBOSH after your course, on a date you choose.",
   "notfor": "It doesn't meet the Tech IOSH requirement. If that's your goal, take the General Certificate."
  },
  "fire": {
@@ -471,6 +474,26 @@
     ".nbx-fmt{background:#1d2560;border-radius:12px;padding:20px 22px;border-bottom:4px solid #ff8c04}",
     ".nbx-fmt p.nbx-fh{margin:0 0 4px!important;color:#ff8c04!important;font-weight:700;font-size:15px}",
     ".nbx-fmt p.nbx-ft{margin:0!important;color:#fff!important;font-weight:700;font-size:19px;line-height:1.35}",
+    /* Live dates (v7) */
+    ".nbd{--n:#1d2560;--o:#ff8c04;color:#1b1f33}",
+    ".nbd-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;margin:0 0 18px}",
+    ".nbd-tab{font:inherit;font-weight:700;font-size:15px;padding:9px 18px;border-radius:30px;border:2px solid #dcdfea;background:#fff;color:#1d2560;cursor:pointer}",
+    ".nbd-tab[aria-pressed=true]{background:#1d2560;border-color:#1d2560;color:#fff}",
+    ".nbd-tab:focus-visible,.nbd-loc:focus-visible,.nbd-more:focus-visible{outline:3px solid #ff8c04;outline-offset:2px}",
+    ".nbd-loc{font:inherit;font-size:15px;font-weight:700;color:#1d2560;padding:9px 14px;border-radius:30px;border:2px solid #ff8c04;background:#fff6ea}",
+    ".nbd-list{display:flex;flex-direction:column;gap:10px}",
+    ".nbd-row{display:grid;grid-template-columns:150px 1fr auto auto;gap:14px 20px;align-items:center;background:#fff;border:1px solid #dcdfea;border-left:5px solid #ff8c04;border-radius:12px;padding:14px 18px}",
+    "@media(max-width:760px){.nbd-row{grid-template-columns:1fr auto}.nbd-row .nbd-what{grid-column:1/-1;order:-1}}",
+    ".nbd-date{font-weight:700;color:#1d2560;font-size:18px;line-height:1.2}",
+    ".nbd-date span{display:block;font-size:13px;font-weight:400;color:#565c75;margin-top:2px}",
+    ".nbd-what{font-size:16px;color:#1b1f33;line-height:1.35}",
+    ".nbd-what b{color:#1d2560}",
+    ".nbd-low{display:inline-block;margin-left:8px;font-size:13px;font-weight:700;color:#b35f00;background:#fff6ea;border-radius:30px;padding:2px 10px}",
+    ".nbd-price{font-weight:700;color:#1d2560;white-space:nowrap}",
+    ".nbd-row .nbx-btn{white-space:nowrap}",
+    ".nbd-more{display:block;margin:16px auto 0;font:inherit;font-weight:700;background:#fff;border:2px solid #1d2560;color:#1d2560;border-radius:30px;padding:10px 24px;cursor:pointer}",
+    ".nbd-msg{text-align:center;background:#fff;border:1px dashed #dcdfea;border-radius:12px;padding:18px;color:#565c75}",
+    ".nbd-msg a{color:#1d2560;font-weight:700}",
     /* Comparison table and FAQs */
     ".nbx-tw{overflow-x:auto;border-radius:12px;margin-top:20px;border:1px solid #dcdfea;background:#fff}",
     ".nbx-tw table{border-collapse:collapse;width:100%;min-width:640px;background:#fff;margin:0}",
@@ -580,6 +603,110 @@
     }
   }
 
+
+  // ---------- Live course dates (v7) ----------
+  // Reads WooCommerce products by search term and groups them by format, parsed from the title.
+  var FORMATS = [
+    { id: "block",   label: "Two-week block",  test: function (t) { return !/classroom/i.test(t) && !/day.?release/i.test(t); }, note: "Online, Monday to Friday over 2 weeks" },
+    { id: "day",     label: "Day release",     test: function (t) { return /\(day release\)/i.test(t); },                         note: "Online, 1 day a week over 10 weeks" },
+    { id: "twoday",  label: "Two-day release", test: function (t) { return /2 day day.?release/i.test(t); },                     note: "Online, 2 days a week over 5 weeks" },
+    { id: "class",   label: "Classroom",       test: function (t) { return /classroom/i.test(t); },                                note: "Classroom" }
+  ];
+  var MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  var DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+
+  function decode(s) { var t = document.createElement("textarea"); t.innerHTML = s; return t.value; }
+  function parseProduct(p) {
+    var name = decode(p.name || ""), parts = name.split("|").map(function (x) { return x.trim(); });
+    var m = /(\d{1,2})-(\d{1,2})-(\d{4})/.exec(parts[1] || name);
+    if (!m) return null;
+    var d = new Date(+m[3], +m[2] - 1, +m[1]);
+    var fmt = null;
+    for (var i = 0; i < FORMATS.length; i++) if (FORMATS[i].test(parts[0])) { fmt = FORMATS[i]; break; }
+    if (!fmt) return null;
+    var pr = p.prices || {}, mu = Math.pow(10, pr.currency_minor_unit == null ? 2 : pr.currency_minor_unit);
+    return {
+      id: p.id, date: d, fmt: fmt, loc: parts[2] || "",
+      price: pr.price ? Math.round(+pr.price / mu) : null,
+      inStock: p.is_in_stock !== false && p.is_purchasable !== false,
+      low: p.low_stock_remaining || null, url: p.permalink
+    };
+  }
+  function fetchAll(base, search) {
+    var out = [], sep = base.indexOf("?") > -1 ? "&" : "?";
+    function page(n) {
+      return fetch(base + sep + "search=" + encodeURIComponent(search) + "&per_page=100&page=" + n, { credentials: "same-origin" })
+        .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); var tp = +(r.headers.get("X-WP-TotalPages") || 1); return r.json().then(function (j) { return { j: j, tp: tp }; }); })
+        .then(function (res) { out = out.concat(res.j); return n < res.tp && n < 5 ? page(n + 1) : out; });
+    }
+    return page(1);
+  }
+
+  function mountDates(root) {
+    if (root._nbd) return; root._nbd = true;
+    root.classList.add("nbd"); root.innerHTML = "";
+    var search = root.getAttribute("data-search") || "NEBOSH Construction";
+    var base = root.getAttribute("data-endpoint") || "/wp-json/wc/store/v1/products";
+    var vat = root.getAttribute("data-vat-label") || " + VAT";
+    var fallback = root.getAttribute("data-fallback") || SITE + "/nebosh-course-type/";
+    var step = +(root.getAttribute("data-show") || 8);
+    var state = { fmt: "all", loc: "", shown: step }, items = [];
+
+    var bar = el("div", "nbd-bar"); root.appendChild(bar);
+    var list = el("div", "nbd-list"); list.setAttribute("aria-live", "polite"); root.appendChild(list);
+    var more = el("button", "nbd-more", "Show more dates"); more.type = "button"; root.appendChild(more);
+    more.addEventListener("click", function () { state.shown += step; draw(); });
+    var msg = function (t) { list.innerHTML = ""; var p = el("p", "nbd-msg", t + " "); var a = el("a", null, "See all course dates"); a.href = fallback; p.appendChild(a); list.appendChild(p); more.style.display = "none"; };
+    msg("Loading the latest dates...");
+
+    var locSel = el("select", "nbd-loc"); locSel.setAttribute("aria-label", "Choose a location");
+    locSel.addEventListener("change", function () { state.loc = locSel.value; state.shown = step; draw(); });
+
+    function tabs() {
+      bar.innerHTML = "";
+      [{ id: "all", label: "All dates" }].concat(FORMATS).forEach(function (f) {
+        if (f.id !== "all" && !items.some(function (i) { return i.fmt.id === f.id; })) return;
+        var b = el("button", "nbd-tab", f.label); b.type = "button";
+        b.setAttribute("aria-pressed", state.fmt === f.id ? "true" : "false");
+        b.addEventListener("click", function () { state.fmt = f.id; state.loc = ""; state.shown = step; tabs(); draw(); });
+        bar.appendChild(b);
+      });
+      if (state.fmt === "class") {
+        var locs = items.filter(function (i) { return i.fmt.id === "class"; }).map(function (i) { return i.loc; })
+          .filter(function (v, k, a) { return v && a.indexOf(v) === k; }).sort();
+        locSel.innerHTML = ""; var o = el("option", null, "All locations"); o.value = ""; locSel.appendChild(o);
+        locs.forEach(function (l) { var op = el("option", null, l); op.value = l; locSel.appendChild(op); });
+        locSel.value = state.loc; bar.appendChild(locSel);
+      }
+    }
+    function draw() {
+      var rows = items.filter(function (i) { return (state.fmt === "all" || i.fmt.id === state.fmt) && (!state.loc || i.loc === state.loc); });
+      list.innerHTML = "";
+      if (!rows.length) { msg("No upcoming dates for this option right now."); return; }
+      rows.slice(0, state.shown).forEach(function (i) {
+        var r = el("div", "nbd-row");
+        var dt = el("div", "nbd-date", i.date.getDate() + " " + MONTHS[i.date.getMonth()] + " " + i.date.getFullYear());
+        dt.appendChild(el("span", null, DAYS[i.date.getDay()] + " start")); r.appendChild(dt);
+        var w = el("div", "nbd-what"); w.appendChild(el("b", null, i.fmt.label));
+        w.appendChild(document.createTextNode(" " + (i.fmt.id === "class" ? (i.loc ? "in " + i.loc : "") : "online, " + i.fmt.note.replace(/^Online, /, ""))));
+        if (i.low) w.appendChild(el("span", "nbd-low", "Only " + i.low + " place" + (i.low === 1 ? "" : "s") + " left"));
+        r.appendChild(w);
+        r.appendChild(el("div", "nbd-price", i.price != null ? money(i.price) + vat : ""));
+        var a = el("a", "nbx-btn or", "Book now"); a.href = i.url; r.appendChild(a);
+        list.appendChild(r);
+      });
+      more.style.display = rows.length > state.shown ? "" : "none";
+    }
+
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    fetchAll(base, search).then(function (data) {
+      items = (data || []).map(parseProduct).filter(function (i) { return i && i.inStock && i.date >= today; })
+        .sort(function (a, b) { return a.date - b.date; });
+      if (!items.length) { msg("No upcoming dates are listed online right now."); return; }
+      tabs(); draw();
+    }).catch(function () { msg("We couldn't load the dates just now."); });
+  }
+
   // Give closed cards in the same row the same height, so "What you'll learn" and the buttons line up.
   // An opened card grows on its own without stretching its neighbours.
   function equalise() {
@@ -611,6 +738,7 @@
     }
     document.addEventListener("toggle", function (e) { if (e.target.closest && e.target.closest(".nbx-cc")) equalise(); }, true);
     Array.prototype.forEach.call(document.querySelectorAll(".cst-nebosh-matcher"), function (r, i) { mount(r, i); });
+    Array.prototype.forEach.call(document.querySelectorAll(".cst-nebosh-dates"), function (r) { mountDates(r); });
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
   // Re-mount if the theme re-renders page content
