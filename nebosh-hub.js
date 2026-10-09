@@ -1,5 +1,5 @@
 /*!
- * CST Training NEBOSH hub (v7: live course dates from WooCommerce)
+ * CST Training NEBOSH hub (v8: dark background option for the live dates)
  * Host on GitHub Pages, load with ?v=N cache buster.
  * Mount point: <div class="cst-nebosh-matcher"></div>
  * Live dates:  <div class="cst-nebosh-dates" data-search="NEBOSH Construction"></div>
@@ -494,6 +494,10 @@
     ".nbd-more{display:block;margin:16px auto 0;font:inherit;font-weight:700;background:#fff;border:2px solid #1d2560;color:#1d2560;border-radius:30px;padding:10px 24px;cursor:pointer}",
     ".nbd-msg{text-align:center;background:#fff;border:1px dashed #dcdfea;border-radius:12px;padding:18px;color:#565c75}",
     ".nbd-msg a{color:#1d2560;font-weight:700}",
+    /* Dark section (data-theme=\"dark\"): orange selected tab, white outline button */
+    ".nbd.nbd-dark .nbd-tab{border-color:#fff}",
+    ".nbd.nbd-dark .nbd-tab[aria-pressed=true]{background:#ff8c04;border-color:#ff8c04;color:#1b1f33}",
+    ".nbd.nbd-dark .nbd-more{background:transparent;border-color:#fff;color:#fff}",
     /* Comparison table and FAQs */
     ".nbx-tw{overflow-x:auto;border-radius:12px;margin-top:20px;border:1px solid #dcdfea;background:#fff}",
     ".nbx-tw table{border-collapse:collapse;width:100%;min-width:640px;background:#fff;margin:0}",
@@ -644,7 +648,7 @@
 
   function mountDates(root) {
     if (root._nbd) return; root._nbd = true;
-    root.classList.add("nbd"); root.innerHTML = "";
+    root.classList.add("nbd"); if (root.getAttribute("data-theme") === "dark") root.classList.add("nbd-dark"); root.innerHTML = "";
     var search = root.getAttribute("data-search") || "NEBOSH Construction";
     var base = root.getAttribute("data-endpoint") || "/wp-json/wc/store/v1/products";
     var vat = root.getAttribute("data-vat-label") || " + VAT";
