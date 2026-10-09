@@ -1,5 +1,5 @@
 /*!
- * CST Training NEBOSH hub (v11: weekend format recognised in live dates)
+ * CST Training NEBOSH hub (v12: custom block label for shorter courses, e.g. 4-day block)
  * Host on GitHub Pages, load with ?v=N cache buster.
  * Mount point: <div class="cst-nebosh-matcher"></div>
  * Live dates:  <div class="cst-nebosh-dates" data-search="NEBOSH Construction"></div>
@@ -668,6 +668,9 @@
     var vat = root.getAttribute("data-vat-label") || " + VAT";
     var fallback = root.getAttribute("data-fallback") || SITE + "/nebosh-course-type/";
     var step = +(root.getAttribute("data-show") || 8);
+    var blockLabel = root.getAttribute("data-block-label"), blockNote = root.getAttribute("data-block-note");
+    function fl(f) { return f.id === "block" && blockLabel ? blockLabel : f.label; }
+    function fn(f) { return f.id === "block" && blockNote ? blockNote : f.note; }
     var state = { fmt: "all", loc: "", shown: step }, items = [];
 
     var bar = el("div", "nbd-bar"); root.appendChild(bar);
@@ -684,7 +687,7 @@
       bar.innerHTML = "";
       [{ id: "all", label: "All dates" }].concat(FORMATS).forEach(function (f) {
         if (f.id !== "all" && !items.some(function (i) { return i.fmt.id === f.id; })) return;
-        var b = el("button", "nbd-tab", f.label); b.type = "button";
+        var b = el("button", "nbd-tab", f.id === "all" ? f.label : fl(f)); b.type = "button";
         b.setAttribute("aria-pressed", state.fmt === f.id ? "true" : "false");
         b.addEventListener("click", function () { state.fmt = f.id; state.loc = ""; state.shown = step; tabs(); draw(); });
         bar.appendChild(b);
@@ -705,8 +708,8 @@
         var r = el("div", "nbd-row");
         var dt = el("div", "nbd-date", i.date.getDate() + " " + MONTHS[i.date.getMonth()] + " " + i.date.getFullYear());
         dt.appendChild(el("span", null, DAYS[i.date.getDay()] + " start")); r.appendChild(dt);
-        var w = el("div", "nbd-what"); w.appendChild(el("b", null, i.fmt.label));
-        w.appendChild(document.createTextNode(" " + (i.fmt.id === "class" ? (i.loc ? "in " + i.loc : "") : "online, " + i.fmt.note.replace(/^Online, /, ""))));
+        var w = el("div", "nbd-what"); w.appendChild(el("b", null, fl(i.fmt)));
+        w.appendChild(document.createTextNode(" " + (i.fmt.id === "class" ? (i.loc ? "in " + i.loc : "") : "online, " + fn(i.fmt).replace(/^Online, /, ""))));
         if (i.low) w.appendChild(el("span", "nbd-low", "Only " + i.low + " place" + (i.low === 1 ? "" : "s") + " left"));
         r.appendChild(w);
         r.appendChild(el("div", "nbd-price", i.price != null ? money(i.price) + vat : ""));
