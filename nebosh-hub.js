@@ -1,5 +1,5 @@
 /*!
- * CST Training NEBOSH hub (v8: dark background option for the live dates)
+ * CST Training NEBOSH hub (v9: live dates survive the theme re-copying page content; load timeout)
  * Host on GitHub Pages, load with ?v=N cache buster.
  * Mount point: <div class="cst-nebosh-matcher"></div>
  * Live dates:  <div class="cst-nebosh-dates" data-search="NEBOSH Construction"></div>
@@ -636,7 +636,13 @@
       low: p.low_stock_remaining || null, url: p.permalink
     };
   }
+  var FETCHES = {};
   function fetchAll(base, search) {
+    var k = base + "|" + search;
+    if (!FETCHES[k]) FETCHES[k] = fetchPages(base, search).catch(function (e) { delete FETCHES[k]; throw e; });
+    return FETCHES[k];
+  }
+  function fetchPages(base, search) {
     var out = [], sep = base.indexOf("?") > -1 ? "&" : "?";
     function page(n) {
       return fetch(base + sep + "search=" + encodeURIComponent(search) + "&per_page=100&page=" + n, { credentials: "same-origin" })
@@ -703,12 +709,15 @@
     }
 
     var today = new Date(); today.setHours(0, 0, 0, 0);
+    var settled = false;
+    setTimeout(function () { if (!settled && root.isConnected) msg("The dates are taking longer than usual to load."); }, 12000);
     fetchAll(base, search).then(function (data) {
+      settled = true;
       items = (data || []).map(parseProduct).filter(function (i) { return i && i.inStock && i.date >= today; })
         .sort(function (a, b) { return a.date - b.date; });
       if (!items.length) { msg("No upcoming dates are listed online right now."); return; }
       tabs(); draw();
-    }).catch(function () { msg("We couldn't load the dates just now."); });
+    }).catch(function () { settled = true; msg("We couldn't load the dates just now."); });
   }
 
   // Give closed cards in the same row the same height, so "What you'll learn" and the buttons line up.
@@ -749,5 +758,6 @@
   if (window.MutationObserver) new MutationObserver(function () {
     if (!document.getElementById("nbx-css")) injectCss();
     Array.prototype.forEach.call(document.querySelectorAll(".cst-nebosh-matcher"), function (r, i) { if (!r._nbm || !r.firstChild) { r._nbm = false; mount(r, i); } });
+    Array.prototype.forEach.call(document.querySelectorAll(".cst-nebosh-dates"), function (r) { if (!r._nbd) mountDates(r); });
   }).observe(document.documentElement, { childList: true, subtree: true });
 })();
