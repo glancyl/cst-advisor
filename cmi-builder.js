@@ -1,5 +1,5 @@
 /*!
- * CST Training CMI unit builder widget (v7: single-course embeds for individual course pages)
+ * CST Training CMI unit builder widget (v8: current release, all CMI builders in one file)
  * Separate from ilm-builder.js so the live ILM pages can't break.
  * Host on GitHub Pages, load with ?v=N cache buster (N matches this version).
  *
@@ -42,6 +42,10 @@
  *       Level 5 Management Consulting Practice (Award, Certificate, Diploma) and Level 7 Diploma in Professional Consulting
  *   v7  Individual course pages: data-only on Project Management, full-width background and intro text
  *       when embedded inside a narrow page section
+ *   v8  Re-release so every CMI page loads the same current file. Contains everything from v1 to v7:
+ *       Management and Leadership (L3, L5, L7), Coaching and Mentoring (L3, L7), Project Management (L3, L5)
+ *       and Professional Consulting (L5 Principles, L5 Practice, L7). If a page shows a blank builder,
+ *       check its script tag uses ?v=8 and purge NitroPack.
  */
 (function () {
   "use strict";
