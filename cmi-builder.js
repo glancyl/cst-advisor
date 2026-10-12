@@ -1,5 +1,5 @@
 /*!
- * CST Training CMI unit builder widget (v8: current release, all CMI builders in one file)
+ * CST Training CMI unit builder widget (v10: Buy now on every Level 5 consulting course)
  * Separate from ilm-builder.js so the live ILM pages can't break.
  * Host on GitHub Pages, load with ?v=N cache buster (N matches this version).
  *
@@ -46,6 +46,9 @@
  *       Management and Leadership (L3, L5, L7), Coaching and Mentoring (L3, L7), Project Management (L3, L5)
  *       and Professional Consulting (L5 Principles, L5 Practice, L7). If a page shows a blank builder,
  *       check its script tag uses ?v=8 and purge NitroPack.
+ *   v9  Buy now: once picks are complete, a Buy now button adds the product to the basket with the
+ *       chosen units attached (needs the cst-builder-units PHP snippet). Product IDs in PRODUCTS below.
+ *   v10 Product IDs added for the Level 5 consulting Awards, Certificates and the Practice Diploma.
  */
 (function () {
   "use strict";
@@ -55,6 +58,30 @@
   var PORTAL_ID = "19996504";
   var FORM_GUID = "82962984-45f3-49f7-af62-fc7da9f14b2f"; // Course Builder Enquiry
   var DEFAULT_PHONE = "020 3488 4472";
+  var SITE = "https://www.csttraining.co.uk";
+  // WooCommerce product IDs for Buy now. Anything without an ID shows the enquiry form only.
+  var PRODUCTS = {
+    "ml-3-diploma": 79089, "ml-5-diploma": 79097, "ml-7-diploma": 79100,
+    "cm3": 79103, "cm7": 79106,
+    "pm-l3": 79114, "pm-l5": 79118,
+    "consult-l5-pmc-award": 189366, "consult-l5-pmc-certificate": 189372,
+    "consult-l5-mcp-award": 189254, "consult-l5-mcp-certificate": 189275, "consult-l5-mcp-diploma": 189332,
+    "consult-l7-pc-diploma": 79111
+  };
+  function syncBuy(btns, key, full, units, qual) {
+    var pid = PRODUCTS[key];
+    btns.forEach(function (b) {
+      if (pid && full) {
+        b.href = SITE + "/checkout/?add-to-cart=" + pid + "&cst_units=" + encodeURIComponent(units) + "&cst_qual=" + encodeURIComponent(qual);
+        b.style.display = "";
+      } else { b.removeAttribute("href"); b.style.display = "none"; }
+    });
+  }
+  function trackBuy(btn, getQual, getUnits) {
+    btn.addEventListener("click", function () {
+      try { window.dataLayer = window.dataLayer || []; window.dataLayer.push({ event: "course_builder_buy", enquiry_qualification: getQual(), enquiry_options: getUnits() }); } catch (e) {}
+    });
+  }
 
   // Focus areas used by the "suggest units" chips
   var TOPICS = [
@@ -286,6 +313,8 @@
     ".ilmb-enq{display:none}",
     ".ilmb.ilmb-full .ilmb-enq{display:inline-block}",
     ".ilmb.ilmb-full .ilmb-enq-l{display:block;width:100%;text-align:center;margin-top:10px}",
+    ".ilmb-btn.buy{background:#fff;color:#1d2560!important;text-decoration:none!important}",
+    ".ilmb-ladder .ilmb-btn.buy{display:block;width:100%;text-align:center;margin-top:10px;background:#1d2560;color:#fff!important}",
     ".ilmb-cta{scroll-margin-top:120px}",
     ".ilmb-note{font-size:.88rem;color:var(--mut);margin:12px 0 0!important}",
     ".ilmb-cta{background:var(--n);color:#fff;border-radius:12px;padding:32px 28px;margin-top:40px}",
@@ -624,6 +653,7 @@
     var hint = el("div", "ilmb-hint"); ladder.appendChild(hint);
     var done = el("div", "ilmb-done"); ladder.appendChild(done);
     var enqBtn2 = el("button", "ilmb-btn or ilmb-enq ilmb-enq-l", "Enquire now"); enqBtn2.type = "button"; ladder.appendChild(enqBtn2);
+    var buyL = el("a", "ilmb-btn buy", "Buy now"); buyL.style.display = "none"; ladder.appendChild(buyL);
     ladder.appendChild(el("p", "ilmb-note", "You can change units at induction. Nothing here is final."));
 
     // Enquiry form
@@ -649,6 +679,7 @@
     form.appendChild(el("p", "ilmb-consent", "We'll use these details to reply about your qualification. See our privacy policy at csttraining.co.uk."));
     var brow = el("div", "fl ilmb-row"); brow.style.marginTop = "0"; form.appendChild(brow);
     var sendBtn = el("button", "ilmb-btn or", "Send my picks to CST Training"); sendBtn.type = "submit"; brow.appendChild(sendBtn);
+    var buyF = el("a", "ilmb-btn buy", "Buy now"); buyF.style.display = "none"; brow.appendChild(buyF);
     var call = el("a", "ilmb-btn ghost", "Or call " + phone); call.href = "tel:" + phone.replace(/\s/g, ""); brow.appendChild(call);
     var status = el("p", "ilmb-status"); status.setAttribute("role", "status"); form.appendChild(status);
     var thanks = el("div", "ilmb-thanks"); thanks.tabIndex = -1; cta.appendChild(thanks);
@@ -656,6 +687,8 @@
     thanks.appendChild(el("p", null, "Our team will be in touch shortly. If it's urgent, call " + phone + "."));
 
     function qualName() { return L.title + " " + q().label + " " + L.qualTitle; }
+    function unitsText() { return state.picks.map(function (c) { return c + " " + byCode[c].name; }).join("; "); }
+    trackBuy(buyL, qualName, unitsText); trackBuy(buyF, qualName, unitsText);
     function shortName() { return compare ? "Level " + o().level + " " + q().label : q().label; }
 
     function summary() {
@@ -737,6 +770,7 @@
       enqBtn.textContent = enqBtn2.textContent = "Enquire about this " + q().label;
       ladder.classList.toggle("full", ok);
       root.classList.toggle("ilmb-full", ok);
+      syncBuy([buyL, buyF], "ml-" + o().level + "-" + o().qual, ok, unitsText(), qualName());
       sum.textContent = summary();
     }
 
@@ -917,6 +951,7 @@
     var hint = el("div", "ilmb-hint"); ladder.appendChild(hint);
     var done = el("div", "ilmb-done"); ladder.appendChild(done);
     var enqBtn2 = el("button", "ilmb-btn or ilmb-enq ilmb-enq-l", "Enquire now"); enqBtn2.type = "button"; ladder.appendChild(enqBtn2);
+    var buyL = el("a", "ilmb-btn buy", "Buy now"); buyL.style.display = "none"; ladder.appendChild(buyL);
     ladder.appendChild(el("p", "ilmb-note", "You can change units at induction. Nothing here is final."));
 
     // Enquiry form, centred below the builder
@@ -941,6 +976,7 @@
     form.appendChild(el("p", "ilmb-consent", "We'll use these details to reply about your qualification. See our privacy policy at csttraining.co.uk."));
     var brow = el("div", "fl ilmb-row"); form.appendChild(brow);
     var sendBtn = el("button", "ilmb-btn or", "Send my picks to CST Training"); sendBtn.type = "submit"; brow.appendChild(sendBtn);
+    var buyF = el("a", "ilmb-btn buy", "Buy now"); buyF.style.display = "none"; brow.appendChild(buyF);
     var call = el("a", "ilmb-btn ghost", "Or call " + phone); call.href = "tel:" + phone.replace(/\s/g, ""); brow.appendChild(call);
     var status = el("p", "ilmb-status"); status.setAttribute("role", "status"); form.appendChild(status);
     var thanks = el("div", "ilmb-thanks"); thanks.tabIndex = -1; cta.appendChild(thanks);
@@ -1014,6 +1050,8 @@
     }
 
     function qualName() { return D().Q.title; }
+    function unitsText() { return allCodes().map(function (c) { return c + " " + D().by[c].name; }).join("; "); }
+    trackBuy(buyL, qualName, unitsText); trackBuy(buyF, qualName, unitsText);
     function allCodes() {
       return D().units.filter(function (u) { return u.mand; }).map(function (u) { return u.code; }).concat(picks());
     }
@@ -1074,6 +1112,7 @@
       enqBtn.textContent = enqBtn2.textContent = "Enquire about this " + Q.short;
       ladder.classList.toggle("full", ok);
       root.classList.toggle("ilmb-full", ok);
+      syncBuy([buyL, buyF], state.qual, ok, unitsText(), qualName());
       sum.textContent = summary();
     }
 
@@ -1202,6 +1241,7 @@
     var brow = el("div", "fl ilmb-row"); brow.style.marginTop = "0"; form.appendChild(brow);
     var SEND = "Send my enquiry to CST Training";
     var sendBtn = el("button", "ilmb-btn or", SEND); sendBtn.type = "submit"; brow.appendChild(sendBtn);
+    var buyF = el("a", "ilmb-btn buy", "Buy now"); buyF.style.display = "none"; brow.appendChild(buyF);
     var call = el("a", "ilmb-btn ghost", "Or call " + phone); call.href = "tel:" + phone.replace(/\s/g, ""); brow.appendChild(call);
     var status = el("p", "ilmb-status"); status.setAttribute("role", "status"); form.appendChild(status);
     var thanks = el("div", "ilmb-thanks"); thanks.tabIndex = -1; cta.appendChild(thanks);
@@ -1223,7 +1263,9 @@
       lines.push("Planned start: " + fStart.value);
       return lines.join("\n");
     }
+    trackBuy(buyF, qualName, function () { return optionsText(); });
     function render() {
+      syncBuy([buyF], cur() ? (C === COURSES.pm ? "pm-" : "") + cur().key : "", !!cur(), optionsText(), qualName());
       OPTS.forEach(function (o) { cards[o.key].setAttribute("aria-checked", state.opt === o.key ? "true" : "false"); });
       und.setAttribute("aria-checked", cur() ? "false" : "true");
       var o = cur();
@@ -1522,6 +1564,7 @@
     var hint = el("div", "ilmb-hint"); ladder.appendChild(hint);
     var done = el("div", "ilmb-done"); ladder.appendChild(done);
     var enqBtn2 = el("button", "ilmb-btn or ilmb-enq ilmb-enq-l", "Enquire now"); enqBtn2.type = "button"; ladder.appendChild(enqBtn2);
+    var buyL = el("a", "ilmb-btn buy", "Buy now"); buyL.style.display = "none"; ladder.appendChild(buyL);
     ladder.appendChild(el("p", "ilmb-note", "You can change units at induction. Nothing here is final."));
 
     // Enquiry form (centred)
@@ -1547,6 +1590,7 @@
     form.appendChild(el("p", "ilmb-consent", "We'll use these details to reply about your qualification. See our privacy policy at csttraining.co.uk."));
     var brow = el("div", "fl ilmb-row"); brow.style.marginTop = "0"; form.appendChild(brow);
     var sendBtn = el("button", "ilmb-btn or", "Send my picks to CST Training"); sendBtn.type = "submit"; brow.appendChild(sendBtn);
+    var buyF = el("a", "ilmb-btn buy", "Buy now"); buyF.style.display = "none"; brow.appendChild(buyF);
     var call = el("a", "ilmb-btn ghost", "Or call " + phone); call.href = "tel:" + phone.replace(/\s/g, ""); brow.appendChild(call);
     var status = el("p", "ilmb-status"); status.setAttribute("role", "status"); form.appendChild(status);
     var thanks = el("div", "ilmb-thanks"); thanks.tabIndex = -1; cta.appendChild(thanks);
@@ -1558,6 +1602,8 @@
       if (state.course === "l7-pc") return c.title;
       return c.title + " " + q.label;
     }
+    function unitsText() { return all().map(function (c) { return c + " " + unit(c)[1]; }).join("; "); }
+    trackBuy(buyL, qualName, unitsText); trackBuy(buyF, qualName, unitsText);
     function summary() {
       var lines = [qualName() + ": unit picks", ""];
       if (!all().length) lines.push("(no units picked yet)");
@@ -1638,6 +1684,7 @@
       enqBtn.textContent = enqBtn2.textContent = "Enquire about this " + (state.course === "l7-pc" ? "Diploma" : q.label);
       ladder.classList.toggle("full", ok);
       root.classList.toggle("ilmb-full", ok);
+      syncBuy([buyL, buyF], "consult-" + state.course + "-" + state.qual, ok, unitsText(), qualName());
       sum.textContent = summary();
     }
 
