@@ -1,5 +1,5 @@
 /*!
- * CST Training ILM unit builder widget (v26: Buy now button sends the chosen units to WooCommerce checkout)
+ * CST Training ILM unit builder widget (v27: Buy now and Enquire always shown; units sent when picked)
  * Host on GitHub Pages, load with ?v=N cache buster.
  *
  * Mount on any page:
@@ -30,8 +30,9 @@
   function syncBuy(btns, level, qualKey, full, units, qual) {
     var pid = PRODUCTS[level + "-" + qualKey];
     btns.forEach(function (b) {
-      if (pid && full) { b.href = buyLink(pid, units, qual); b.style.display = ""; }
-      else { b.removeAttribute("href"); b.style.display = "none"; }
+      if (!pid) { b.removeAttribute("href"); b.style.display = "none"; return; }
+      b.href = SITE + "/checkout/?add-to-cart=" + pid + (units ? "&cst_units=" + encodeURIComponent(units) + "&cst_qual=" + encodeURIComponent(qual) : "");
+      b.style.display = "";
     });
   }
   function trackBuy(btn, getQual, getUnits) {
@@ -425,7 +426,7 @@
     ".ilmb-rung .e{color:var(--mut);font-style:italic}",
     ".ilmb-done{display:none;background:rgba(255,138,0,.14);border-radius:8px;padding:10px 12px;font-weight:600;margin-top:12px;font-size:.95rem}",
     ".ilmb-ladder.full .ilmb-done{display:block}",
-    ".ilmb-enq{display:none}",
+    ".ilmb-enq{display:inline-block}",".ilmb-ladder .ilmb-enq-l{display:block;width:100%;text-align:center;margin-top:10px}",
     ".ilmb.ilmb-full .ilmb-enq{display:inline-block}",
     ".ilmb.ilmb-full .ilmb-enq-l{display:block;width:100%;text-align:center;margin-top:10px}",
     ".ilmb-btn.buy{background:#fff;color:#1d2560!important;text-decoration:none!important}",
@@ -733,7 +734,7 @@
       enqBtn.textContent = enqBtn2.textContent = "Enquire about this " + q.label;
       ladder.classList.toggle("full", full);
       root.classList.toggle("ilmb-full", full);
-      syncBuy([buyL, buyF], level, state.qual, full, unitsText(), qualName());
+      syncBuy([buyL, buyF], level, state.qual, full, (full ? unitsText() : (state.picks.length ? unitsText() + " (remaining units to be chosen at induction)" : "")), qualName());
       sum.textContent = summary();
     }
 
@@ -1073,7 +1074,7 @@
       enqBtn.textContent = enqBtn2.textContent = "Enquire about this " + Qq.label;
       ladder.classList.toggle("full", ok);
       root.classList.toggle("ilmb-full", ok);
-      syncBuy([buyL, buyF], level, state.qual, ok, unitsText(), qualName());
+      syncBuy([buyL, buyF], level, state.qual, ok, (ok ? unitsText() : (state.picks.length ? unitsText() + " (remaining units to be chosen at induction)" : "")), qualName());
       sum.textContent = summary();
     }
 
