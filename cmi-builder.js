@@ -1,5 +1,5 @@
 /*!
- * CST Training CMI unit builder widget (v10: Buy now on every Level 5 consulting course)
+ * CST Training CMI unit builder widget (v11: Buy now and Enquire always shown; units sent when picked)
  * Separate from ilm-builder.js so the live ILM pages can't break.
  * Host on GitHub Pages, load with ?v=N cache buster (N matches this version).
  *
@@ -49,6 +49,7 @@
  *   v9  Buy now: once picks are complete, a Buy now button adds the product to the basket with the
  *       chosen units attached (needs the cst-builder-units PHP snippet). Product IDs in PRODUCTS below.
  *   v10 Product IDs added for the Level 5 consulting Awards, Certificates and the Practice Diploma.
+ *   v11 Buy now and Enquire show from the start; units are attached only when some have been picked.
  */
 (function () {
   "use strict";
@@ -71,10 +72,9 @@
   function syncBuy(btns, key, full, units, qual) {
     var pid = PRODUCTS[key];
     btns.forEach(function (b) {
-      if (pid && full) {
-        b.href = SITE + "/checkout/?add-to-cart=" + pid + "&cst_units=" + encodeURIComponent(units) + "&cst_qual=" + encodeURIComponent(qual);
-        b.style.display = "";
-      } else { b.removeAttribute("href"); b.style.display = "none"; }
+      if (!pid) { b.removeAttribute("href"); b.style.display = "none"; return; }
+      b.href = SITE + "/checkout/?add-to-cart=" + pid + (units ? "&cst_units=" + encodeURIComponent(units) + "&cst_qual=" + encodeURIComponent(qual) : "");
+      b.style.display = "";
     });
   }
   function trackBuy(btn, getQual, getUnits) {
@@ -310,7 +310,7 @@
     ".ilmb-rung .e{color:var(--mut);font-style:italic}",
     ".ilmb-done{display:none;background:rgba(255,138,0,.14);border-radius:8px;padding:10px 12px;font-weight:600;margin-top:12px;font-size:.95rem}",
     ".ilmb-ladder.full .ilmb-done{display:block}",
-    ".ilmb-enq{display:none}",
+    ".ilmb-enq{display:inline-block}",".ilmb-ladder .ilmb-enq-l{display:block;width:100%;text-align:center;margin-top:10px}",
     ".ilmb.ilmb-full .ilmb-enq{display:inline-block}",
     ".ilmb.ilmb-full .ilmb-enq-l{display:block;width:100%;text-align:center;margin-top:10px}",
     ".ilmb-btn.buy{background:#fff;color:#1d2560!important;text-decoration:none!important}",
@@ -770,7 +770,7 @@
       enqBtn.textContent = enqBtn2.textContent = "Enquire about this " + q().label;
       ladder.classList.toggle("full", ok);
       root.classList.toggle("ilmb-full", ok);
-      syncBuy([buyL, buyF], "ml-" + o().level + "-" + o().qual, ok, unitsText(), qualName());
+      syncBuy([buyL, buyF], "ml-" + o().level + "-" + o().qual, ok, (ok ? unitsText() : (state.picks.length ? unitsText() + " (remaining units to be chosen at induction)" : "")), qualName());
       sum.textContent = summary();
     }
 
@@ -1112,7 +1112,7 @@
       enqBtn.textContent = enqBtn2.textContent = "Enquire about this " + Q.short;
       ladder.classList.toggle("full", ok);
       root.classList.toggle("ilmb-full", ok);
-      syncBuy([buyL, buyF], state.qual, ok, unitsText(), qualName());
+      syncBuy([buyL, buyF], state.qual, ok, (ok ? unitsText() : (picks().length ? unitsText() + " (remaining units to be chosen at induction)" : "")), qualName());
       sum.textContent = summary();
     }
 
@@ -1684,7 +1684,7 @@
       enqBtn.textContent = enqBtn2.textContent = "Enquire about this " + (state.course === "l7-pc" ? "Diploma" : q.label);
       ladder.classList.toggle("full", ok);
       root.classList.toggle("ilmb-full", ok);
-      syncBuy([buyL, buyF], "consult-" + state.course + "-" + state.qual, ok, unitsText(), qualName());
+      syncBuy([buyL, buyF], "consult-" + state.course + "-" + state.qual, ok, (ok ? unitsText() : (state.picks.length ? unitsText() + " (remaining units to be chosen at induction)" : "")), qualName());
       sum.textContent = summary();
     }
 
