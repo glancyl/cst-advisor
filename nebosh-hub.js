@@ -1,5 +1,5 @@
 /*!
- * CST Training NEBOSH hub (v13: data-exclude for live dates; used by the IOSH pages)
+ * CST Training NEBOSH hub (v14: classroom detected from a town in the title; looser day release match)
  * Host on GitHub Pages, load with ?v=N cache buster.
  * Mount point: <div class="cst-nebosh-matcher"></div>
  * Live dates:  <div class="cst-nebosh-dates" data-search="NEBOSH Construction"></div>
@@ -611,7 +611,7 @@
   // Reads WooCommerce products by search term and groups them by format, parsed from the title.
   var FORMATS = [
     { id: "block",   label: "Two-week block",  test: function (t) { return !/classroom|weekend|day.?release/i.test(t); }, note: "Online, Monday to Friday over 2 weeks" },
-    { id: "day",     label: "Day release",     test: function (t) { return /\(day release\)/i.test(t); },                         note: "Online, 1 day a week over 10 weeks" },
+    { id: "day",     label: "Day release",     test: function (t) { return /day.?release/i.test(t) && !/2 day/i.test(t); },        note: "Online, 1 day a week over 10 weeks" },
     { id: "twoday",  label: "Two-day release", test: function (t) { return /2 day day.?release/i.test(t); },                     note: "Online, 2 days a week over 5 weeks" },
     { id: "weekend", label: "Weekend",         test: function (t) { return /weekend/i.test(t) && !/classroom/i.test(t); },     note: "Online at weekends" },
     { id: "class",   label: "Classroom",       test: function (t) { return /classroom/i.test(t); },                                note: "Classroom" }
@@ -628,6 +628,9 @@
     var fmt = null;
     for (var i = 0; i < FORMATS.length; i++) if (FORMATS[i].test(parts[0])) { fmt = FORMATS[i]; break; }
     if (!fmt) return null;
+    // Titles like "IOSH-MS | 21-10-2026 | Chelmsford" name a town instead of saying "Classroom"
+    var loc = parts[2] || "";
+    if (fmt.id !== "class" && loc && !/online|virtual|remote|zoom|google meet/i.test(loc)) fmt = FORMATS[FORMATS.length - 1];
     var pr = p.prices || {}, mu = Math.pow(10, pr.currency_minor_unit == null ? 2 : pr.currency_minor_unit);
     return {
       id: p.id, date: d, fmt: fmt, loc: parts[2] || "",
@@ -671,7 +674,8 @@
     var step = +(root.getAttribute("data-show") || 8);
     var blockLabel = root.getAttribute("data-block-label"), blockNote = root.getAttribute("data-block-note");
     function fl(f) { return f.id === "block" && blockLabel ? blockLabel : f.label; }
-    function fn(f) { return f.id === "block" && blockNote ? blockNote : f.note; }
+    var dayNote = root.getAttribute("data-day-note");
+    function fn(f) { return f.id === "block" && blockNote ? blockNote : f.id === "day" && dayNote ? dayNote : f.note; }
     var state = { fmt: "all", loc: "", shown: step }, items = [];
 
     var bar = el("div", "nbd-bar"); root.appendChild(bar);
