@@ -1,5 +1,5 @@
 /*!
- * CST Training NEBOSH hub (v14: classroom detected from a town in the title; looser day release match)
+ * CST Training NEBOSH hub (v15: faster dates: slimmer requests, browser cache, placeholder rows)
  * Host on GitHub Pages, load with ?v=N cache buster.
  * Mount point: <div class="cst-nebosh-matcher"></div>
  * Live dates:  <div class="cst-nebosh-dates" data-search="NEBOSH Construction"></div>
@@ -494,6 +494,11 @@
     ".nbd-more{display:block;margin:16px auto 0;font:inherit;font-weight:700;background:#fff;border:2px solid #1d2560;color:#1d2560;border-radius:30px;padding:10px 24px;cursor:pointer}",
     ".nbd-msg{text-align:center;background:#fff;border:1px dashed #dcdfea;border-radius:12px;padding:18px;color:#565c75}",
     ".nbd-msg a{color:#1d2560;font-weight:700}",
+    ".nbd-skel{min-height:62px}",
+    ".nbd-sk{height:14px;border-radius:7px;background:linear-gradient(90deg,#e7e9f3 25%,#f4f5f9 50%,#e7e9f3 75%);background-size:200% 100%;animation:nbdsk 1.2s infinite linear}",
+    ".nbd-sk.w1{width:110px}.nbd-sk.w2{width:70%}.nbd-sk.w3{width:90px}.nbd-sk.w4{width:100px;height:38px;border-radius:30px}",
+    "@keyframes nbdsk{0%{background-position:200% 0}100%{background-position:-200% 0}}",
+    "@media(prefers-reduced-motion:reduce){.nbd-sk{animation:none}}",
     /* Dark section (data-theme=\"dark\"): orange selected tab, white outline button */
     ".nbd.nbd-dark .nbd-tab{border-color:#fff}",
     ".nbd.nbd-dark .nbd-more{background:transparent;border-color:#fff;color:#fff}",
@@ -639,14 +644,32 @@
       low: p.low_stock_remaining || null, url: p.permalink
     };
   }
-  var FETCHES = {};
-  function fetchOne(base, search) {
+  var FETCHES = {}, CACHE_MS = 15 * 60 * 1000, KEEP_MS = 24 * 60 * 60 * 1000;
+  function cacheGet(k) {
+    try { var c = JSON.parse(localStorage.getItem("nbd:" + k) || "null"); return c && Date.now() - c.t < KEEP_MS ? c : null; } catch (e) { return null; }
+  }
+  function cacheSet(k, d) {
+    try {
+      var slim = (d || []).map(function (p) { return { id: p.id, name: p.name, permalink: p.permalink, prices: p.prices && { price: p.prices.price, currency_minor_unit: p.prices.currency_minor_unit }, is_in_stock: p.is_in_stock, is_purchasable: p.is_purchasable, low_stock_remaining: p.low_stock_remaining }; });
+      localStorage.setItem("nbd:" + k, JSON.stringify({ t: Date.now(), d: slim }));
+    } catch (e) {}
+  }
+  function fetchOne(base, search, fresh) {
     var k = base + "|" + search;
-    if (!FETCHES[k]) FETCHES[k] = fetchPages(base, search).catch(function (e) { delete FETCHES[k]; throw e; });
+    if (!fresh) { var c = cacheGet(k); if (c && Date.now() - c.t < CACHE_MS) return Promise.resolve(c.d); }
+    if (!FETCHES[k]) FETCHES[k] = fetchPages(base, search).then(function (d) { cacheSet(k, d); return d; })
+      .catch(function (e) { delete FETCHES[k]; throw e; });
     return FETCHES[k];
   }
-  function fetchAll(base, searches) {
-    return Promise.all(searches.map(function (q) { return fetchOne(base, q); })).then(function (lists) {
+  function cachedAll(base, searches) {
+    var lists = searches.map(function (q) { var c = cacheGet(base + "|" + q); return c ? c.d : null; });
+    if (lists.some(function (l) { return !l; })) return null;
+    var seen = {}, out = [];
+    lists.forEach(function (l) { l.forEach(function (p) { if (!seen[p.id]) { seen[p.id] = 1; out.push(p); } }); });
+    return { data: out, stale: searches.some(function (q) { return Date.now() - cacheGet(base + "|" + q).t >= CACHE_MS; }) };
+  }
+  function fetchAll(base, searches, fresh) {
+    return Promise.all(searches.map(function (q) { return fetchOne(base, q, fresh); })).then(function (lists) {
       var seen = {}, out = [];
       lists.forEach(function (l) { (l || []).forEach(function (p) { if (!seen[p.id]) { seen[p.id] = 1; out.push(p); } }); });
       return out;
@@ -655,7 +678,8 @@
   function fetchPages(base, search) {
     var out = [], sep = base.indexOf("?") > -1 ? "&" : "?";
     function page(n) {
-      return fetch(base + sep + "search=" + encodeURIComponent(search) + "&per_page=100&page=" + n, { credentials: "same-origin" })
+      return fetch(base + sep + "search=" + encodeURIComponent(search) + "&per_page=100&page=" + n +
+        "&_fields=id,name,permalink,prices,is_in_stock,is_purchasable,low_stock_remaining", { credentials: "same-origin" })
         .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); var tp = +(r.headers.get("X-WP-TotalPages") || 1); return r.json().then(function (j) { return { j: j, tp: tp }; }); })
         .then(function (res) { out = out.concat(res.j); return n < res.tp && n < 5 ? page(n + 1) : out; });
     }
@@ -683,7 +707,12 @@
     var more = el("button", "nbd-more", "Show more dates"); more.type = "button"; root.appendChild(more);
     more.addEventListener("click", function () { state.shown += step; draw(); });
     var msg = function (t) { list.innerHTML = ""; var p = el("p", "nbd-msg", t + " "); var a = el("a", null, "See all course dates"); a.href = fallback; p.appendChild(a); list.appendChild(p); more.style.display = "none"; };
-    msg("Loading the latest dates...");
+    function skeleton() {
+      list.innerHTML = "";
+      for (var k = 0; k < 4; k++) { var r = el("div", "nbd-row nbd-skel"); r.appendChild(el("div", "nbd-sk w1")); r.appendChild(el("div", "nbd-sk w2")); r.appendChild(el("div", "nbd-sk w3")); r.appendChild(el("div", "nbd-sk w4")); list.appendChild(r); }
+      more.style.display = "none";
+    }
+    skeleton();
 
     var locSel = el("select", "nbd-loc"); locSel.setAttribute("aria-label", "Choose a location");
     locSel.addEventListener("change", function () { state.loc = locSel.value; state.shown = step; draw(); });
@@ -725,10 +754,9 @@
     }
 
     var today = new Date(); today.setHours(0, 0, 0, 0);
-    var settled = false;
-    setTimeout(function () { if (!settled && root.isConnected) msg("The dates are taking longer than usual to load."); }, 12000);
-    fetchAll(base, searches).then(function (data) {
-      settled = true;
+    var settled = false, shown = false;
+    setTimeout(function () { if (!settled && !shown && root.isConnected) msg("The dates are taking longer than usual to load."); }, 12000);
+    function show(data) {
       if (must.length || not.length) data = (data || []).filter(function (p) {
         var n = decode(p.name || "").toLowerCase();
         return must.every(function (w) { return n.indexOf(w) > -1; }) && !not.some(function (w) { return n.indexOf(w) > -1; });
@@ -736,8 +764,16 @@
       items = (data || []).map(parseProduct).filter(function (i) { return i && i.inStock && i.date >= today; })
         .sort(function (a, b) { return a.date - b.date; });
       if (!items.length) { msg("No upcoming dates are listed online right now."); return; }
-      tabs(); draw();
-    }).catch(function () { settled = true; msg("We couldn't load the dates just now."); });
+      if (items.every(function (i) { return i.fmt.id !== state.fmt; }) && state.fmt !== "all") state.fmt = "all";
+      shown = true; tabs(); draw();
+    }
+    // Show any saved copy straight away, then refresh it in the background when it's older than 15 minutes
+    var cached = cachedAll(base, searches);
+    if (cached) show(cached.data);
+    if (!cached || cached.stale) {
+      fetchAll(base, searches, !!cached).then(function (data) { settled = true; show(data); })
+        .catch(function () { settled = true; if (!shown) msg("We couldn't load the dates just now."); });
+    } else settled = true;
   }
 
   // Give closed cards in the same row the same height, so "What you'll learn" and the buttons line up.
