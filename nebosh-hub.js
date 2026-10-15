@@ -1,5 +1,5 @@
 /*!
- * CST Training NEBOSH hub (v12: custom block label for shorter courses, e.g. 4-day block)
+ * CST Training NEBOSH hub (v13: data-exclude for live dates; used by the IOSH pages)
  * Host on GitHub Pages, load with ?v=N cache buster.
  * Mount point: <div class="cst-nebosh-matcher"></div>
  * Live dates:  <div class="cst-nebosh-dates" data-search="NEBOSH Construction"></div>
@@ -664,6 +664,7 @@
     root.classList.add("nbd"); if (root.getAttribute("data-theme") === "dark") root.classList.add("nbd-dark"); root.innerHTML = "";
     var searches = (root.getAttribute("data-search") || "NEBOSH Construction").split("|").map(function (x) { return x.trim(); }).filter(Boolean);
     var must = (root.getAttribute("data-match") || "").split("|").map(function (x) { return x.trim().toLowerCase(); }).filter(Boolean);
+    var not = (root.getAttribute("data-exclude") || "").split("|").map(function (x) { return x.trim().toLowerCase(); }).filter(Boolean);
     var base = root.getAttribute("data-endpoint") || "/wp-json/wc/store/v1/products";
     var vat = root.getAttribute("data-vat-label") || " + VAT";
     var fallback = root.getAttribute("data-fallback") || SITE + "/nebosh-course-type/";
@@ -724,7 +725,10 @@
     setTimeout(function () { if (!settled && root.isConnected) msg("The dates are taking longer than usual to load."); }, 12000);
     fetchAll(base, searches).then(function (data) {
       settled = true;
-      if (must.length) data = (data || []).filter(function (p) { var n = decode(p.name || "").toLowerCase(); return must.every(function (w) { return n.indexOf(w) > -1; }); });
+      if (must.length || not.length) data = (data || []).filter(function (p) {
+        var n = decode(p.name || "").toLowerCase();
+        return must.every(function (w) { return n.indexOf(w) > -1; }) && !not.some(function (w) { return n.indexOf(w) > -1; });
+      });
       items = (data || []).map(parseProduct).filter(function (i) { return i && i.inStock && i.date >= today; })
         .sort(function (a, b) { return a.date - b.date; });
       if (!items.length) { msg("No upcoming dates are listed online right now."); return; }
