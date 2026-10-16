@@ -1,5 +1,5 @@
 /*!
- * CST Training NEBOSH hub (v25: IOSH finder asks role and goal only)
+ * CST Training NEBOSH hub (v26: team calculator shows the total only, no discount wording)
  * Host on GitHub Pages, load with ?v=N cache buster.
  * Mount point: <div class="cst-nebosh-matcher"></div>
  * Live dates:  <div class="cst-nebosh-dates" data-search="NEBOSH Construction"></div>
@@ -854,7 +854,7 @@
           jobs: ["Site manager","Site supervisor","Works manager","Project manager"] },
         ops: { fit: "", use: ["If you're stepping up to supervise, Managing Safely is the course to do first","Otherwise, Working Safely covers what you need in a day"], next: "Working Safely now, and Managing Safely when you supervise.", jobs: [] },
         hs: { fit: "", use: ["A grounding in risk assessment and the law before NEBOSH","Credibility with the managers you'll advise, because you'll have done their course"], next: "The NEBOSH General Certificate, which meets the academic requirement for Tech IOSH.", jobs: ["Health and safety co-ordinator","Health and safety adviser (with NEBOSH)"] },
-        hr: { fit: "Managing Safely is the standard course employers specify for anyone who manages people. Three or more from one employer get 5% off any public date, seven or more 10%, and from six we can run it just for your organisation.",
+        hr: { fit: "Managing Safely is the standard course employers specify for anyone who manages people. Book your team together online, or from six we can run it just for your organisation.",
           use: ["Book every new supervisor onto the next course as they're appointed","Run a closed course for a whole tier of management after an audit, incident or new contract","Mix courses: managers on Managing Safely, the workforce on Working Safely"],
           next: "Working Safely for your workforce, the Refresher for existing Managing Safely holders, and NEBOSH for your health and safety lead.",
           jobs: [] }
@@ -883,7 +883,7 @@
       if (role === "hs") return { warn: true, h: "For a health and safety career, NEBOSH General is usually the better fit.", p: "Managing Safely is a manager's awareness course. It's a useful grounding, but the NEBOSH General Certificate is the qualification employers list for health and safety roles.", btn: [NGC_URL, "See the NEBOSH General Certificate"] };
       if (role === "ops" && goal !== "group") return { warn: true, h: "If you don't manage anyone, Working Safely is usually the better fit.", p: "Managing Safely is for people who supervise others. Working Safely covers what you need in one day, live online, for £145 + VAT.", btn: [WS_URL, "See IOSH Working Safely"] };
       var P = K.P[role] || {}, p = P.fit || "";
-      if (role === "hr" || goal === "group") return { h: "Yes, Managing Safely is the right course for your people.", p: p || "Three or more from one employer get 5% off any public date, seven or more 10%, and from six we can run it just for your organisation.", btn: ["#team", "See team rates and in-house"] };
+      if (role === "hr" || goal === "group") return { h: "Yes, Managing Safely is the right course for your people.", p: p || "Book your team together online, or from six we can run it just for your organisation.", btn: ["#team", "See team options"] };
       return { h: "Yes, this is the right course for you.", p: p, btn: ["#dates", "See the next dates"] };
     }
     function update() {
@@ -951,14 +951,13 @@
     Object.keys(prices).forEach(function (k) { var p = el("option", null, prices[k][1]); p.value = k; cs.appendChild(p); });
     cs.value = (root.getAttribute("data-course") || "ms") === "ws" ? "ws" : "ms"; l2.appendChild(cs); f.appendChild(l2);
     var res = el("div", "nbi-tl"); calc.appendChild(res);
-    calc.appendChild(el("p", "nbi-small", "3 to 6 people: 5% off public dates. 7 or more: 10% off. 6 or more: we can also run the course just for your team, quoted within 24 hours. IOSH registration, assessment and certificates included."));
+    calc.appendChild(el("p", "nbi-small", "IOSH registration, assessment and certificates are included in every price."));
     function row(h, v) { var d = el("div"); d.appendChild(el("b", null, h)); d.appendChild(document.createTextNode(v)); res.appendChild(d); }
     function draw() {
       res.innerHTML = ""; var k = +n.value || 0; if (k < 1) return;
-      var price = prices[cs.value][0], rate = k >= 7 ? 0.9 : k >= 3 ? 0.95 : 1, full = price * k, tot = Math.round(full * rate);
-      row(k + " at the standard price", money(full) + " + VAT");
-      row(rate < 1 ? "Team rate (" + Math.round((1 - rate) * 100) + "% off)" : "Your price", money(tot) + " + VAT");
-      row(k >= 6 ? "Or in-house" : "Booking", k >= 6 ? "A course just for your team, at your site or online" : k >= 3 ? "Book public dates together, on one invoice" : "Book online, and add colleagues later");
+      var price = prices[cs.value][0], full = price * k;
+      row("Total for " + k + (k === 1 ? " person" : " people"), money(full) + " + VAT");
+      row(k >= 6 ? "Or a private course" : "Booking", k >= 6 ? "A course just for your team, at your site or online" : k >= 2 ? "Book together online, on one invoice" : "Book online, and add colleagues later");
     }
     n.addEventListener("input", draw); cs.addEventListener("change", draw); draw();
 
@@ -1023,7 +1022,7 @@
     if (goal === "cscs") return { p: "l1", alt: "ws", msg: "A CSCS green card needs the Level 1 Award in Health and Safety in a Construction Environment and the CITB HS&E test. No IOSH course gives you a card, so call us and we'll book you onto the right one." };
     if (goal === "career" || role === "hs") { var cn = role === "site"; return { p: cn ? "neboshc" : "nebosh", alt: "ms", msg: cn ? "For a health and safety role on construction sites, NEBOSH Construction is the qualification employers list, and holders can apply for the CSCS AQP card. Managing Safely is a manager's awareness course, so it won't get you a health and safety role on its own." : "For a career in health and safety, you need the qualification employers list in job adverts: the NEBOSH General Certificate. Managing Safely is a manager's awareness course, so it's a useful first step rather than the destination." }; }
     if (goal === "refresh" || (prior === "ms" && goal !== "group" && role !== "hr")) return { p: "msr", alt: "nebosh", msg: "You already hold Managing Safely, so you don't need to repeat the full course. IOSH recommends a one-day Refresher every three years. Ready to progress instead? NEBOSH General is the next step." };
-    if (goal === "group" || role === "hr" || study === "site") { var c = role === "ops" ? "ws" : "ms"; return { p: "inhouse", alt: c, msg: "Six or more from one employer and we'll run " + (c === "ws" ? "Working Safely" : "Managing Safely") + " just for your team, at your site or live online, on your dates. Fewer than six? Three to six people get 5% off public dates, and seven or more 10%, on one invoice." }; }
+    if (goal === "group" || role === "hr" || study === "site") { var c = role === "ops" ? "ws" : "ms"; return { p: "inhouse", alt: c, msg: "Six or more from one employer and we'll run " + (c === "ws" ? "Working Safely" : "Managing Safely") + " just for your team, at your site or live online, on your dates. Fewer than six? Book them together online, on one invoice." }; }
     if (role === "ops") return { p: "ws", alt: "ms", msg: "Working Safely is the course for your role: one day on the essentials, live online. If you supervise anyone, you need Managing Safely instead." };
     if (role === "site") return { p: "ms", alt: "neboshc", fmt: study, msg: (goal === "req" ? "Check which course the client actually asked for. " : "") + "If the contract wants a CITB card-route course, that's SMSTS or SSSTS. If you manage people and want the management framework behind your RAMS, it's Managing Safely. For a health and safety role on sites, it's NEBOSH Construction." };
     var lead = goal === "team" ? "The course IOSH built for exactly this: you've got a team, their safety is your responsibility, and you need the practical tools. " :
