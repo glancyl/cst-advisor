@@ -1,5 +1,5 @@
 /*!
- * CST Training NEBOSH hub (v27: interactive readiness check and marked sample task for IOSH pages)
+ * CST Training NEBOSH hub (v28: team quote widget can show the form first, data-order="form-first")
  * Host on GitHub Pages, load with ?v=N cache buster.
  * Mount point: <div class="cst-nebosh-matcher"></div>
  * Live dates:  <div class="cst-nebosh-dates" data-search="NEBOSH Construction"></div>
@@ -983,6 +983,7 @@
     n.addEventListener("input", draw); cs.addEventListener("change", draw); draw();
 
     var qc = el("div", "nbi-card"); qc.style.marginTop = "18px"; root.appendChild(qc);
+    if (root.getAttribute("data-order") === "form-first") { qc.style.marginTop = "0"; calc.style.marginTop = "18px"; root.insertBefore(qc, calc); }
     qc.appendChild(el("h4", null, "Get a team quote"));
     qc.appendChild(el("p", null, "Tell us your numbers, course, where and when, and we'll send a written quote within 24 hours."));
     var form = el("form", "nbi-form"); form.noValidate = true; qc.appendChild(form);
