@@ -1,5 +1,5 @@
 /*!
- * CST Training NEBOSH hub (v28: team quote widget can show the form first, data-order="form-first")
+ * CST Training NEBOSH hub (v29: Working Safely readiness check and hazard-spotting task)
  * Host on GitHub Pages, load with ?v=N cache buster.
  * Mount point: <div class="cst-nebosh-matcher"></div>
  * Live dates:  <div class="cst-nebosh-dates" data-search="NEBOSH Construction"></div>
@@ -994,7 +994,8 @@
       w.appendChild(l); w.appendChild(i); form.appendChild(w); return i;
     }
     var fN = fld("Your name", "text"), fC = fld("Company", "text"), fE = fld("Email", "email"), fP = fld("Phone", "tel");
-    var fW = fld("Where", "select", false, ["Public dates, live online", "Public dates, classroom", "In-house at our site", "Live online, just for our team", "Not sure yet"]);
+    var isWS = (root.getAttribute("data-course") || "ms") === "ws";
+    var fW = fld("Where", "select", false, isWS ? ["Public dates, live online", "In-house at our site", "Live online, just for our team", "Not sure yet"] : ["Public dates, live online", "Public dates, classroom", "In-house at our site", "Live online, just for our team", "Not sure yet"]);
     var fT = fld("When", "select", false, ["As soon as possible", "Within 1 month", "1 to 3 months", "3 months or more"]);
     var fQ = fld("Anything else? (optional)", "textarea", true);
     var bw = el("div", "full"); bw.style.textAlign = "center"; var sb = el("button", "nbx-btn or", "Request my quote"); sb.type = "submit"; bw.appendChild(sb); form.appendChild(bw);
@@ -1106,9 +1107,29 @@
       { q: "Can you attend every session: three full days, or three day release days?", no: "You'll need to attend every session. If three days in a row is hard, day release runs 1 day a week for 3 weeks.", link: ["#dates", "See day release dates"] },
       { q: "Do you have a real workplace you can risk assess for the project within two weeks?", no: "The project is a risk assessment of a real workplace. Call us on 020 3488 4472 and we'll talk through your options." },
       { q: "Are you comfortable reading and writing in English at work?", no: "The exam and project are in English. Call us on 020 3488 4472 and we'll talk through the support available." }
+    ],
+    ws: [
+      { q: "Is the course for your own day-to-day work, rather than managing other people?", no: "If you manage or supervise others, IOSH Managing Safely is the course built for your role.", link: [SITE + "/iosh-managing-safely/", "See IOSH Managing Safely"] },
+      { q: "Can you attend the whole day, 8:30am to 5:00pm?", no: "You'll need to attend the full day. Pick a date that suits you, or call us on 020 3488 4472 and we'll help.", link: ["#dates", "See the dates"] },
+      { q: "Do you have a laptop or PC with a working camera and microphone?", no: "The course runs live on Google Meet, and mobiles and tablets can't be used. Call us on 020 3488 4472 and we'll talk through your options." },
+      { q: "Do you need it for something other than a CSCS card?", no: "Working Safely doesn't qualify you for a CSCS card. For the green card you need the Level 1 Award in Health and Safety in a Construction Environment and the CITB test.", link: [SITE + "/level-1-health-safety-construction-environment/", "See the Level 1 Award"] },
+      { q: "Are you comfortable reading and writing in English at work?", no: "The exam is in English. Call us on 020 3488 4472 and we'll talk through the support available." }
     ]
   };
+  var READY_OK = { ms: ["You're ready for Managing Safely.", "Pick a date that suits you and book your place online."], ws: ["You're ready for Working Safely.", "Pick a date that suits you and book your place online."] };
   var TASKS = {
+    ws: {
+      sc: "You walk into the staff kitchen. The kettle lead trails across the worktop to a socket next to the sink. The floor has just been mopped and there's no sign up. A box of printer paper is sitting in front of the fire exit, and a colleague is standing on a swivel chair to reach the top shelf.",
+      t: "Spot the hazards, say who could be harmed and how, and what you'd do about each one.",
+      pts: [
+        { h: "Electrical hazard", d: "The kettle lead near the sink: water and electricity, risk of shock or burns.", k: /kettle|lead|cable|wire|socket|electric|shock|water and/ },
+        { h: "Slip hazard", d: "The wet floor with no warning sign.", k: /wet|slip|floor|mop|sign/ },
+        { h: "Blocked fire exit", d: "The box in front of the fire exit could stop people escaping in a fire.", k: /fire exit|exit|block|escape|evacuat|fire door/ },
+        { h: "Working at height", d: "Standing on a swivel chair to reach the shelf, with a real risk of falling.", k: /chair|swivel|stand|climb|height|fall|ladder|step|reach|shelf/ },
+        { h: "Who could be harmed", d: "Your colleague on the chair, anyone using the kitchen, cleaners and visitors.", k: /colleague|anyone|everyone|staff|worker|people|person|cleaner|visitor|employee|myself|me/ },
+        { h: "What you'd do", d: "Tell your colleague to get down and use a step stool, move the box, put up a wet floor sign, move the kettle away from the sink, and report it to your manager.", k: /report|tell|manager|supervisor|move|clear|remove|put up|unplug|stool|step ladder|get down|stop|warn/ }
+      ]
+    },
     ms: {
       sc: "A warehouse supervisor notices pallets of boxed stock stacked three high on the top level of racking, above its rated height. The forklift driver says it's been done for months because the lower levels are full. Nobody has been hurt.",
       t: "Identify the hazard, who's at risk and the likely consequence, rate the risk, and say what you'd do first today and what you'd change this month.",
@@ -1145,8 +1166,9 @@
       var box = el("div", "nbi-result");
       var nos = L.filter(function (x, i) { return ans[i] === "n"; }), unsure = L.some(function (x, i) { return ans[i] === "u"; });
       if (!nos.length && !unsure) {
-        box.className = "nbi-result ok"; box.appendChild(el("h4", null, "You're ready for Managing Safely."));
-        box.appendChild(el("p", null, "Pick a date that suits you and book your place online."));
+        var okc = READY_OK[root.getAttribute("data-course") || "ms"] || READY_OK.ms;
+        box.className = "nbi-result ok"; box.appendChild(el("h4", null, okc[0]));
+        box.appendChild(el("p", null, okc[1]));
         var b1 = el("div", "nbi-btns"); b1.appendChild(linkBtn("#dates", "or", "Choose your date")); box.appendChild(b1);
       } else if (!nos.length) {
         box.appendChild(el("h4", null, "You're probably ready, but let's check."));
