@@ -1,5 +1,5 @@
 /*!
- * CST Training NEBOSH hub (v29: Working Safely readiness check and hazard-spotting task)
+ * CST Training NEBOSH hub (v30: pinned undated products in the dates widget, e.g. e-learning, shown first)
  * Host on GitHub Pages, load with ?v=N cache buster.
  * Mount point: <div class="cst-nebosh-matcher"></div>
  * Live dates:  <div class="cst-nebosh-dates" data-search="NEBOSH Construction"></div>
@@ -501,6 +501,8 @@
     ".nbd-msg{text-align:center;background:#fff;border:1px dashed #dcdfea;border-radius:12px;padding:18px;color:#565c75}",
     ".nbd-msg a{color:#1d2560;font-weight:700}",
     ".nbd-skel{min-height:62px}",
+    ".nbd-row.nbd-pin{border-left-color:#4c6bd8;background:#f6f8ff}",
+    ".nbd-row.nbd-pin .nbd-date{color:#4c6bd8}",
     ".nbd-sk{height:14px;border-radius:7px;background:linear-gradient(90deg,#e7e9f3 25%,#f4f5f9 50%,#e7e9f3 75%);background-size:200% 100%;animation:nbdsk 1.2s infinite linear}",
     ".nbd-sk.w1{width:110px}.nbd-sk.w2{width:70%}.nbd-sk.w3{width:90px}.nbd-sk.w4{width:100px;height:38px;border-radius:30px}",
     "@keyframes nbdsk{0%{background-position:200% 0}100%{background-position:-200% 0}}",
@@ -774,6 +776,9 @@
     function fn(f) { return f.id === "block" && blockNote ? blockNote : f.id === "day" && dayNote ? dayNote : f.note; }
     var want = ""; try { want = (new URLSearchParams(location.search).get("dates") || "").toLowerCase(); } catch (e) {}
     var state = { fmt: want || "all", loc: "", shown: step }, items = [];
+    var pinIds = (root.getAttribute("data-pin") || "").split(/[|,]/).map(function (x) { return x.trim(); }).filter(Boolean);
+    var PIN = { id: "elearn", label: root.getAttribute("data-pin-label") || "E-learning", note: root.getAttribute("data-pin-note") || "Online, at your own pace" };
+    var pinned = [];
 
     var bar = el("div", "nbd-bar"); root.appendChild(bar);
     var list = el("div", "nbd-list"); list.setAttribute("aria-live", "polite"); root.appendChild(list);
@@ -792,9 +797,9 @@
 
     function tabs() {
       bar.innerHTML = "";
-      [{ id: "all", label: "All dates" }].concat(FORMATS).forEach(function (f) {
+      [{ id: "all", label: "All dates" }].concat(pinned.length ? [PIN] : [], FORMATS).forEach(function (f) {
         if (f.id !== "all" && !items.some(function (i) { return i.fmt.id === f.id; })) return;
-        var b = el("button", "nbd-tab", f.id === "all" ? f.label : fl(f)); b.type = "button";
+        var b = el("button", "nbd-tab", f.id === "all" || f.id === "elearn" ? f.label : fl(f)); b.type = "button";
         b.setAttribute("aria-pressed", state.fmt === f.id ? "true" : "false");
         b.addEventListener("click", function () { state.fmt = f.id; state.loc = ""; state.shown = step; tabs(); draw(); });
         bar.appendChild(b);
@@ -813,10 +818,17 @@
       if (!rows.length) { msg("No upcoming dates for this option right now."); return; }
       rows.slice(0, state.shown).forEach(function (i) {
         var r = el("div", "nbd-row");
-        var dt = el("div", "nbd-date", i.date.getDate() + " " + MONTHS[i.date.getMonth()] + " " + i.date.getFullYear());
-        dt.appendChild(el("span", null, DAYS[i.date.getDay()] + " start")); r.appendChild(dt);
-        var w = el("div", "nbd-what"); w.appendChild(el("b", null, fl(i.fmt)));
-        w.appendChild(document.createTextNode(" " + (i.fmt.id === "class" ? (i.loc ? "in " + i.loc : "") : "online, " + fn(i.fmt).replace(/^Online, /, ""))));
+        var w;
+        if (i.pin) {
+          r.className = "nbd-row nbd-pin";
+          var dp = el("div", "nbd-date", "Start today"); dp.appendChild(el("span", null, "Any time")); r.appendChild(dp);
+          w = el("div", "nbd-what"); w.appendChild(el("b", null, PIN.label)); w.appendChild(document.createTextNode(" " + PIN.note.replace(/^Online, /, "online, ")));
+        } else {
+          var dt = el("div", "nbd-date", i.date.getDate() + " " + MONTHS[i.date.getMonth()] + " " + i.date.getFullYear());
+          dt.appendChild(el("span", null, DAYS[i.date.getDay()] + " start")); r.appendChild(dt);
+          w = el("div", "nbd-what"); w.appendChild(el("b", null, fl(i.fmt)));
+          w.appendChild(document.createTextNode(" " + (i.fmt.id === "class" ? (i.loc ? "in " + i.loc : "") : "online, " + fn(i.fmt).replace(/^Online, /, ""))));
+        }
         if (i.low) w.appendChild(el("span", "nbd-low", "Only " + i.low + " place" + (i.low === 1 ? "" : "s") + " left"));
         r.appendChild(w);
         r.appendChild(el("div", "nbd-price", i.price != null ? money(i.price) + vat : ""));
@@ -834,12 +846,33 @@
         var n = decode(p.name || "").toLowerCase();
         return must.every(function (w) { return n.indexOf(w) > -1; }) && !not.some(function (w) { return n.indexOf(w) > -1; });
       });
-      items = (data || []).map(parseProduct).filter(function (i) { return i && i.inStock && i.date >= today; })
-        .sort(function (a, b) { return a.date - b.date; });
+      items = pinned.concat((data || []).map(parseProduct).filter(function (i) { return i && i.inStock && i.date >= today; })
+        .sort(function (a, b) { return a.date - b.date; }));
       if (!items.length) { msg("No upcoming dates are listed online right now."); return; }
       if (items.every(function (i) { return i.fmt.id !== state.fmt; }) && state.fmt !== "all") state.fmt = "all";
       shown = true; tabs(); draw();
     }
+    var lastData = null;
+    function pinItem(p) {
+      if (!p || !p.id) return null;
+      var pr = p.prices || {}, mu = Math.pow(10, pr.currency_minor_unit == null ? 2 : pr.currency_minor_unit);
+      if (p.is_in_stock === false || p.is_purchasable === false) return null;
+      return { id: p.id, pin: true, date: null, fmt: PIN, loc: "", price: pr.price ? Math.round(+pr.price / mu) : null, low: null, url: p.permalink };
+    }
+    function loadPins(fresh) {
+      if (!pinIds.length) return Promise.resolve();
+      return Promise.all(pinIds.map(function (id) {
+        var k = base + "|pin:" + id, c = cacheGet(k);
+        if (c && !fresh && Date.now() - c.t < CACHE_MS) return Promise.resolve(c.d[0]);
+        return fetch(base.replace(/\/$/, "") + "/" + encodeURIComponent(id) + "?_fields=id,name,permalink,prices,is_in_stock,is_purchasable", { credentials: "same-origin" })
+          .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+          .then(function (p) { cacheSet(k, [p]); return p; })
+          .catch(function () { return c ? c.d[0] : null; });
+      })).then(function (list) { pinned = list.map(pinItem).filter(Boolean); if (lastData) show(lastData); });
+    }
+    (function () { pinIds.forEach(function (id) { var c = cacheGet(base + "|pin:" + id); if (c) { var it = pinItem(c.d[0]); if (it) pinned.push(it); } }); })();
+    var showDates = show; show = function (data) { lastData = data; showDates(data); };
+    loadPins(false);
     // Show any saved copy straight away, then refresh it in the background when it's older than 15 minutes
     var cached = cachedAll(base, searches);
     if (cached) show(cached.data);
