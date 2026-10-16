@@ -1,5 +1,5 @@
 /*!
- * CST Training NEBOSH hub (v26: team calculator shows the total only, no discount wording)
+ * CST Training NEBOSH hub (v27: interactive readiness check and marked sample task for IOSH pages)
  * Host on GitHub Pages, load with ?v=N cache buster.
  * Mount point: <div class="cst-nebosh-matcher"></div>
  * Live dates:  <div class="cst-nebosh-dates" data-search="NEBOSH Construction"></div>
@@ -8,6 +8,7 @@
  * IOSH tools:  <div class="cst-iosh-tailor" data-course="ms"></div>
  *               <div class="cst-iosh-timeline" data-course="ms"></div>
  *               <div class="cst-iosh-team" data-course="ms"></div>
+ *               <div class="cst-iosh-ready" data-course="ms"></div>  <div class="cst-iosh-task" data-course="ms"></div>
  *               <div class="cst-iosh-finder"></div>  (hub: role, goal, study and prior give a course, price and next date)
  * WordPress strips <style> tags from page content, so this script also injects the hub's page CSS.
  */
@@ -552,6 +553,26 @@
     ".nbi-meta span.nx{background:#fff6ea;color:#8a4b00}",
     ".nbi-alt{margin-top:12px;font-size:15px;color:#565c75}.nbi-alt a{color:#1d2560;font-weight:700}",
     ".nbi-reset{background:none;border:0;color:#565c75;text-decoration:underline;cursor:pointer;font:inherit;font-size:14px;margin-top:12px;padding:0}",
+    ".nbi-q{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;padding:14px 0;border-bottom:1px solid #e7e9f3}",
+    ".nbi-q p{margin:0!important;flex:1 1 260px;color:#1b1f33;font-size:16px}",
+    ".nbi-yn{display:flex;border:1.5px solid #dcdfea;border-radius:30px;overflow:hidden;flex:none}",
+    ".nbi-yn button{font:inherit;font-size:14px;font-weight:700;background:#fff;color:#1d2560;border:0;padding:8px 16px;cursor:pointer}",
+    ".nbi-yn button+button{border-left:1.5px solid #dcdfea}",
+    ".nbi-yn button[aria-pressed=true]{background:#1d2560;color:#fff}",
+    ".nbi-yn button.y[aria-pressed=true]{background:#2e7d4f}.nbi-yn button.n[aria-pressed=true]{background:#b3261e}",
+    ".nbi-result{margin-top:16px;border-radius:12px;padding:16px 18px;background:#f4f5f9;border-left:5px solid #4c6bd8}",
+    ".nbi-result.ok{background:#eef8f1;border-left-color:#2e7d4f}",
+    ".nbi-result h4{margin:0 0 6px!important;color:#1d2560!important;font-size:18px!important}",
+    ".nbi-result p{margin:0 0 8px!important;color:#3a3f55}",
+    ".nbi-scn{background:#f4f5f9;border-radius:10px;padding:14px 16px;margin:0 0 12px!important;color:#1b1f33}",
+    ".nbi-ta{display:block;width:100%;min-height:130px;font:inherit;font-size:15px;padding:12px 14px;border:1.5px solid #dcdfea;border-radius:10px;margin:8px 0 12px;color:#1b1f33}",
+    ".nbi-ta:focus-visible{outline:3px solid #ff8c04;outline-offset:2px}",
+    ".nbi-score{font-size:20px;font-weight:700;color:#1d2560;margin:4px 0 10px!important}",
+    ".nbi-pts{list-style:none!important;margin:0 0 12px!important;padding:0!important}",
+    ".nbi-pts li{position:relative;padding:6px 0 6px 30px!important;margin:0!important;color:#3a3f55;font-size:15px;border-bottom:1px solid #eef0f6}",
+    ".nbi-pts li::before{position:absolute;left:4px;top:6px;font-weight:700}",
+    ".nbi-pts li.hit::before{content:'\\2713';color:#2e7d4f}.nbi-pts li.miss::before{content:'\\2715';color:#b3261e}",
+    ".nbi-pts li b{color:#1d2560}",
     ".nbi-thanks{display:none;background:#fff6ea;border-left:4px solid #ff8c04;border-radius:8px;padding:16px 18px;margin-top:16px}",
     /* Comparison table and FAQs */
     ".nbx-tw{overflow-x:auto;border-radius:12px;margin-top:20px;border:1px solid #dcdfea;background:#fff}",
@@ -1076,6 +1097,108 @@
     [sr, sg].forEach(function (x) { x.addEventListener("change", update); });
   }
 
+
+  // ---------- IOSH readiness check and sample task (v27) ----------
+  var READY = {
+    ms: [
+      { q: "Do you manage, supervise or direct other people's work, or will you soon?", no: "Managing Safely is built for people who manage others. If you don't, IOSH Working Safely covers what you need in one day.", link: [WS_URL, "See IOSH Working Safely"] },
+      { q: "Can you attend every session: three full days, or three day release days?", no: "You'll need to attend every session. If three days in a row is hard, day release runs 1 day a week for 3 weeks.", link: ["#dates", "See day release dates"] },
+      { q: "Do you have a real workplace you can risk assess for the project within two weeks?", no: "The project is a risk assessment of a real workplace. Call us on 020 3488 4472 and we'll talk through your options." },
+      { q: "Are you comfortable reading and writing in English at work?", no: "The exam and project are in English. Call us on 020 3488 4472 and we'll talk through the support available." }
+    ]
+  };
+  var TASKS = {
+    ms: {
+      sc: "A warehouse supervisor notices pallets of boxed stock stacked three high on the top level of racking, above its rated height. The forklift driver says it's been done for months because the lower levels are full. Nobody has been hurt.",
+      t: "Identify the hazard, who's at risk and the likely consequence, rate the risk, and say what you'd do first today and what you'd change this month.",
+      pts: [
+        { h: "The hazard", d: "Overloaded racking and loads falling from height.", k: /rack|overload|over.?load|fall|collaps|too high|height|stack|weight|rated/ },
+        { h: "Who's at risk", d: "The driver, pickers below and anyone walking the aisle.", k: /driver|picker|staff|worker|employee|colleague|people|person|anyone|pedestrian|aisle|operative|visitor/ },
+        { h: "The consequence", d: "Crush or struck-by injuries, potentially fatal.", k: /injur|crush|struck|fatal|death|die|kill|harm|hurt|serious|accident/ },
+        { h: "Rating the risk", d: "High: serious harm, made more likely by months of normalised practice.", k: /high|likel|probab|severity|serious risk|risk rating|rate|matrix|score/ },
+        { h: "What you'd do today", d: "Stop stacking above the rated level, cordon off the aisle and remove the excess loads safely.", k: /stop|cordon|barrier|block|close|remove|unload|take down|isolate|restrict|prevent access|keep people away|immediately/ },
+        { h: "What you'd change this month", d: "Review storage capacity (the real cause), inspect the racking, revise the safe system of work, brief the team, and record and monitor it.", k: /capacity|storage|review|inspect|safe system|procedure|train|brief|supervis|monitor|record|report|audit|check/ }
+      ]
+    }
+  };
+  function mountReady(root) {
+    if (root._nbi) return; root._nbi = true;
+    var L = READY[root.getAttribute("data-course") || "ms"]; if (!L) return;
+    root.classList.add("nbi"); root.innerHTML = "";
+    var ans = [];
+    var res = el("div"); res.setAttribute("aria-live", "polite");
+    L.forEach(function (item, i) {
+      var row = el("div", "nbi-q"); row.appendChild(el("p", null, item.q));
+      var g = el("div", "nbi-yn"); g.setAttribute("role", "group"); g.setAttribute("aria-label", item.q);
+      [["y", "Yes"], ["u", "Not sure"], ["n", "No"]].forEach(function (o) {
+        var b = el("button", o[0], o[1]); b.type = "button"; b.setAttribute("aria-pressed", "false");
+        b.addEventListener("click", function () { ans[i] = o[0]; Array.prototype.forEach.call(g.children, function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); }); draw(); });
+        g.appendChild(b);
+      });
+      row.appendChild(g); root.appendChild(row);
+    });
+    root.appendChild(res);
+    function draw() {
+      res.innerHTML = "";
+      var done = L.every(function (x, i) { return ans[i]; }); if (!done) return;
+      var box = el("div", "nbi-result");
+      var nos = L.filter(function (x, i) { return ans[i] === "n"; }), unsure = L.some(function (x, i) { return ans[i] === "u"; });
+      if (!nos.length && !unsure) {
+        box.className = "nbi-result ok"; box.appendChild(el("h4", null, "You're ready for Managing Safely."));
+        box.appendChild(el("p", null, "Pick a date that suits you and book your place online."));
+        var b1 = el("div", "nbi-btns"); b1.appendChild(linkBtn("#dates", "or", "Choose your date")); box.appendChild(b1);
+      } else if (!nos.length) {
+        box.appendChild(el("h4", null, "You're probably ready, but let's check."));
+        box.appendChild(el("p", null, "Call us on 020 3488 4472 and we'll talk through anything you're not sure about, or pick a date if you're happy to go ahead."));
+        var b2 = el("div", "nbi-btns"); b2.appendChild(linkBtn("#dates", "or", "Choose your date")); b2.appendChild(linkBtn(CONTACT, "gh", "Ask a question")); box.appendChild(b2);
+      } else {
+        box.appendChild(el("h4", null, "A few things to think about first"));
+        nos.forEach(function (x) {
+          box.appendChild(el("p", null, x.no));
+          if (x.link) { var b3 = el("div", "nbi-btns"); b3.style.marginBottom = "10px"; b3.appendChild(linkBtn(x.link[0], "gh", x.link[1])); box.appendChild(b3); }
+        });
+      }
+      res.appendChild(box);
+      try { window.dataLayer = window.dataLayer || []; window.dataLayer.push({ event: "iosh_ready_check", iosh_ready: !nos.length && !unsure ? "ready" : nos.length ? "not_ready" : "unsure" }); } catch (e) {}
+    }
+  }
+  function mountTask(root) {
+    if (root._nbi) return; root._nbi = true;
+    var T = TASKS[root.getAttribute("data-course") || "ms"]; if (!T) return;
+    root.classList.add("nbi"); root.innerHTML = "";
+    var sc = el("p", "nbi-scn"); sc.appendChild(el("strong", null, "Scenario: ")); sc.appendChild(document.createTextNode(T.sc)); root.appendChild(sc);
+    var tk = el("p"); tk.appendChild(el("strong", null, "Your task: ")); tk.appendChild(document.createTextNode(T.t)); root.appendChild(tk);
+    var ta = el("textarea", "nbi-ta"); ta.setAttribute("aria-label", "Your answer"); ta.placeholder = "Type your answer here. Nothing is sent anywhere."; root.appendChild(ta);
+    var bb = el("div", "nbi-btns");
+    var chk = el("button", "nbx-btn or", "Check my answer"); chk.type = "button";
+    var show = el("button", "nbx-btn gh", "Just show me a strong answer"); show.type = "button";
+    bb.appendChild(chk); bb.appendChild(show); root.appendChild(bb);
+    var out = el("div"); out.setAttribute("aria-live", "polite"); root.appendChild(out);
+    function render(marked) {
+      out.innerHTML = "";
+      var box = el("div", "nbi-result"); var txt = (ta.value || "").toLowerCase(), hits = 0;
+      var ul = el("ul", "nbi-pts");
+      T.pts.forEach(function (p) {
+        var hit = marked && p.k.test(txt); if (hit) hits++;
+        var li = el("li", marked ? (hit ? "hit" : "miss") : null); li.appendChild(el("b", null, p.h + ": ")); li.appendChild(document.createTextNode(p.d)); ul.appendChild(li);
+      });
+      if (marked) {
+        var words = txt.trim().split(/\s+/).filter(Boolean).length;
+        var msg = words < 15 ? "Add a bit more detail and try again." : hits >= 5 ? "Strong answer. You've covered what the assessment looks for." : hits >= 3 ? "Good start. Look at the points you missed below." : "Worth another go. Here's what a strong answer covers.";
+        if (words < 15) { box.className = "nbi-result"; box.appendChild(el("p", "nbi-score", msg)); out.appendChild(box); return; }
+        box.className = "nbi-result" + (hits >= 5 ? " ok" : "");
+        box.appendChild(el("p", "nbi-score", "You covered " + hits + " of " + T.pts.length + " key points"));
+        box.appendChild(el("p", null, msg));
+      } else box.appendChild(el("h4", null, "What a strong answer covers"));
+      box.appendChild(ul);
+      box.appendChild(el("p", "nbi-small", "Marked automatically against the key points, so treat it as a guide. Written by our tutors in the style of the assessment. It isn't an IOSH question."));
+      out.appendChild(box);
+      try { window.dataLayer = window.dataLayer || []; window.dataLayer.push({ event: "iosh_sample_task", iosh_task_score: marked ? hits : "shown" }); } catch (e) {}
+    }
+    chk.addEventListener("click", function () { if (!ta.value.trim()) { ta.focus(); out.innerHTML = ""; var b = el("div", "nbi-result"); b.appendChild(el("p", null, "Type your answer first, then check it.")); out.appendChild(b); return; } render(true); });
+    show.addEventListener("click", function () { render(false); });
+  }
+
   // Give closed cards in the same row the same height, so "What you'll learn" and the buttons line up.
   // An opened card grows on its own without stretching its neighbours.
   function equalise() {
@@ -1115,6 +1238,8 @@
     Array.prototype.forEach.call(document.querySelectorAll(".cst-iosh-timeline"), function (r) { if (!r._nbi) mountTimeline(r); });
     Array.prototype.forEach.call(document.querySelectorAll(".cst-iosh-team"), function (r) { if (!r._nbi) mountTeam(r); });
     Array.prototype.forEach.call(document.querySelectorAll(".cst-iosh-finder"), function (r) { if (!r._nbi) mountFinder(r); });
+    Array.prototype.forEach.call(document.querySelectorAll(".cst-iosh-ready"), function (r) { if (!r._nbi) mountReady(r); });
+    Array.prototype.forEach.call(document.querySelectorAll(".cst-iosh-task"), function (r) { if (!r._nbi) mountTask(r); });
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
   // Re-mount if the theme re-renders page content
