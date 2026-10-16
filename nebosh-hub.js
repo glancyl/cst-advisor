@@ -1,5 +1,5 @@
 /*!
- * CST Training NEBOSH hub (v18: IOSH hub course finder with live next date)
+ * CST Training NEBOSH hub (v21: finder opens the course page's dates on the chosen format, e.g. ?dates=class)
  * Host on GitHub Pages, load with ?v=N cache buster.
  * Mount point: <div class="cst-nebosh-matcher"></div>
  * Live dates:  <div class="cst-nebosh-dates" data-search="NEBOSH Construction"></div>
@@ -750,7 +750,8 @@
     function fl(f) { return f.id === "block" && blockLabel ? blockLabel : f.label; }
     var dayNote = root.getAttribute("data-day-note");
     function fn(f) { return f.id === "block" && blockNote ? blockNote : f.id === "day" && dayNote ? dayNote : f.note; }
-    var state = { fmt: "all", loc: "", shown: step }, items = [];
+    var want = ""; try { want = (new URLSearchParams(location.search).get("dates") || "").toLowerCase(); } catch (e) {}
+    var state = { fmt: want || "all", loc: "", shown: step }, items = [];
 
     var bar = el("div", "nbd-bar"); root.appendChild(bar);
     var list = el("div", "nbd-list"); list.setAttribute("aria-live", "polite"); root.appendChild(list);
@@ -1047,36 +1048,41 @@
     root.classList.add("nbi"); root.innerHTML = "";
     var bar = el("div", "nbi-bar"); root.appendChild(bar);
     function sel(list, ph, label) { var x = el("select"); x.setAttribute("aria-label", label); opt(x, list, ph); return x; }
-    var sr = sel(FIND.roles, "choose your role", "Your role"), sg = sel(FIND.goals, "choose your goal", "Your goal"), ss = sel(FIND.study, "choose how", "How you'd like to study"), sp = sel(FIND.prior, "choose", "What you already hold");
-    [["I'm ", sr], [" and I want to ", sg], [". I'd like to study ", ss], [" and I already hold ", sp]].forEach(function (x) { bar.appendChild(document.createTextNode(x[0])); bar.appendChild(x[1]); });
+    var sr = sel(FIND.roles, "choose your role", "Your role"), sg = sel(FIND.goals, "choose your goal", "Your goal"), ss = sel(FIND.study, "choose how", "How you'd like to study"), sp = { value: "" };
+    [["I'm ", sr], [" and I want to ", sg], [". I'd like to study ", ss]].forEach(function (x) { bar.appendChild(document.createTextNode(x[0])); bar.appendChild(x[1]); });
     bar.appendChild(document.createTextNode("."));
     bar.appendChild(el("p", "nbi-hint", "Pick your role and goal to see your recommended course, its price and the next date. No email needed."));
     var out = el("div"); out.setAttribute("aria-live", "polite"); root.appendChild(out);
     var token = 0;
     function update() {
-      [sr, sg, ss, sp].forEach(function (x) { x.classList.toggle("set", !!x.value); });
+      [sr, sg, ss].forEach(function (x) { x.classList.toggle("set", !!x.value); });
       out.innerHTML = ""; if (!sr.value || !sg.value) return;
       var r = findCourse(sr.value, sg.value, ss.value || "live", sp.value || "none"), K = FIND.C[r.p], A = FIND.C[r.alt];
       var box = el("div", "nbi-res"); box.appendChild(el("span", "nbi-vt", "Our recommendation"));
       box.appendChild(el("h3", null, K.name));
       var meta = el("div", "nbi-meta"); meta.appendChild(el("span", null, K.meta)); meta.appendChild(el("span", null, K.price));
-      var nx = el("span", "nx", K.search ? "Finding the next date..." : ""); if (K.search) meta.appendChild(nx);
+      var cls = r.p === "ms" && r.fmt === "class";
+      var fmtKey = r.p === "ws" ? "block" : cls ? "class" : r.fmt === "day" ? "day" : "block";
+      var fmtName = cls ? "classroom" : fmtKey === "day" ? "day release" : "online";
+      var nx = el("span", "nx", cls ? "Classroom courses across the UK" : K.search ? "Finding the next date..." : ""); if (K.search || cls) meta.appendChild(nx);
       box.appendChild(meta); box.appendChild(el("p", null, r.msg));
-      var bb = el("div", "nbi-btns"); var main = linkBtn(K.url, "or", K.btn || "View " + K.name.replace("IOSH ", "")); bb.appendChild(main);
+      var bb = el("div", "nbi-btns"), main;
+      if (K.search) { main = linkBtn(K.url + "?dates=" + fmtKey + "#dates", "or", "See " + fmtName + " dates"); bb.appendChild(main); bb.appendChild(linkBtn(K.url, "gh", "View " + K.name.replace("IOSH ", ""))); }
+      else { main = linkBtn(K.url, "or", K.btn || "View " + K.name.replace("IOSH ", "")); bb.appendChild(main); }
       bb.appendChild(linkBtn(CONTACT, "gh", "Enquire")); box.appendChild(bb);
       if (A) { var al = el("p", "nbi-alt"); al.appendChild(document.createTextNode("Also worth a look: ")); var a = el("a", null, A.name); a.href = A.url; al.appendChild(a); box.appendChild(al); }
-      var rs = el("button", "nbi-reset", "Start again"); rs.type = "button"; rs.addEventListener("click", function () { [sr, sg, ss, sp].forEach(function (x) { x.value = ""; }); update(); sr.focus(); }); box.appendChild(rs);
+      var rs = el("button", "nbi-reset", "Start again"); rs.type = "button"; rs.addEventListener("click", function () { [sr, sg, ss].forEach(function (x) { x.value = ""; }); update(); sr.focus(); }); box.appendChild(rs);
       out.appendChild(box);
       var my = ++token;
-      if (K.search) nextDate(K, r.fmt).then(function (i) {
+      if (K.search && !cls) nextDate(K, r.fmt).then(function (i) {
         if (my !== token) return;
         if (!i) { nx.textContent = "New dates every week"; return; }
         nx.textContent = "Next: " + i.date.getDate() + " " + MONTHS[i.date.getMonth()] + (i.fmt.id === "class" && i.loc ? ", " + i.loc : i.fmt.id === "day" ? ", day release" : ", online");
-        var bk = linkBtn(i.url, "or", "Book " + i.date.getDate() + " " + MONTHS[i.date.getMonth()]); main.className = "nbx-btn gh"; bb.insertBefore(bk, main);
+        main.textContent = "See " + fmtName + " dates";
       });
-      try { window.dataLayer = window.dataLayer || []; window.dataLayer.push({ event: "iosh_finder", iosh_role: sr.value, iosh_goal: sg.value, iosh_study: ss.value, iosh_prior: sp.value, iosh_course: r.p }); } catch (e) {}
+      try { window.dataLayer = window.dataLayer || []; window.dataLayer.push({ event: "iosh_finder", iosh_role: sr.value, iosh_goal: sg.value, iosh_study: ss.value, iosh_course: r.p }); } catch (e) {}
     }
-    [sr, sg, ss, sp].forEach(function (x) { x.addEventListener("change", update); });
+    [sr, sg, ss].forEach(function (x) { x.addEventListener("change", update); });
   }
 
   // Give closed cards in the same row the same height, so "What you'll learn" and the buttons line up.
