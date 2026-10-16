@@ -1,5 +1,5 @@
 /*!
- * CST Training NEBOSH hub (v22: finder follows the study choice exactly: online or classroom; no next-date guess)
+ * CST Training NEBOSH hub (v23: team quote button centred)
  * Host on GitHub Pages, load with ?v=N cache buster.
  * Mount point: <div class="cst-nebosh-matcher"></div>
  * Live dates:  <div class="cst-nebosh-dates" data-search="NEBOSH Construction"></div>
@@ -975,8 +975,8 @@
     var fW = fld("Where", "select", false, ["Public dates, live online", "Public dates, classroom", "In-house at our site", "Live online, just for our team", "Not sure yet"]);
     var fT = fld("When", "select", false, ["As soon as possible", "Within 1 month", "1 to 3 months", "3 months or more"]);
     var fQ = fld("Anything else? (optional)", "textarea", true);
-    var bw = el("div", "full"); var sb = el("button", "nbx-btn or", "Request my quote"); sb.type = "submit"; bw.appendChild(sb); form.appendChild(bw);
-    var st = el("p", "nbi-status full"); st.setAttribute("role", "status"); form.appendChild(st);
+    var bw = el("div", "full"); bw.style.textAlign = "center"; var sb = el("button", "nbx-btn or", "Request my quote"); sb.type = "submit"; bw.appendChild(sb); form.appendChild(bw);
+    var st = el("p", "nbi-status full"); st.style.textAlign = "center"; st.setAttribute("role", "status"); form.appendChild(st);
     var th = el("div", "nbi-thanks"); th.appendChild(el("b", null, "Thanks, we've got your request. ")); th.appendChild(document.createTextNode("We'll send your quote within 24 hours. If it's urgent, call 020 3488 4472.")); qc.appendChild(th);
     form.addEventListener("submit", function (ev) {
       ev.preventDefault();
