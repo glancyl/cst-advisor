@@ -1,10 +1,14 @@
 /*!
- * CST Training NEBOSH hub (v16: "-DR" in a title means day release, e.g. IOSH-MS-DR)
+ * CST Training NEBOSH hub (v18: IOSH hub course finder with live next date)
  * Host on GitHub Pages, load with ?v=N cache buster.
  * Mount point: <div class="cst-nebosh-matcher"></div>
  * Live dates:  <div class="cst-nebosh-dates" data-search="NEBOSH Construction"></div>
  *   Reads published WooCommerce products through the Store API. Product titles must follow
  *   "Course name (format) | DD-MM-YYYY | Location". Fully booked and past dates are hidden.
+ * IOSH tools:  <div class="cst-iosh-tailor" data-course="ms"></div>
+ *               <div class="cst-iosh-timeline" data-course="ms"></div>
+ *               <div class="cst-iosh-team" data-course="ms"></div>
+ *               <div class="cst-iosh-finder"></div>  (hub: role, goal, study and prior give a course, price and next date)
  * WordPress strips <style> tags from page content, so this script also injects the hub's page CSS.
  */
 (function () {
@@ -502,6 +506,52 @@
     /* Dark section (data-theme=\"dark\"): orange selected tab, white outline button */
     ".nbd.nbd-dark .nbd-tab{border-color:#fff}",
     ".nbd.nbd-dark .nbd-more{background:transparent;border-color:#fff;color:#fff}",
+    /* IOSH course tools (v17) */
+    ".nbi{color:#1b1f33;font-size:16px;line-height:1.55}",
+    ".nbi *{box-sizing:border-box}",
+    ".nbi-bar{background:#fff;border:1px solid #dcdfea;border-radius:14px;padding:22px 26px;font-size:20px;line-height:2.1;color:#1d2560;font-weight:700}",
+    ".nbi-bar select,.nbi-f select,.nbi-f input{-webkit-appearance:none;appearance:none;font:inherit;font-size:16px;font-weight:700;color:#1d2560;background:#f4f5f9;border:2px solid #dcdfea;border-radius:30px;padding:6px 16px;margin:0 4px;max-width:100%}",
+    ".nbi-bar select.set{border-color:#ff8c04;background:#fff6ea}",
+    ".nbi-bar select:focus-visible,.nbi-f select:focus-visible,.nbi-f input:focus-visible,.nbi button:focus-visible{outline:3px solid #ff8c04;outline-offset:2px}",
+    "@media(max-width:760px){.nbi-bar{font-size:17px}.nbi-bar select{display:block;width:100%;margin:6px 0}}",
+    ".nbi-hint{margin:10px 0 0!important;font-size:14px;font-weight:400;color:#565c75;line-height:1.5}",
+    ".nbi-out{margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:18px}",
+    "@media(max-width:760px){.nbi-out{grid-template-columns:1fr}}",
+    ".nbi-v{grid-column:1/-1;background:#fff;border:1px solid #dcdfea;border-left:6px solid #ff8c04;border-radius:14px;padding:22px 24px}",
+    ".nbi-v.warn{border-left-color:#4c6bd8}",
+    ".nbi-v .nbi-vt{display:inline-block;background:#1d2560;color:#fff;font-size:13px;font-weight:700;border-radius:30px;padding:3px 12px;margin-bottom:8px}",
+    ".nbi-v.warn .nbi-vt{background:#4c6bd8}",
+    ".nbi-v h3{color:#1d2560!important;font-size:22px!important;line-height:1.3!important;margin:0 0 8px!important}",
+    ".nbi-v p{margin:0 0 10px!important;color:#3a3f55}",
+    ".nbi-card{background:#fff;border:1px solid #dcdfea;border-radius:14px;padding:20px 22px}",
+    ".nbi-card h4{color:#1d2560!important;font-size:18px!important;margin:0 0 10px!important}",
+    ".nbi-card ul{margin:0!important;padding-left:1.15em!important}.nbi-card li{margin:0 0 8px!important;color:#3a3f55}",
+    ".nbi-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}",
+    ".nbi-chips span{background:#e7e9f3;color:#1d2560;font-size:13px;font-weight:700;border-radius:30px;padding:4px 12px}",
+    ".nbi-btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}",
+    ".nbi-tl{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:16px}",
+    ".nbi-tl div{background:#fff;border:1px solid #dcdfea;border-top:4px solid #ff8c04;border-radius:12px;padding:14px 16px;color:#3a3f55;font-size:15px}",
+    ".nbi-tl b{display:block;color:#1d2560;font-size:14px;margin-bottom:4px}",
+    ".nbi-f{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center;justify-content:center;color:#fff;font-weight:700}",
+    ".nbi-f label{display:flex;align-items:center;gap:8px;flex-wrap:wrap}",
+    ".nbi-small{font-size:14px!important;color:#565c75;margin:10px 0 0!important}",
+    ".nbi-form{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px;margin-top:18px}",
+    "@media(max-width:600px){.nbi-form{grid-template-columns:1fr}}",
+    ".nbi-form .full{grid-column:1/-1}",
+    ".nbi-form label{display:block;font-weight:700;font-size:14px;color:#1d2560;margin-bottom:4px}",
+    ".nbi-form input,.nbi-form select,.nbi-form textarea{display:block;width:100%;font:inherit;padding:10px 12px;border:1.5px solid #dcdfea;border-radius:8px;background:#fff;color:#1b1f33}",
+    ".nbi-form textarea{min-height:90px}",
+    ".nbi-status{font-weight:700;color:#1d2560;margin:4px 0 0!important}.nbi-status.err{color:#b3261e}",
+    ".nbi-res{margin-top:18px;background:#fff;border:1px solid #dcdfea;border-left:6px solid #ff8c04;border-radius:14px;padding:24px 26px}",
+    ".nbi-res .nbi-vt{display:inline-block;background:#1d2560;color:#fff;font-size:13px;font-weight:700;border-radius:30px;padding:3px 12px;margin-bottom:8px}",
+    ".nbi-res h3{color:#1d2560!important;font-size:24px!important;line-height:1.3!important;margin:0 0 10px!important}",
+    ".nbi-res p{margin:0 0 12px!important;color:#3a3f55}",
+    ".nbi-meta{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}",
+    ".nbi-meta span{background:#e7e9f3;color:#1d2560;font-size:14px;font-weight:700;border-radius:30px;padding:5px 14px}",
+    ".nbi-meta span.nx{background:#fff6ea;color:#8a4b00}",
+    ".nbi-alt{margin-top:12px;font-size:15px;color:#565c75}.nbi-alt a{color:#1d2560;font-weight:700}",
+    ".nbi-reset{background:none;border:0;color:#565c75;text-decoration:underline;cursor:pointer;font:inherit;font-size:14px;margin-top:12px;padding:0}",
+    ".nbi-thanks{display:none;background:#fff6ea;border-left:4px solid #ff8c04;border-radius:8px;padding:16px 18px;margin-top:16px}",
     /* Comparison table and FAQs */
     ".nbx-tw{overflow-x:auto;border-radius:12px;margin-top:20px;border:1px solid #dcdfea;background:#fff}",
     ".nbx-tw table{border-collapse:collapse;width:100%;min-width:640px;background:#fff;margin:0}",
@@ -776,6 +826,259 @@
     } else settled = true;
   }
 
+
+  // ---------- IOSH course tools (v17) ----------
+  var IOSH = {
+    ms: {
+      name: "IOSH Managing Safely", price: 390, cprice: 550, url: SITE + "/iosh-managing-safely/",
+      roles: [["sup","a supervisor or team leader"],["mgr","a manager or department head"],["dir","a director or senior leader"],["site","a construction site manager or supervisor"],["ops","an operative, technician or office worker"],["hs","starting a career in health and safety"],["hr","in HR or L&D, booking for other people"]],
+      goals: [["team","run my team safely"],["req","meet an employer, client or contract requirement"],["audit","respond to an audit, incident or insurer"],["cscs","get a CSCS card"],["refresh","refresh my Managing Safely"],["group","train a group of people"],["duties","understand my legal duties"]],
+      P: {
+        sup: { fit: "Managing Safely is the course IOSH built for supervisors and team leaders, the people who direct work without being safety professionals.",
+          use: ["Write the risk assessment for your own section and brief your team on the controls","Run a toolbox talk on the hazards that actually matter in your area, not a generic list","Deal with a near miss properly: the immediate cause, the underlying cause and what changes","Know when to stop a job, and explain why in the language your manager and the HSE use"],
+          next: "NEBOSH General if you move towards a health and safety role, and the Managing Safely Refresher at three years either way. First-time supervisors often pair this with the ILM Level 3 Award.",
+          jobs: ["Supervisor","Team leader","Shift leader","Chargehand","Foreman"] },
+        mgr: { fit: "Three days of practical management content built around the decisions a manager makes, with a live tutor who has made them. Day release keeps you in the business four days a week.",
+          use: ["Sign off risk assessments knowing what \"suitable and sufficient\" means, and send the weak ones back","Set proactive indicators for your department, rather than just counting accidents","Lead an incident investigation that finds the underlying cause, not someone to blame","Answer an auditor's questions with evidence, not reassurance"],
+          next: "NEBOSH General if your remit grows into health and safety, and the Refresher at three years.",
+          jobs: ["Operations manager","Production manager","Facilities manager","Transport manager","Depot manager"] },
+        dir: { fit: "If you want the practical detail your managers have, and a clear picture of where your personal duties sit, this is the course.",
+          use: ["Understand your personal duties as a director under health and safety law","Ask the right questions of your management team about risk, controls and performance","Read your safety data and know which numbers matter","Set the tone with visible leadership on health and safety"],
+          next: "Managing Safely for the managers below you as well, so everyone works to the same framework.",
+          jobs: ["Director","Owner-manager","Head of operations","Partner"] },
+        site: { fit: "Managing Safely gives you the management framework behind RAMS and permits. It's a general management course, not a CITB card course: for SMSTS or SSSTS see our CITB courses, and for a health and safety career on sites, NEBOSH Construction.",
+          use: ["Review the RAMS your subcontractors hand you and spot what's missing","Investigate a site incident properly, before the client's health and safety team does","Measure site safety with proactive indicators, not just RIDDOR reports","Understand your duties as the person in charge of the site"],
+          next: "NEBOSH Construction for a health and safety role on sites, or SMSTS or SSSTS if you need the CITB route.",
+          jobs: ["Site manager","Site supervisor","Works manager","Project manager"] },
+        ops: { fit: "", use: ["If you're stepping up to supervise, Managing Safely is the course to do first","Otherwise, Working Safely covers what you need in a day"], next: "Working Safely now, and Managing Safely when you supervise.", jobs: [] },
+        hs: { fit: "", use: ["A grounding in risk assessment and the law before NEBOSH","Credibility with the managers you'll advise, because you'll have done their course"], next: "The NEBOSH General Certificate, which meets the academic requirement for Tech IOSH.", jobs: ["Health and safety co-ordinator","Health and safety adviser (with NEBOSH)"] },
+        hr: { fit: "Managing Safely is the standard course employers specify for anyone who manages people. Three or more from one employer get 5% off any public date, seven or more 10%, and from six we can run it just for your organisation.",
+          use: ["Book every new supervisor onto the next course as they're appointed","Run a closed course for a whole tier of management after an audit, incident or new contract","Mix courses: managers on Managing Safely, the workforce on Working Safely"],
+          next: "Working Safely for your workforce, the Refresher for existing Managing Safely holders, and NEBOSH for your health and safety lead.",
+          jobs: [] }
+      }
+    }
+  };
+  var NGC_URL = SITE + "/nebosh-general-certificate-health-safety/", WS_URL = SITE + "/iosh-working-safely/", CONTACT = SITE + "/contact/";
+  function opt(sel, list, ph) { var o = el("option", null, ph); o.value = ""; sel.appendChild(o); list.forEach(function (x) { var p = el("option", null, x[1]); p.value = x[0]; sel.appendChild(p); }); }
+  function linkBtn(href, cls, txt) { var a = el("a", "nbx-btn " + cls, txt); a.href = href; return a; }
+
+  function mountTailor(root) {
+    if (root._nbi) return; root._nbi = true;
+    var K = IOSH[root.getAttribute("data-course") || "ms"]; if (!K) return;
+    root.classList.add("nbi"); root.innerHTML = "";
+    var bar = el("div", "nbi-bar"); root.appendChild(bar);
+    bar.appendChild(document.createTextNode("I'm "));
+    var sr = el("select"); sr.setAttribute("aria-label", "Your role"); opt(sr, K.roles, "choose your role"); bar.appendChild(sr);
+    bar.appendChild(document.createTextNode(" and I want to "));
+    var sg = el("select"); sg.setAttribute("aria-label", "Your goal"); opt(sg, K.goals, "choose your goal"); bar.appendChild(sg);
+    bar.appendChild(document.createTextNode("."));
+    bar.appendChild(el("p", "nbi-hint", "We'll tell you honestly whether this course fits, and if another one fits better, we'll say so."));
+    var out = el("div", "nbi-out"); out.setAttribute("aria-live", "polite"); root.appendChild(out);
+    function verdict(role, goal) {
+      if (goal === "cscs") return { warn: true, h: "Managing Safely won't get you a CSCS card.", p: "For the green labourer card you need the Level 1 Award in Health and Safety in a Construction Environment and the CITB HS&E test. Call us on 020 3488 4472 and we'll book you onto the right course.", btn: [CONTACT, "Ask about the CSCS route"] };
+      if (goal === "refresh") return { warn: true, h: "If you already hold Managing Safely, the Refresher is the one for you.", p: "IOSH recommends a one-day Refresher every three years, so you don't need to repeat the full course. Ask our team for the next date.", btn: [CONTACT, "Ask about the Refresher"] };
+      if (role === "hs") return { warn: true, h: "For a health and safety career, NEBOSH General is usually the better fit.", p: "Managing Safely is a manager's awareness course. It's a useful grounding, but the NEBOSH General Certificate is the qualification employers list for health and safety roles.", btn: [NGC_URL, "See the NEBOSH General Certificate"] };
+      if (role === "ops" && goal !== "group") return { warn: true, h: "If you don't manage anyone, Working Safely is usually the better fit.", p: "Managing Safely is for people who supervise others. Working Safely covers what you need in one day, live online, for £145 + VAT.", btn: [WS_URL, "See IOSH Working Safely"] };
+      var P = K.P[role] || {}, p = P.fit || "";
+      if (role === "hr" || goal === "group") return { h: "Yes, Managing Safely is the right course for your people.", p: p || "Three or more from one employer get 5% off any public date, seven or more 10%, and from six we can run it just for your organisation.", btn: ["#team", "See team rates and in-house"] };
+      return { h: "Yes, this is the right course for you.", p: p, btn: ["#dates", "See the next dates"] };
+    }
+    function update() {
+      var role = sr.value, goal = sg.value; sr.classList.toggle("set", !!role); sg.classList.toggle("set", !!goal);
+      out.innerHTML = ""; if (!role || !goal) return;
+      var v = verdict(role, goal), P = K.P[role] || {};
+      var box = el("div", "nbi-v" + (v.warn ? " warn" : "")); box.appendChild(el("span", "nbi-vt", v.warn ? "Honest answer" : "Good fit for you"));
+      box.appendChild(el("h3", null, v.h)); if (v.p) box.appendChild(el("p", null, v.p));
+      var bb = el("div", "nbi-btns"); bb.appendChild(linkBtn(v.btn[0], "or", v.btn[1]));
+      if (v.warn) bb.appendChild(linkBtn("#dates", "gh", "Stay with " + K.name.replace("IOSH ", "")));
+      box.appendChild(bb); out.appendChild(box);
+      if (P.use && P.use.length) {
+        var c1 = el("div", "nbi-card"); c1.appendChild(el("h4", null, "How you'll use it in your job"));
+        var u = el("ul"); P.use.forEach(function (x) { u.appendChild(el("li", null, x)); }); c1.appendChild(u);
+        if (P.jobs && P.jobs.length) { var ch = el("div", "nbi-chips"); P.jobs.forEach(function (j) { ch.appendChild(el("span", null, j)); }); c1.appendChild(ch); }
+        out.appendChild(c1);
+      }
+      if (P.next) { var c2 = el("div", "nbi-card"); c2.appendChild(el("h4", null, "Where it leads")); c2.appendChild(el("p", null, P.next)); out.appendChild(c2); }
+      try { window.dataLayer = window.dataLayer || []; window.dataLayer.push({ event: "iosh_tailor", iosh_role: role, iosh_goal: goal, iosh_course: root.getAttribute("data-course") || "ms" }); } catch (e) {}
+    }
+    sr.addEventListener("change", update); sg.addEventListener("change", update);
+  }
+
+  function addDays(d, n) { var x = new Date(d); x.setDate(x.getDate() + n); return x; }
+  function addWorkDays(d, n) { var x = new Date(d); while (n > 0) { x.setDate(x.getDate() + 1); if (x.getDay() % 6) n--; } return x; }
+  function fmtDate(d) { return DAYS[d.getDay()].slice(0, 3) + " " + d.getDate() + " " + MONTHS[d.getMonth()] + " " + d.getFullYear(); }
+  function isoDate(d) { var m = d.getMonth() + 1, dd = d.getDate(); return d.getFullYear() + "-" + (m < 10 ? "0" : "") + m + "-" + (dd < 10 ? "0" : "") + dd; }
+
+  function mountTimeline(root) {
+    if (root._nbi) return; root._nbi = true;
+    var course = root.getAttribute("data-course") || "ms";
+    root.classList.add("nbi"); root.innerHTML = "";
+    var f = el("div", "nbi-f"); root.appendChild(f);
+    var l1 = el("label", null, "Start date "); var inp = el("input"); inp.type = "date"; l1.appendChild(inp); f.appendChild(l1);
+    var fmt = null;
+    if (course === "ms") { var l2 = el("label", null, "Format "); fmt = el("select"); [["block","3 days in a row"],["dr","Day release, 1 day a week"]].forEach(function (o) { var p = el("option", null, o[1]); p.value = o[0]; fmt.appendChild(p); }); l2.appendChild(fmt); f.appendChild(l2); }
+    var t = new Date(); t.setHours(12, 0, 0, 0); t = addDays(t, ((8 - t.getDay()) % 7) || 7); inp.value = isoDate(t);
+    var out = el("div", "nbi-tl"); out.setAttribute("aria-live", "polite"); root.appendChild(out);
+    var note = el("p", "nbi-small", "IOSH issues your certificate within 28 working days of your result. Dates are a guide."); note.style.color = "#c9cde0"; note.style.textAlign = "center"; root.appendChild(note);
+    function row(h, v) { var d = el("div"); d.appendChild(el("b", null, h)); d.appendChild(document.createTextNode(v)); out.appendChild(d); }
+    function draw() {
+      out.innerHTML = ""; if (!inp.value) return;
+      var s = new Date(inp.value + "T12:00:00");
+      if (course === "ms") {
+        var end = fmt && fmt.value === "dr" ? addDays(s, 14) : addWorkDays(s, 2), proj = addDays(end, 14);
+        row("Your course", fmtDate(s) + " to " + fmtDate(end)); row("Exam", fmtDate(end) + ", the last day");
+        row("Project due", fmtDate(proj)); row("Certificate", "Typically by " + fmtDate(addWorkDays(proj, 28)));
+      } else {
+        row("Course and assessment", fmtDate(s)); row("Result", "On the day"); row("Certificate", "Typically by " + fmtDate(addWorkDays(s, 28)));
+      }
+    }
+    inp.addEventListener("change", draw); if (fmt) fmt.addEventListener("change", draw); draw();
+  }
+
+  function mountTeam(root) {
+    if (root._nbi) return; root._nbi = true;
+    var K = IOSH[root.getAttribute("data-course") || "ms"] || IOSH.ms;
+    var prices = { ms: [390, "IOSH Managing Safely (online)"], msc: [550, "IOSH Managing Safely (classroom)"], ws: [145, "IOSH Working Safely"] };
+    root.classList.add("nbi"); root.innerHTML = "";
+    var calc = el("div", "nbi-card"); root.appendChild(calc);
+    calc.appendChild(el("h4", null, "Work out the cost"));
+    var f = el("div", "nbi-f"); f.style.justifyContent = "flex-start"; f.style.color = "#1d2560"; calc.appendChild(f);
+    var l1 = el("label", null, "People "); var n = el("input"); n.type = "number"; n.min = "1"; n.max = "200"; n.value = "3"; n.style.width = "90px"; l1.appendChild(n); f.appendChild(l1);
+    var l2 = el("label", null, "Course "); var cs = el("select");
+    Object.keys(prices).forEach(function (k) { var p = el("option", null, prices[k][1]); p.value = k; cs.appendChild(p); });
+    cs.value = (root.getAttribute("data-course") || "ms") === "ws" ? "ws" : "ms"; l2.appendChild(cs); f.appendChild(l2);
+    var res = el("div", "nbi-tl"); calc.appendChild(res);
+    calc.appendChild(el("p", "nbi-small", "3 to 6 people: 5% off public dates. 7 or more: 10% off. 6 or more: we can also run the course just for your team, quoted within 24 hours. IOSH registration, assessment and certificates included."));
+    function row(h, v) { var d = el("div"); d.appendChild(el("b", null, h)); d.appendChild(document.createTextNode(v)); res.appendChild(d); }
+    function draw() {
+      res.innerHTML = ""; var k = +n.value || 0; if (k < 1) return;
+      var price = prices[cs.value][0], rate = k >= 7 ? 0.9 : k >= 3 ? 0.95 : 1, full = price * k, tot = Math.round(full * rate);
+      row(k + " at the standard price", money(full) + " + VAT");
+      row(rate < 1 ? "Team rate (" + Math.round((1 - rate) * 100) + "% off)" : "Your price", money(tot) + " + VAT");
+      row(k >= 6 ? "Or in-house" : "Booking", k >= 6 ? "A course just for your team, at your site or online" : k >= 3 ? "Book public dates together, on one invoice" : "Book online, and add colleagues later");
+    }
+    n.addEventListener("input", draw); cs.addEventListener("change", draw); draw();
+
+    var qc = el("div", "nbi-card"); qc.style.marginTop = "18px"; root.appendChild(qc);
+    qc.appendChild(el("h4", null, "Get a team quote"));
+    qc.appendChild(el("p", null, "Tell us your numbers, course, where and when, and we'll send a written quote within 24 hours."));
+    var form = el("form", "nbi-form"); form.noValidate = true; qc.appendChild(form);
+    function fld(lbl, type, full, opts) {
+      var w = el("div", full ? "full" : null), l = el("label", null, lbl), i;
+      if (type === "select") { i = el("select"); opts.forEach(function (o) { var p = el("option", null, o); p.value = o; i.appendChild(p); }); }
+      else if (type === "textarea") i = el("textarea"); else { i = el("input"); i.type = type; }
+      w.appendChild(l); w.appendChild(i); form.appendChild(w); return i;
+    }
+    var fN = fld("Your name", "text"), fC = fld("Company", "text"), fE = fld("Email", "email"), fP = fld("Phone", "tel");
+    var fW = fld("Where", "select", false, ["Public dates, live online", "Public dates, classroom", "In-house at our site", "Live online, just for our team", "Not sure yet"]);
+    var fT = fld("When", "select", false, ["As soon as possible", "Within 1 month", "1 to 3 months", "3 months or more"]);
+    var fQ = fld("Anything else? (optional)", "textarea", true);
+    var bw = el("div", "full"); var sb = el("button", "nbx-btn or", "Request my quote"); sb.type = "submit"; bw.appendChild(sb); form.appendChild(bw);
+    var st = el("p", "nbi-status full"); st.setAttribute("role", "status"); form.appendChild(st);
+    var th = el("div", "nbi-thanks"); th.appendChild(el("b", null, "Thanks, we've got your request. ")); th.appendChild(document.createTextNode("We'll send your quote within 24 hours. If it's urgent, call 020 3488 4472.")); qc.appendChild(th);
+    form.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      var name = fN.value.trim(), email = fE.value.trim(), ph = fP.value.trim();
+      function err(t, x) { st.className = "nbi-status full err"; st.textContent = t; if (x) x.focus(); }
+      if (!name) return err("Add your name.", fN);
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return err("Enter a valid email address so we can send your quote.", fE);
+      if (!ph) return err("Add a phone number in case we need to check anything.", fP);
+      var parts = name.split(/\s+/), first = parts.shift(), last = parts.join(" ") || "-";
+      var course = prices[cs.value][1], people = String(+n.value || 0);
+      var msg = "IOSH team quote request\n\nCompany: " + (fC.value.trim() || "-") + "\nCourse: " + course + "\nPeople: " + people + "\nWhere: " + fW.value + "\nWhen: " + fT.value + (fQ.value.trim() ? "\n\nNotes:\n" + fQ.value.trim() : "");
+      var fields = [{ name: "firstname", value: first }, { name: "lastname", value: last }, { name: "email", value: email }, { name: "phone", value: ph },
+        { name: "message", value: msg }, { name: "enquiry_qualification", value: course + ": team quote" },
+        { name: "enquiry_options_selected", value: fW.value }, { name: "enquiry_learners", value: people }, { name: "enquiry_start", value: fT.value }];
+      var ctx = { pageUri: location.href, pageName: document.title }; var m = document.cookie.match(/(?:^|; )hubspotutk=([^;]*)/); if (m) ctx.hutk = decodeURIComponent(m[1]);
+      sb.disabled = true; sb.textContent = "Sending"; st.className = "nbi-status full"; st.textContent = "";
+      fetch("https://api.hsforms.com/submissions/v3/integration/submit/19996504/82962984-45f3-49f7-af62-fc7da9f14b2f", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fields: fields, context: ctx }) })
+        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(function () { try { window.dataLayer = window.dataLayer || []; window.dataLayer.push({ event: "iosh_team_quote", iosh_course: course, iosh_people: people }); } catch (e) {} form.style.display = "none"; th.style.display = "block"; })
+        .catch(function () { sb.disabled = false; sb.textContent = "Request my quote"; err("That didn't send. Please try again, or call 020 3488 4472."); });
+    });
+  }
+
+
+  // ---------- IOSH hub course finder (v18) ----------
+  var CN_URL = SITE + "/nebosh-health-safety-management-construction/", MS_URL = SITE + "/iosh-managing-safely/";
+  var FIND = {
+    roles: [["sup","a supervisor or team leader"],["mgr","a manager or department head"],["dir","a director or senior leader"],["site","a construction site manager or supervisor"],["ops","an operative, technician or office worker"],["hs","starting a career in health and safety"],["hr","in HR or L&D, booking for other people"]],
+    goals: [["team","run my team safely"],["req","meet an employer, client or contract requirement"],["audit","respond to an audit, incident or insurer"],["cscs","get a CSCS card"],["refresh","refresh my Managing Safely"],["career","start a career in health and safety"],["group","train a group of people"],["duties","understand my legal duties"]],
+    study: [["live","live online with a tutor"],["class","in a classroom near me"],["site","at our workplace"]],
+    prior: [["none","nothing yet"],["ws","Working Safely"],["ms","Managing Safely"],["citb","SMSTS or SSSTS"],["nebosh","a NEBOSH certificate"]],
+    C: {
+      ms: { name: "IOSH Managing Safely", price: "Online £390 + VAT, classroom £550 + VAT", meta: "3 days, or 1 day a week for 3 weeks", url: MS_URL, search: "IOSH-MS|IOSH-MS-DR", match: "iosh-ms" },
+      ws: { name: "IOSH Working Safely", price: "£145 + VAT", meta: "1 day, live online", url: WS_URL, search: "IOSH-WS", match: "iosh-ws" },
+      msr: { name: "IOSH Managing Safely Refresher", price: "Ask us for the price", meta: "1 day", url: CONTACT, btn: "Ask about the Refresher" },
+      inhouse: { name: "In-house training for your team", price: "Quoted within 24 hours", meta: "6 or more people, at your site or online", url: "#team", btn: "Get a team quote" },
+      l1: { name: "Level 1 Award in Health and Safety in a Construction Environment", price: "Call us for the price", meta: "The CSCS green card route", url: CONTACT, btn: "Ask about the CSCS route" },
+      nebosh: { name: "NEBOSH National General Certificate", price: "From £1,175 + VAT", meta: "10 days, online or classroom", url: NGC_URL, btn: "View NEBOSH General" },
+      neboshc: { name: "NEBOSH Health and Safety Management for Construction", price: "From £1,175 + VAT", meta: "10 days, online or classroom", url: CN_URL, btn: "View NEBOSH Construction" }
+    }
+  };
+  function findCourse(role, goal, study, prior) {
+    if (goal === "cscs") return { p: "l1", alt: "ws", msg: "A CSCS green card needs the Level 1 Award in Health and Safety in a Construction Environment and the CITB HS&E test. No IOSH course gives you a card, so call us and we'll book you onto the right one." };
+    if (goal === "career" || role === "hs") { var cn = role === "site"; return { p: cn ? "neboshc" : "nebosh", alt: "ms", msg: cn ? "For a health and safety role on construction sites, NEBOSH Construction is the qualification employers list, and holders can apply for the CSCS AQP card. Managing Safely is a manager's awareness course, so it won't get you a health and safety role on its own." : "For a career in health and safety, you need the qualification employers list in job adverts: the NEBOSH General Certificate. Managing Safely is a manager's awareness course, so it's a useful first step rather than the destination." }; }
+    if (goal === "refresh" || (prior === "ms" && goal !== "group" && role !== "hr")) return { p: "msr", alt: "nebosh", msg: "You already hold Managing Safely, so you don't need to repeat the full course. IOSH recommends a one-day Refresher every three years. Ready to progress instead? NEBOSH General is the next step." };
+    if (goal === "group" || role === "hr" || study === "site") { var c = role === "ops" ? "ws" : "ms"; return { p: "inhouse", alt: c, msg: "Six or more from one employer and we'll run " + (c === "ws" ? "Working Safely" : "Managing Safely") + " just for your team, at your site or live online, on your dates. Fewer than six? Three to six people get 5% off public dates, and seven or more 10%, on one invoice." }; }
+    if (role === "ops") return { p: "ws", alt: "ms", msg: "Working Safely is the course for your role: one day on the essentials, live online. If you supervise anyone, you need Managing Safely instead." };
+    if (role === "site") return { p: "ms", alt: "neboshc", fmt: study, msg: (goal === "req" ? "Check which course the client actually asked for. " : "") + "If the contract wants a CITB card-route course, that's SMSTS or SSSTS. If you manage people and want the management framework behind your RAMS, it's Managing Safely. For a health and safety role on sites, it's NEBOSH Construction." };
+    var lead = goal === "team" ? "The course IOSH built for exactly this: you've got a team, their safety is your responsibility, and you need the practical tools. " :
+      goal === "audit" ? "After an audit, incident or insurer request, Managing Safely is what most employers put their supervisors and managers through, and we can run it in-house if there are several of you. " :
+      goal === "req" ? "Your employer or client has asked for Managing Safely: three days, live with a tutor, with the assessment and IOSH certificate included. " :
+      goal === "duties" || role === "dir" ? "Managing Safely gives you the full picture of what the law expects of you and your managers, with the practical detail to act on it. " :
+      "Managing Safely is the course for anyone who manages people. ";
+    return { p: "ms", alt: "nebosh", fmt: study === "class" ? "class" : role === "mgr" ? "day" : "block",
+      msg: lead + (study === "class" ? "Classroom courses run at locations across the UK." : role === "mgr" ? "Managers who can't take three days together usually choose day release: one day a week for three weeks, at the same price." : "Most supervisors take the three-day online course.") };
+  }
+  function nextDate(K, fmt) {
+    if (!K.search) return Promise.resolve(null);
+    var base = "/wp-json/wc/store/v1/products", today = new Date(); today.setHours(0, 0, 0, 0);
+    return fetchAll(base, K.search.split("|")).then(function (data) {
+      var items = (data || []).filter(function (p) { var n = decode(p.name || "").toLowerCase(); return n.indexOf(K.match) > -1 && !/refresher|e-?learning|in-house/.test(n); })
+        .map(parseProduct).filter(function (i) { return i && i.inStock && i.date >= today; }).sort(function (a, b) { return a.date - b.date; });
+      var pick = fmt ? items.filter(function (i) { return i.fmt.id === fmt; }) : [];
+      return (pick.length ? pick : items)[0] || null;
+    }).catch(function () { return null; });
+  }
+  function mountFinder(root) {
+    if (root._nbi) return; root._nbi = true;
+    root.classList.add("nbi"); root.innerHTML = "";
+    var bar = el("div", "nbi-bar"); root.appendChild(bar);
+    function sel(list, ph, label) { var x = el("select"); x.setAttribute("aria-label", label); opt(x, list, ph); return x; }
+    var sr = sel(FIND.roles, "choose your role", "Your role"), sg = sel(FIND.goals, "choose your goal", "Your goal"), ss = sel(FIND.study, "choose how", "How you'd like to study"), sp = sel(FIND.prior, "choose", "What you already hold");
+    [["I'm ", sr], [" and I want to ", sg], [". I'd like to study ", ss], [" and I already hold ", sp]].forEach(function (x) { bar.appendChild(document.createTextNode(x[0])); bar.appendChild(x[1]); });
+    bar.appendChild(document.createTextNode("."));
+    bar.appendChild(el("p", "nbi-hint", "Pick your role and goal to see your recommended course, its price and the next date. No email needed."));
+    var out = el("div"); out.setAttribute("aria-live", "polite"); root.appendChild(out);
+    var token = 0;
+    function update() {
+      [sr, sg, ss, sp].forEach(function (x) { x.classList.toggle("set", !!x.value); });
+      out.innerHTML = ""; if (!sr.value || !sg.value) return;
+      var r = findCourse(sr.value, sg.value, ss.value || "live", sp.value || "none"), K = FIND.C[r.p], A = FIND.C[r.alt];
+      var box = el("div", "nbi-res"); box.appendChild(el("span", "nbi-vt", "Our recommendation"));
+      box.appendChild(el("h3", null, K.name));
+      var meta = el("div", "nbi-meta"); meta.appendChild(el("span", null, K.meta)); meta.appendChild(el("span", null, K.price));
+      var nx = el("span", "nx", K.search ? "Finding the next date..." : ""); if (K.search) meta.appendChild(nx);
+      box.appendChild(meta); box.appendChild(el("p", null, r.msg));
+      var bb = el("div", "nbi-btns"); var main = linkBtn(K.url, "or", K.btn || "View " + K.name.replace("IOSH ", "")); bb.appendChild(main);
+      bb.appendChild(linkBtn(CONTACT, "gh", "Enquire")); box.appendChild(bb);
+      if (A) { var al = el("p", "nbi-alt"); al.appendChild(document.createTextNode("Also worth a look: ")); var a = el("a", null, A.name); a.href = A.url; al.appendChild(a); box.appendChild(al); }
+      var rs = el("button", "nbi-reset", "Start again"); rs.type = "button"; rs.addEventListener("click", function () { [sr, sg, ss, sp].forEach(function (x) { x.value = ""; }); update(); sr.focus(); }); box.appendChild(rs);
+      out.appendChild(box);
+      var my = ++token;
+      if (K.search) nextDate(K, r.fmt).then(function (i) {
+        if (my !== token) return;
+        if (!i) { nx.textContent = "New dates every week"; return; }
+        nx.textContent = "Next: " + i.date.getDate() + " " + MONTHS[i.date.getMonth()] + (i.fmt.id === "class" && i.loc ? ", " + i.loc : i.fmt.id === "day" ? ", day release" : ", online");
+        var bk = linkBtn(i.url, "or", "Book " + i.date.getDate() + " " + MONTHS[i.date.getMonth()]); main.className = "nbx-btn gh"; bb.insertBefore(bk, main);
+      });
+      try { window.dataLayer = window.dataLayer || []; window.dataLayer.push({ event: "iosh_finder", iosh_role: sr.value, iosh_goal: sg.value, iosh_study: ss.value, iosh_prior: sp.value, iosh_course: r.p }); } catch (e) {}
+    }
+    [sr, sg, ss, sp].forEach(function (x) { x.addEventListener("change", update); });
+  }
+
   // Give closed cards in the same row the same height, so "What you'll learn" and the buttons line up.
   // An opened card grows on its own without stretching its neighbours.
   function equalise() {
@@ -808,6 +1111,13 @@
     document.addEventListener("toggle", function (e) { if (e.target.closest && e.target.closest(".nbx-cc")) equalise(); }, true);
     Array.prototype.forEach.call(document.querySelectorAll(".cst-nebosh-matcher"), function (r, i) { mount(r, i); });
     Array.prototype.forEach.call(document.querySelectorAll(".cst-nebosh-dates"), function (r) { mountDates(r); });
+    mountTools();
+  }
+  function mountTools() {
+    Array.prototype.forEach.call(document.querySelectorAll(".cst-iosh-tailor"), function (r) { if (!r._nbi) mountTailor(r); });
+    Array.prototype.forEach.call(document.querySelectorAll(".cst-iosh-timeline"), function (r) { if (!r._nbi) mountTimeline(r); });
+    Array.prototype.forEach.call(document.querySelectorAll(".cst-iosh-team"), function (r) { if (!r._nbi) mountTeam(r); });
+    Array.prototype.forEach.call(document.querySelectorAll(".cst-iosh-finder"), function (r) { if (!r._nbi) mountFinder(r); });
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
   // Re-mount if the theme re-renders page content
@@ -815,5 +1125,6 @@
     if (!document.getElementById("nbx-css")) injectCss();
     Array.prototype.forEach.call(document.querySelectorAll(".cst-nebosh-matcher"), function (r, i) { if (!r._nbm || !r.firstChild) { r._nbm = false; mount(r, i); } });
     Array.prototype.forEach.call(document.querySelectorAll(".cst-nebosh-dates"), function (r) { if (!r._nbd) mountDates(r); });
+    mountTools();
   }).observe(document.documentElement, { childList: true, subtree: true });
 })();
