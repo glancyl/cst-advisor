@@ -1,5 +1,5 @@
 /*!
- * CST Training NEBOSH hub (v23: team quote button centred)
+ * CST Training NEBOSH hub (v25: IOSH finder asks role and goal only)
  * Host on GitHub Pages, load with ?v=N cache buster.
  * Mount point: <div class="cst-nebosh-matcher"></div>
  * Live dates:  <div class="cst-nebosh-dates" data-search="NEBOSH Construction"></div>
@@ -474,6 +474,7 @@
     ".nbx-step::before{content:counter(nbs);display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:#1d2560;color:#fff;font-weight:700;margin-bottom:10px}",
     ".nbx-step p.nbx-sh{margin:0 0 4px!important;color:#1d2560;font-weight:700;font-size:17px}",
     ".nbx-step p.nbx-st{margin:0!important;color:#3a3f55;font-size:15px;line-height:1.5}",
+    ".nbx-steps.ctr .nbx-step{text-align:center}.nbx-steps.ctr .nbx-step::before{margin:0 auto 10px}",
     ".nbx-fmts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin:10px 0 30px}",
     ".nbx-fmt{background:#1d2560;border-radius:12px;padding:20px 22px;border-bottom:4px solid #ff8c04}",
     ".nbx-fmt p.nbx-fh{margin:0 0 4px!important;color:#ff8c04!important;font-weight:700;font-size:15px}",
@@ -1031,7 +1032,7 @@
       goal === "duties" || role === "dir" ? "Managing Safely gives you the full picture of what the law expects of you and your managers, with the practical detail to act on it. " :
       "Managing Safely is the course for anyone who manages people. ";
     return { p: "ms", alt: "nebosh", fmt: study === "class" ? "class" : "block",
-      msg: lead + (study === "class" ? "Classroom courses run at locations across the UK, so pick your nearest one." : "Prefer one day a week? Day release runs 1 day a week for 3 weeks, at the same price.") };
+      msg: lead + (study === "class" ? "Classroom courses run at locations across the UK, so pick your nearest one." : "Prefer a classroom, or one day a week? Both are on the course page, alongside the online dates.") };
   }
   function nextDate(K, fmt) {
     if (!K.search) return Promise.resolve(null);
@@ -1048,14 +1049,14 @@
     root.classList.add("nbi"); root.innerHTML = "";
     var bar = el("div", "nbi-bar"); root.appendChild(bar);
     function sel(list, ph, label) { var x = el("select"); x.setAttribute("aria-label", label); opt(x, list, ph); return x; }
-    var sr = sel(FIND.roles, "choose your role", "Your role"), sg = sel(FIND.goals, "choose your goal", "Your goal"), ss = sel(FIND.study, "choose how", "How you'd like to study"), sp = { value: "" };
-    [["I'm ", sr], [" and I want to ", sg], [". I'd like to study ", ss]].forEach(function (x) { bar.appendChild(document.createTextNode(x[0])); bar.appendChild(x[1]); });
+    var sr = sel(FIND.roles, "choose your role", "Your role"), sg = sel(FIND.goals, "choose your goal", "Your goal"), ss = { value: "" }, sp = { value: "" };
+    [["I'm ", sr], [" and I want to ", sg]].forEach(function (x) { bar.appendChild(document.createTextNode(x[0])); bar.appendChild(x[1]); });
     bar.appendChild(document.createTextNode("."));
     bar.appendChild(el("p", "nbi-hint", "Pick your role and goal to see your recommended course and price, then jump straight to its dates. No email needed."));
     var out = el("div"); out.setAttribute("aria-live", "polite"); root.appendChild(out);
     var token = 0;
     function update() {
-      [sr, sg, ss].forEach(function (x) { x.classList.toggle("set", !!x.value); });
+      [sr, sg].forEach(function (x) { x.classList.toggle("set", !!x.value); });
       out.innerHTML = ""; if (!sr.value || !sg.value) return;
       var r = findCourse(sr.value, sg.value, ss.value || "live", sp.value || "none"), K = FIND.C[r.p], A = FIND.C[r.alt];
       var box = el("div", "nbi-res"); box.appendChild(el("span", "nbi-vt", "Our recommendation"));
@@ -1069,11 +1070,11 @@
       else { main = linkBtn(K.url, "or", K.btn || "View " + K.name.replace("IOSH ", "")); bb.appendChild(main); }
       bb.appendChild(linkBtn(CONTACT, "gh", "Enquire")); box.appendChild(bb);
       if (A) { var al = el("p", "nbi-alt"); al.appendChild(document.createTextNode("Also worth a look: ")); var a = el("a", null, A.name); a.href = A.url; al.appendChild(a); box.appendChild(al); }
-      var rs = el("button", "nbi-reset", "Start again"); rs.type = "button"; rs.addEventListener("click", function () { [sr, sg, ss].forEach(function (x) { x.value = ""; }); update(); sr.focus(); }); box.appendChild(rs);
+      var rs = el("button", "nbi-reset", "Start again"); rs.type = "button"; rs.addEventListener("click", function () { [sr, sg].forEach(function (x) { x.value = ""; }); update(); sr.focus(); }); box.appendChild(rs);
       out.appendChild(box);
       try { window.dataLayer = window.dataLayer || []; window.dataLayer.push({ event: "iosh_finder", iosh_role: sr.value, iosh_goal: sg.value, iosh_study: ss.value, iosh_course: r.p }); } catch (e) {}
     }
-    [sr, sg, ss].forEach(function (x) { x.addEventListener("change", update); });
+    [sr, sg].forEach(function (x) { x.addEventListener("change", update); });
   }
 
   // Give closed cards in the same row the same height, so "What you'll learn" and the buttons line up.
