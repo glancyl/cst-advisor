@@ -1,5 +1,5 @@
 /*!
- * CST Training NEBOSH hub (v21: finder opens the course page's dates on the chosen format, e.g. ?dates=class)
+ * CST Training NEBOSH hub (v22: finder follows the study choice exactly: online or classroom; no next-date guess)
  * Host on GitHub Pages, load with ?v=N cache buster.
  * Mount point: <div class="cst-nebosh-matcher"></div>
  * Live dates:  <div class="cst-nebosh-dates" data-search="NEBOSH Construction"></div>
@@ -1030,8 +1030,8 @@
       goal === "req" ? "Your employer or client has asked for Managing Safely: three days, live with a tutor, with the assessment and IOSH certificate included. " :
       goal === "duties" || role === "dir" ? "Managing Safely gives you the full picture of what the law expects of you and your managers, with the practical detail to act on it. " :
       "Managing Safely is the course for anyone who manages people. ";
-    return { p: "ms", alt: "nebosh", fmt: study === "class" ? "class" : role === "mgr" ? "day" : "block",
-      msg: lead + (study === "class" ? "Classroom courses run at locations across the UK." : role === "mgr" ? "Managers who can't take three days together usually choose day release: one day a week for three weeks, at the same price." : "Most supervisors take the three-day online course.") };
+    return { p: "ms", alt: "nebosh", fmt: study === "class" ? "class" : "block",
+      msg: lead + (study === "class" ? "Classroom courses run at locations across the UK, so pick your nearest one." : "Prefer one day a week? Day release runs 1 day a week for 3 weeks, at the same price.") };
   }
   function nextDate(K, fmt) {
     if (!K.search) return Promise.resolve(null);
@@ -1051,7 +1051,7 @@
     var sr = sel(FIND.roles, "choose your role", "Your role"), sg = sel(FIND.goals, "choose your goal", "Your goal"), ss = sel(FIND.study, "choose how", "How you'd like to study"), sp = { value: "" };
     [["I'm ", sr], [" and I want to ", sg], [". I'd like to study ", ss]].forEach(function (x) { bar.appendChild(document.createTextNode(x[0])); bar.appendChild(x[1]); });
     bar.appendChild(document.createTextNode("."));
-    bar.appendChild(el("p", "nbi-hint", "Pick your role and goal to see your recommended course, its price and the next date. No email needed."));
+    bar.appendChild(el("p", "nbi-hint", "Pick your role and goal to see your recommended course and price, then jump straight to its dates. No email needed."));
     var out = el("div"); out.setAttribute("aria-live", "polite"); root.appendChild(out);
     var token = 0;
     function update() {
@@ -1062,9 +1062,7 @@
       box.appendChild(el("h3", null, K.name));
       var meta = el("div", "nbi-meta"); meta.appendChild(el("span", null, K.meta)); meta.appendChild(el("span", null, K.price));
       var cls = r.p === "ms" && r.fmt === "class";
-      var fmtKey = r.p === "ws" ? "block" : cls ? "class" : r.fmt === "day" ? "day" : "block";
-      var fmtName = cls ? "classroom" : fmtKey === "day" ? "day release" : "online";
-      var nx = el("span", "nx", cls ? "Classroom courses across the UK" : K.search ? "Finding the next date..." : ""); if (K.search || cls) meta.appendChild(nx);
+      var fmtKey = cls ? "class" : "block", fmtName = cls ? "classroom" : "online";
       box.appendChild(meta); box.appendChild(el("p", null, r.msg));
       var bb = el("div", "nbi-btns"), main;
       if (K.search) { main = linkBtn(K.url + "?dates=" + fmtKey + "#dates", "or", "See " + fmtName + " dates"); bb.appendChild(main); bb.appendChild(linkBtn(K.url, "gh", "View " + K.name.replace("IOSH ", ""))); }
@@ -1073,13 +1071,6 @@
       if (A) { var al = el("p", "nbi-alt"); al.appendChild(document.createTextNode("Also worth a look: ")); var a = el("a", null, A.name); a.href = A.url; al.appendChild(a); box.appendChild(al); }
       var rs = el("button", "nbi-reset", "Start again"); rs.type = "button"; rs.addEventListener("click", function () { [sr, sg, ss].forEach(function (x) { x.value = ""; }); update(); sr.focus(); }); box.appendChild(rs);
       out.appendChild(box);
-      var my = ++token;
-      if (K.search && !cls) nextDate(K, r.fmt).then(function (i) {
-        if (my !== token) return;
-        if (!i) { nx.textContent = "New dates every week"; return; }
-        nx.textContent = "Next: " + i.date.getDate() + " " + MONTHS[i.date.getMonth()] + (i.fmt.id === "class" && i.loc ? ", " + i.loc : i.fmt.id === "day" ? ", day release" : ", online");
-        main.textContent = "See " + fmtName + " dates";
-      });
       try { window.dataLayer = window.dataLayer || []; window.dataLayer.push({ event: "iosh_finder", iosh_role: sr.value, iosh_goal: sg.value, iosh_study: ss.value, iosh_course: r.p }); } catch (e) {}
     }
     [sr, sg, ss].forEach(function (x) { x.addEventListener("change", update); });
