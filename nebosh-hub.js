@@ -1,5 +1,5 @@
 /*!
- * CST Training NEBOSH hub (v30: pinned undated products in the dates widget, e.g. e-learning, shown first)
+ * CST Training NEBOSH hub (v31: centred, full width Book now buttons on mobile date cards)
  * Host on GitHub Pages, load with ?v=N cache buster.
  * Mount point: <div class="cst-nebosh-matcher"></div>
  * Live dates:  <div class="cst-nebosh-dates" data-search="NEBOSH Construction"></div>
@@ -489,7 +489,7 @@
     ".nbd-loc{font:inherit;font-size:15px;font-weight:700;color:#1d2560;padding:9px 14px;border-radius:30px;border:2px solid #ff8c04;background:#fff6ea}",
     ".nbd-list{display:flex;flex-direction:column;gap:10px}",
     ".nbd-row{display:grid;grid-template-columns:150px 1fr auto auto;gap:14px 20px;align-items:center;background:#fff;border:1px solid #dcdfea;border-left:5px solid #ff8c04;border-radius:12px;padding:14px 18px}",
-    "@media(max-width:760px){.nbd-row{grid-template-columns:1fr auto}.nbd-row .nbd-what{grid-column:1/-1;order:-1}}",
+    "@media(max-width:760px){.nbd-row{grid-template-columns:1fr auto;padding:18px 18px 20px;gap:12px 16px;border-radius:16px}.nbd-row .nbd-what{grid-column:1/-1;order:-1}.nbd-price{font-size:18px;text-align:right}.nbd-row .nbx-btn{grid-column:1/-1;justify-self:center;width:100%;max-width:340px;text-align:center;font-size:17px;padding:14px 24px;border-radius:40px;color:#1d2560!important;box-shadow:0 6px 16px rgba(255,140,4,.35);transition:transform .15s,box-shadow .15s}.nbd-row .nbx-btn::after{content:' \\2192';font-weight:700}.nbd-row .nbx-btn:active{transform:translateY(2px);box-shadow:0 2px 8px rgba(255,140,4,.3)}}",
     ".nbd-date{font-weight:700;color:#1d2560;font-size:18px;line-height:1.2}",
     ".nbd-date span{display:block;font-size:13px;font-weight:400;color:#565c75;margin-top:2px}",
     ".nbd-what{font-size:16px;color:#1b1f33;line-height:1.35}",
