@@ -1,5 +1,5 @@
 /*!
- * CST Training CMI unit builder widget (v13: "About this unit" dropdown on every unit; builder collapsed behind a "Build my ..." button; data-collapsed="false" to opt out)
+ * CST Training CMI unit builder widget (v14: "About this unit" dropdown on every unit; builder collapsed behind a "Build my ..." button; data-collapsed="false" to opt out)
  * Separate from ilm-builder.js so the live ILM pages can't break.
  * Host on GitHub Pages, load with ?v=N cache buster (N matches this version).
  *
@@ -52,6 +52,7 @@
  *   v11 Buy now and Enquire show from the start; units are attached only when some have been picked.
  *   v12 Builder starts collapsed behind a "Build my ..." button. Opens on #build links. data-collapsed="false" to opt out.
  *   v13 "About this unit" dropdown under every unit card (text in ABOUT near the end of the file).
+ *   v14 "About this unit" now sits inside the unit card.
  */
 (function () {
   "use strict";
@@ -1850,10 +1851,16 @@
 "726": "Covers delivering client requirements through consulting. Helps you meet client expectations."
 };
   function aboutFor(root, code) { return ABOUT[code]; }
-  var AB_CSS = ".ilmb-uw{display:flex;flex-direction:column}.ilmb-uw>.ilmb-unit{flex:1}" +
-    ".ilmb-ab{font:inherit;font-size:.86rem;font-weight:700;color:var(--n);background:none;border:0;padding:7px 2px 0;margin:0;cursor:pointer;text-align:left;display:inline-flex;gap:6px;align-items:center;align-self:flex-start}" +
-    ".ilmb-ab::after{content:'+';color:var(--o);font-size:1.1rem;line-height:1}.ilmb-ab[aria-expanded=true]::after{content:'\\2212'}" +
-    ".ilmb-abp{font-size:.9rem;color:var(--mut);line-height:1.45;background:var(--s);border:1px solid var(--ln);border-left:3px solid var(--o);border-radius:8px;padding:9px 11px;margin:6px 0 0}.ilmb-abp[hidden]{display:none}";
+  var AB_CSS = ".ilmb-uw{display:flex;flex-direction:column;background:var(--s);border:1.5px solid var(--ln);border-radius:10px;overflow:hidden;transition:border-color .15s}" +
+    ".ilmb-uw>.ilmb-unit{flex:1;border:0;border-radius:0;box-shadow:none;background:transparent}" +
+    ".ilmb-uw>.ilmb-unit:focus-visible{outline-offset:-3px}" +
+    ".ilmb-uw:has(>.ilmb-unit[aria-pressed=true]){border-color:var(--o);box-shadow:inset 4px 0 0 var(--o)}" +
+    ".ilmb-uw:has(>.ilmb-unit.lk){border-style:dashed}" +
+    ".ilmb-uw:has(>.ilmb-unit[disabled]){background:#fafbfd}" +
+    ".ilmb-ab{font:inherit;font-size:.86rem;font-weight:700;color:var(--n);background:none;border:0;border-top:1px solid var(--ln);padding:9px 14px;margin:0;cursor:pointer;text-align:left;display:flex;justify-content:space-between;align-items:center;width:100%}" +
+    ".ilmb-ab:hover{background:var(--bg)}" +
+    ".ilmb-ab::after{content:'+';color:var(--o);font-size:1.15rem;line-height:1}.ilmb-ab[aria-expanded=true]::after{content:'\\2212'}" +
+    ".ilmb-abp{font-size:.9rem;color:var(--mut);line-height:1.45;padding:0 14px 12px;margin:0}.ilmb-abp[hidden]{display:none}";
   var abN = 0;
   function addAbout(root) {
     if (!document.getElementById("ilmb-ab-css")) {
