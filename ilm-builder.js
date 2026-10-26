@@ -1,5 +1,5 @@
 /*!
- * CST Training ILM unit builder widget (v30: "About this unit" dropdown on every unit; builder collapsed behind a "Build my ..." button)
+ * CST Training ILM unit builder widget (v31: "About this unit" dropdown on every unit; builder collapsed behind a "Build my ..." button)
  * Host on GitHub Pages, load with ?v=N cache buster.
  *
  * Mount on any page:
@@ -1320,7 +1320,8 @@
 };
   function aboutFor(root, code) { if (root.getAttribute("data-level") === "6" && /^5\d\d$/.test(code)) code = "8605-" + code; return ABOUT[code]; }
   var AB_CSS = ".ilmb-uw{display:flex;flex-direction:column;background:var(--s);border:1.5px solid var(--ln);border-radius:10px;overflow:hidden;transition:border-color .15s}" +
-    ".ilmb-uw>.ilmb-unit{flex:1;border:0;border-radius:0;box-shadow:none;background:transparent}" +
+    ".ilmb-uw>.ilmb-unit{flex:1;border:0;border-radius:0;box-shadow:none;background:transparent;display:flex;flex-direction:column;justify-content:flex-start;align-items:flex-start}" +
+    ".ilmb-uw>.ilmb-unit>span{max-width:100%}" +
     ".ilmb-uw>.ilmb-unit:focus-visible{outline-offset:-3px}" +
     ".ilmb-uw:has(>.ilmb-unit[aria-pressed=true]){border-color:var(--o);box-shadow:inset 4px 0 0 var(--o)}" +
     ".ilmb-uw:has(>.ilmb-unit.lk){border-style:dashed}" +
