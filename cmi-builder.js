@@ -1,5 +1,5 @@
 /*!
- * CST Training CMI unit builder widget (v12: builder collapsed behind a "Build my ..." button; data-collapsed="false" to opt out)
+ * CST Training CMI unit builder widget (v13: "About this unit" dropdown on every unit; builder collapsed behind a "Build my ..." button; data-collapsed="false" to opt out)
  * Separate from ilm-builder.js so the live ILM pages can't break.
  * Host on GitHub Pages, load with ?v=N cache buster (N matches this version).
  *
@@ -51,6 +51,7 @@
  *   v10 Product IDs added for the Level 5 consulting Awards, Certificates and the Practice Diploma.
  *   v11 Buy now and Enquire show from the start; units are attached only when some have been picked.
  *   v12 Builder starts collapsed behind a "Build my ..." button. Opens on #build links. data-collapsed="false" to opt out.
+ *   v13 "About this unit" dropdown under every unit card (text in ABOUT near the end of the file).
  */
 (function () {
   "use strict";
@@ -718,7 +719,7 @@
         UNITS.forEach(function (u) {
           if (u.theme !== gid) return;
           var b = unitBtns[u.code], on = state.picks.indexOf(u.code) > -1, show = allowed(u);
-          b.style.display = show ? "" : "none";
+          (b.parentNode.classList.contains("ilmb-uw") ? b.parentNode : b).style.display = show ? "" : "none";
           if (show) any = true;
           b.setAttribute("aria-pressed", on ? "true" : "false");
           var by = on ? null : barredBy(u, state.picks);
@@ -1741,6 +1742,141 @@
     root._cmib = { state: state, render: render };
   }
 
+
+  // ---------- About this unit (dropdown under each unit card) ----------
+  // Plain-English summaries drafted from the official unit titles and specs. Edit freely.
+  var ABOUT = {
+"301": "Covers the difference between management and leadership, common styles and approaches, and the skills both need. The foundation for the rest of the Diploma.",
+"302": "Covers setting team objectives, delegating and supporting the team to achieve results. Core skills for team managers.",
+"303": "Covers recruitment, performance management and development of individuals. Helps each person perform well in their role.",
+"304": "Covers communication methods, barriers and how to communicate effectively. Underpins every management task.",
+"305": "Covers identifying stakeholders and using communication to build relationships with them. Keeps key people informed and on side.",
+"306": "Covers the principles of equality, diversity and inclusion and how to put them into practice. Supports a fair and inclusive workplace.",
+"307": "Covers identifying learning needs and developing the knowledge and skills of individuals and teams. Builds a more capable workforce.",
+"308": "Covers recruiting, supporting and keeping volunteers. Ideal for charities and community organisations.",
+"309": "Covers the causes of conflict and approaches to resolving it. Keeps working relationships productive.",
+"310": "Covers supporting teams and individuals through change. Helps people adapt and stay engaged.",
+"311": "Covers contributing to the planning and delivery of a project. Useful for anyone working on projects.",
+"312": "Covers planning and managing day-to-day activities to meet targets. Practical skills for operational managers.",
+"313": "Covers identifying, developing and sharing good practice. Helps spread what works across the organisation.",
+"314": "Covers managing budgets and resources effectively. Essential if you control spend.",
+"315": "Covers health and safety principles and responsibilities at work. Essential knowledge for managers.",
+"316": "Covers monitoring quality and using it to improve outcomes. Helps deliver consistent standards.",
+"317": "Covers supporting the delivery of good customer service. Useful in customer-facing teams.",
+"318": "Covers managing data and information securely and effectively. Supports good decisions and compliance.",
+"319": "Covers planning and running effective meetings. Makes meetings more productive.",
+"320": "Covers planning and delivering presentations. Builds confidence speaking to groups.",
+"321": "Covers assessing your skills and planning your personal and professional development. Keeps your career moving.",
+"501": "Covers how organisational structure, culture and strategy shape management and leadership. A foundation unit for the Level 5.",
+"526": "Covers leadership theories and models and how to apply them in practice. Helps you lead with purpose.",
+"502": "Covers developing, managing and leading individuals and teams to achieve success. A broad people management unit.",
+"503": "Covers managing and leading individuals and teams, including approaches to performance and motivation. Practical people leadership.",
+"504": "Covers setting objectives, measuring performance and tackling underperformance. A core skill for middle managers.",
+"505": "Covers forming and developing successful teams. Helps new or changing teams perform quickly.",
+"506": "Covers managing equality, diversity and inclusion in line with the law and good practice. Supports a fair workplace.",
+"507": "Covers the principles of delivering coaching and mentoring. Helps you develop others.",
+"508": "Covers developing a skilled and talented workforce. Helps meet future skills needs.",
+"509": "Covers identifying and managing stakeholder relationships. Keeps key people engaged.",
+"510": "Covers the causes of conflict and strategies to manage it. Protects working relationships.",
+"511": "Covers recruiting, selecting and keeping talent. Helps build and keep a strong team.",
+"512": "Covers planning the workforce to meet organisational needs. Helps avoid skills gaps.",
+"513": "Covers project management principles and tools and managing projects to achieve results. Valuable for delivering change.",
+"514": "Covers managing change, including its impact on people and how to lead it. Helps change succeed.",
+"515": "Covers creating and delivering operational plans. Links strategy to day-to-day delivery.",
+"516": "Covers planning, procuring and managing resources. Helps get value for money.",
+"518": "Covers identifying, assessing and managing risk. Protects your organisation and its plans.",
+"519": "Covers managing quality and continuous improvement. Helps raise standards.",
+"520": "Covers financial management, budgeting and financial decision making. Essential for budget holders.",
+"521": "Covers using data and information to make decisions. Adds evidence to your choices.",
+"522": "Covers managing and improving the customer experience. Helps keep customers.",
+"523": "Covers the principles of marketing products and services. Useful in commercial roles.",
+"524": "A larger unit where you plan and carry out a management project in your workplace. A strong way to show real impact.",
+"608": "Covers strategic corporate social responsibility and sustainability. Increasingly important to clients and employees.",
+"525": "Covers using reflective practice to inform your personal and professional development. Helps you learn from experience.",
+"701": "Covers strategic leadership theories and how leaders set direction and culture. The core of senior leadership.",
+"702": "Covers leading and developing people to optimise performance. Builds high-performing teams at scale.",
+"703": "Covers building collaborations and partnerships to achieve strategic goals. Extends your organisation's reach.",
+"704": "Covers analysing the environment and developing organisational strategy. Prepares you to shape direction.",
+"705": "Covers leading strategic change across an organisation. Helps major change succeed.",
+"706": "Covers finance for strategic leaders, including financial analysis and decision making. Strengthens your commercial judgement.",
+"707": "Covers organisational design and development. Helps shape structures that support strategy.",
+"708": "Covers strategic risk management. Protects the organisation's plans and reputation.",
+"709": "Covers the strategic management of data and information. Helps turn data into an advantage.",
+"710": "Covers developing a marketing strategy. Helps grow markets and customers.",
+"711": "Covers entrepreneurial practice and spotting opportunities. Helps drive growth and innovation.",
+"712": "A larger unit where you carry out a strategic management project. A strong way to demonstrate impact.",
+"713": "Covers applied research methods for strategic leaders. Helps you make evidence-based decisions.",
+"714": "Covers personal and professional development for strategic leaders. Keeps you growing at a senior level.",
+"715": "Covers strategic approaches to equality, diversity and inclusion. Helps embed inclusion across the organisation.",
+"716": "Covers strategic approaches to mental health and wellbeing. Helps build a healthier organisation.",
+"607": "Covers procurement, purchasing and contracting. Helps secure value from suppliers.",
+"609": "Covers leading quality management. Helps raise standards across the organisation.",
+"610": "Covers the principles and practices of developing policy. Helps create clear, workable policies.",
+"612": "Covers coaching skills for leaders. Helps you develop others through coaching.",
+"614": "Covers the principles and practice of ethical decision making. Helps you lead with integrity.",
+"3011": "Covers what coaching and mentoring are, the core skills involved and the impact they have. The foundation of the Diploma.",
+"3012": "Covers identifying individual and team needs and matching coaching or mentoring to them. Helps you target support where it matters.",
+"3013": "Covers building trust, agreeing boundaries and managing coaching and mentoring relationships. Strong relationships are what make coaching work.",
+"3014": "Covers models and processes for planning and running sessions. Gives your sessions structure and purpose.",
+"3015": "Covers bringing a coaching or mentoring programme to a close and reviewing it. Makes sure the benefits last.",
+"3016": "Covers evaluating how well coaching and mentoring have worked. Helps you prove and improve impact.",
+"4003": "Explores how culture, values and behaviour interact in organisations. Helps you coach with the wider context in mind.",
+"4004": "Explores how teams form and work and how to get the best from them. Useful for team coaching.",
+"4008": "Covers promoting equality and diversity in your practice. Supports fair, inclusive coaching.",
+"7015": "Covers how coaching and mentoring fit with, and shape, organisational culture. Helps build a coaching culture.",
+"7016": "Covers developing the policies that govern coaching and mentoring. Gives programmes clear direction.",
+"7017": "Covers designing coaching and mentoring at organisational level. Helps scale coaching across the business.",
+"7018": "Covers measuring the strategic impact of coaching and mentoring. Helps make the case for investment.",
+"7002": "Covers developing performance management strategies. Links coaching to organisational performance.",
+"7020": "Covers the advanced coaching and mentoring skills senior leaders need. Builds your own practice as a leadership coach.",
+"7019": "Covers embedding coaching and mentoring in everyday organisational practice. Makes coaching part of how you work.",
+"7010": "Covers implementing change strategies across an organisation. Helps coaching support change.",
+"6001": "Covers understanding and managing organisational culture. Helps shape a positive culture.",
+"6004": "Covers leading equality and diversity at a senior level. Embeds inclusion strategically.",
+"540": "Covers the principles of management consulting and what consultants do. A grounding for consultancy work.",
+"541": "Explores the consultant's role, skills and professional standards. Helps you work credibly with clients.",
+"542": "Covers project and programme management in a consulting context. Helps you deliver client work.",
+"543": "Covers management and leadership principles in consulting. Helps you lead consulting teams.",
+"544": "Covers the principles of change in consulting. Helps you guide clients through change.",
+"545": "Covers managing problems and decision making in consulting. Helps you solve client problems.",
+"546": "Covers analysing organisations to diagnose issues. A core consulting skill.",
+"547": "Covers consulting practice, evidenced from real consulting work you carry out. Shows you can deliver for clients.",
+"548": "Covers professional development for consultants. Keeps your consulting practice growing.",
+"720": "Covers the principles of professional consulting at a senior level. The foundation of the Level 7 Diploma.",
+"721": "Covers leadership in professional consulting. Helps you lead engagements and teams.",
+"722": "Covers the practice of professional consulting. Builds advanced consulting capability.",
+"723": "Covers leading innovation and change through consulting. Helps clients transform.",
+"724": "Covers personal and professional development for professional consultants. Keeps you at the top of your field.",
+"726": "Covers delivering client requirements through consulting. Helps you meet client expectations."
+};
+  function aboutFor(root, code) { return ABOUT[code]; }
+  var AB_CSS = ".ilmb-uw{display:flex;flex-direction:column}.ilmb-uw>.ilmb-unit{flex:1}" +
+    ".ilmb-ab{font:inherit;font-size:.86rem;font-weight:700;color:var(--n);background:none;border:0;padding:7px 2px 0;margin:0;cursor:pointer;text-align:left;display:inline-flex;gap:6px;align-items:center;align-self:flex-start}" +
+    ".ilmb-ab::after{content:'+';color:var(--o);font-size:1.1rem;line-height:1}.ilmb-ab[aria-expanded=true]::after{content:'\\2212'}" +
+    ".ilmb-abp{font-size:.9rem;color:var(--mut);line-height:1.45;background:var(--s);border:1px solid var(--ln);border-left:3px solid var(--o);border-radius:8px;padding:9px 11px;margin:6px 0 0}.ilmb-abp[hidden]{display:none}";
+  var abN = 0;
+  function addAbout(root) {
+    if (!document.getElementById("ilmb-ab-css")) {
+      var s = document.createElement("style"); s.id = "ilmb-ab-css"; s.textContent = AB_CSS; document.head.appendChild(s);
+    }
+    Array.prototype.forEach.call(root.querySelectorAll(".ilmb-unit"), function (b) {
+      if (!b.parentNode || b.parentNode.classList.contains("ilmb-uw")) return;
+      var c = b.querySelector(".c"), m = c && c.textContent.match(/\d{4}-\d{3}|\d{3,4}/);
+      var txt = m && aboutFor(root, m[0]);
+      if (!txt) return;
+      var w = document.createElement("div"); w.className = "ilmb-uw";
+      b.parentNode.insertBefore(w, b); w.appendChild(b);
+      w.style.display = b.style.display; b.style.display = "";
+      var t = el("button", "ilmb-ab", "About this unit"); t.type = "button";
+      var p = el("p", "ilmb-abp", txt); p.hidden = true; p.id = "ilmb-ab-" + (++abN);
+      t.setAttribute("aria-expanded", "false"); t.setAttribute("aria-controls", p.id);
+      t.addEventListener("click", function () {
+        var open = p.hidden; p.hidden = !open; t.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+      w.appendChild(t); w.appendChild(p);
+    });
+  }
+
   // ---------- Collapsible builder (ILM v28, CMI v12) ----------
   // Builders start closed behind a teaser with a "Build my ..." button.
   // Opt out per page with data-collapsed="false". Optional overrides:
@@ -1839,8 +1975,8 @@
       if (!roots.length) return;
       injectCss();
       Array.prototype.forEach.call(roots, function (r, i) {
-        if (r._cmibMounted) return;
-        try { if (r.classList.contains("cst-cmi-consult")) { mountConsult(r, i); return; } var ck = r.getAttribute("data-course"); if (ck) { if (COURSES[ck]) mountFixed(r, i, COURSES[ck]); } else if (r.hasAttribute("data-quals")) mountCoaching(r, i); else mount(r, i); } catch (e) { if (window.console) console.error("CMI builder:", e); } finally { if (r._cmibMounted) addToggle(r, i); }
+        if (r._cmibMounted) { addAbout(r); return; }
+        try { if (r.classList.contains("cst-cmi-consult")) { mountConsult(r, i); return; } var ck = r.getAttribute("data-course"); if (ck) { if (COURSES[ck]) mountFixed(r, i, COURSES[ck]); } else if (r.hasAttribute("data-quals")) mountCoaching(r, i); else mount(r, i); } catch (e) { if (window.console) console.error("CMI builder:", e); } finally { if (r._cmibMounted) { addToggle(r, i); addAbout(r); } }
       });
     } catch (e) {}
   }
