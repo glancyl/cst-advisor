@@ -1,5 +1,5 @@
 /*!
- * CST Training CMI unit builder widget (v14: "About this unit" dropdown on every unit; builder collapsed behind a "Build my ..." button; data-collapsed="false" to opt out)
+ * CST Training CMI unit builder widget (v15: "About this unit" dropdown on every unit; builder collapsed behind a "Build my ..." button; data-collapsed="false" to opt out)
  * Separate from ilm-builder.js so the live ILM pages can't break.
  * Host on GitHub Pages, load with ?v=N cache buster (N matches this version).
  *
@@ -53,6 +53,7 @@
  *   v12 Builder starts collapsed behind a "Build my ..." button. Opens on #build links. data-collapsed="false" to opt out.
  *   v13 "About this unit" dropdown under every unit card (text in ABOUT near the end of the file).
  *   v14 "About this unit" now sits inside the unit card.
+ *   v15 Card content pinned to the top so headings stay level when a neighbour opens.
  */
 (function () {
   "use strict";
@@ -1852,7 +1853,8 @@
 };
   function aboutFor(root, code) { return ABOUT[code]; }
   var AB_CSS = ".ilmb-uw{display:flex;flex-direction:column;background:var(--s);border:1.5px solid var(--ln);border-radius:10px;overflow:hidden;transition:border-color .15s}" +
-    ".ilmb-uw>.ilmb-unit{flex:1;border:0;border-radius:0;box-shadow:none;background:transparent}" +
+    ".ilmb-uw>.ilmb-unit{flex:1;border:0;border-radius:0;box-shadow:none;background:transparent;display:flex;flex-direction:column;justify-content:flex-start;align-items:flex-start}" +
+    ".ilmb-uw>.ilmb-unit>span{max-width:100%}" +
     ".ilmb-uw>.ilmb-unit:focus-visible{outline-offset:-3px}" +
     ".ilmb-uw:has(>.ilmb-unit[aria-pressed=true]){border-color:var(--o);box-shadow:inset 4px 0 0 var(--o)}" +
     ".ilmb-uw:has(>.ilmb-unit.lk){border-style:dashed}" +
