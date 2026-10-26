@@ -1,5 +1,5 @@
 /*!
- * CST Training ILM unit builder widget (v28: builder collapsed behind a "Build my ..." button; data-collapsed="false" to opt out)
+ * CST Training ILM unit builder widget (v29: "About this unit" dropdown on every unit; builder collapsed behind a "Build my ..." button)
  * Host on GitHub Pages, load with ?v=N cache buster.
  *
  * Mount on any page:
@@ -1029,7 +1029,7 @@
           if (u.topic !== gid) return;
           var b = unitBtns[u.code], on = state.picks.indexOf(u.code) > -1;
           var show = allowed(u) && (u.grp !== 2 || state.showG2 || on);
-          b.style.display = show ? "" : "none";
+          (b.parentNode.classList.contains("ilmb-uw") ? b.parentNode : b).style.display = show ? "" : "none";
           if (show) any = true;
           b.setAttribute("aria-pressed", on ? "true" : "false");
           b.disabled = !on && !fits(u, T);
@@ -1127,6 +1127,223 @@
 
 
     render();
+  }
+
+
+  // ---------- About this unit (dropdown under each unit card) ----------
+  // Plain-English summaries drafted from the official unit titles and specs. Edit freely.
+  var ABOUT = {
+"201": "Look at your role in the team, what's expected of you and where you want to grow, then build a development plan. It gives you a clear direction and shows you're ready for more responsibility.",
+"202": "Covers setting goals, checking progress and helping colleagues do their best work. Useful if you're often the one keeping the team on track day to day.",
+"203": "Explores why disagreements happen and how to handle them calmly and fairly before they escalate. A practical skill that keeps the team working well together.",
+"204": "Looks at what drives people at work and how you can keep your team engaged. Helps you get the best from colleagues without relying on authority.",
+"205": "Covers what equity, diversity and inclusion mean at work and your part in making sure everyone is treated fairly. Useful in any role where you support or guide others.",
+"206": "Shows you how to spot better ways of working, put ideas forward and help changes stick. Great if you often see how things could run more smoothly.",
+"207": "Gives you a structured way to pin down a problem, weigh up options and choose a solution. Saves time and stops the same issues coming back.",
+"208": "Covers collecting simple data and using it to back up decisions. Helps you make choices you can explain with facts rather than gut feel.",
+"209": "Explores how your organisation is set up and the outside factors that affect it. Helps you see how your work fits the bigger picture.",
+"210": "Covers keeping accurate records and handling information securely and in line with the rules. Useful wherever paperwork, data or confidentiality matter.",
+"211": "Looks at your responsibilities for health, safety and wellbeing and how to spot and report risks. Important in any team and essential on busy or hazardous sites.",
+"212": "Covers choosing the right message and method, listening well and giving clear instructions. Better communication means fewer mistakes and smoother teamwork.",
+"213": "Explores the communication tools your workplace uses, from email to video calls, and when each works best. Helps you get your message across quickly and professionally.",
+"214": "Helps you identify who has an interest in your team's work and what they expect. Useful for building good working relationships across the organisation.",
+"215": "Covers supporting customers, suppliers and other outside contacts to a high standard. Ideal if you deal with people outside your organisation.",
+"301": "Explores leadership styles, what makes leaders effective and how you lead today, then plans how you'll improve. It's the foundation for the rest of the qualification.",
+"302": "Covers assessing your own skills, setting development goals and reviewing your progress. Keeps your career moving in the direction you want.",
+"303": "Covers setting objectives, monitoring work, giving feedback and tackling underperformance. A core skill for anyone with people reporting to them.",
+"304": "Looks at what affects wellbeing at work and how you can support your team, including spotting when someone is struggling. Healthier teams are more productive and stay longer.",
+"305": "Covers planning a role, running fair selection and choosing the right person. Helps you avoid costly hiring mistakes.",
+"306": "Takes you through planning, running and reviewing a project, including scope, timescales and risks. Useful for anyone asked to deliver work outside the day job.",
+"307": "Explores why change happens, how people react and how to lead your team through it. Valuable when new systems, restructures or new ways of working land on your desk.",
+"308": "Gives you tools to analyse problems, generate options and make decisions you can justify. Makes you more confident handling tricky situations.",
+"309": "Covers your organisation's environmental duties and practical ways to reduce its impact. Increasingly important as clients and regulators focus on sustainability.",
+"310": "Covers gathering and analysing data to support decisions and present what you find. Helps you make the case for decisions with evidence.",
+"311": "Explains budgets, costs and how money flows through your organisation. Useful if you manage a budget or need to understand the financial side of decisions.",
+"312": "Covers communicating clearly with different audiences, listening actively and overcoming barriers. Strong communication underpins every other management skill.",
+"313": "Covers planning and leading meetings, briefings and presentations so they're focused and useful. Makes the time spent in meetings count.",
+"314": "Explores flexible working options, the rules around requests and how to manage a team working different patterns. Helpful as more teams mix hours and locations.",
+"315": "Looks at what makes teams perform well and how to build trust, clear roles and shared goals. Ideal if you want more from the team you lead.",
+"316": "Covers the main laws and regulations that apply to your area and how to make sure your team complies. Reduces risk for you and your organisation.",
+"317": "Covers building and keeping strong relationships with clients, suppliers and partners. Useful in any role that depends on people outside your organisation.",
+"501": "Reflect on how you lead, gather feedback and plan how to grow as a leader. It anchors the whole qualification in your own development.",
+"502": "Covers planning, recording and reviewing your own development over time. Keeps your skills current and your career on track.",
+"503": "Covers directing, supporting and managing the performance of your team. The core people management skills for an operational leader.",
+"504": "Explores how culture forms and how leaders shape it through what they say and do. Useful if you want to build a positive, high performing environment.",
+"505": "Covers using coaching and mentoring to develop people in your team. Helps you grow talent rather than doing everything yourself.",
+"506": "Covers building fair, inclusive practice into recruitment, development and day-to-day management. Supports a diverse team where everyone can contribute.",
+"507": "Explores how to lead and manage wellbeing, including spotting issues early and creating a supportive culture. Helps reduce absence and keep people engaged.",
+"508": "Covers forecasting the people and skills you'll need and planning how to meet that need. Helps you avoid gaps and last-minute resourcing problems.",
+"509": "Covers planning, running and closing projects to time, cost and quality. Valuable for any manager delivering change or one-off work.",
+"510": "Covers setting and managing budgets, controlling costs and understanding financial information. Essential if you hold budget responsibility.",
+"511": "Covers building a financial case for a proposal, including costs, benefits and return on investment. Helps you win approval for your ideas.",
+"512": "Explores how to get more value from the systems and digital tools your team uses. Helps you improve efficiency and make better use of investment.",
+"513": "Covers identifying, assessing and controlling risks in your area. Helps you protect your operation and make better informed decisions.",
+"514": "Covers structured techniques for analysing problems and choosing the best course of action. Useful for the complex issues operational leaders face.",
+"515": "Covers creating the conditions for new ideas and leading people through change. Valuable when your organisation needs to adapt quickly.",
+"516": "Covers planning and managing people, equipment, materials and money efficiently. Helps you deliver more with what you have.",
+"517": "Covers mapping how work flows through the business and redesigning processes to improve it. Useful for cutting waste and delays.",
+"518": "Covers setting quality standards, monitoring them and driving continuous improvement. Helps you deliver consistently and keep customers happy.",
+"519": "Explores how organisational strategy is set and how your team's work contributes to it. Helps you align priorities with the bigger picture.",
+"520": "Covers turning goals into operational plans and targets, then reporting on progress. Gives you a clear line between strategy and day-to-day delivery.",
+"521": "Covers organisational values, ethical practice and how leaders influence behaviour. Helps you lead with integrity and handle grey areas.",
+"522": "Covers building environmental, social and economic sustainability into operations. Increasingly expected by clients, investors and employees.",
+"523": "Covers gathering, analysing and interpreting data to inform decisions. Makes your decisions easier to justify and harder to challenge.",
+"524": "Covers building productive working relationships across teams and organisations. Helps you get results that depend on other people.",
+"525": "Covers identifying stakeholders, understanding their interests and managing expectations. Keeps key people on side through change and delivery.",
+"526": "Covers setting up and managing work with external partners and suppliers. Helps partnerships deliver what was promised.",
+"527": "Covers taking a new product or service from idea through development to launch. Useful if you're involved in growth or innovation.",
+"8605-400": "Explores your role as a manager, how it supports organisational goals and how to improve your own performance. A strong starting point for any Level 4 programme.",
+"8605-401": "Covers planning a complex piece of work, leading the team through it and reviewing the results. Shows you can deliver beyond routine tasks.",
+"8605-402": "Covers equality and diversity law and good practice and how to apply them in your area. Helps you manage fairly and reduce risk.",
+"8605-403": "Covers identifying and assessing risks in your workplace and putting controls in place. Helps you protect people, assets and performance.",
+"8605-404": "Covers what to delegate, to whom and how to support and monitor it. Frees up your time and develops your team.",
+"8605-405": "Covers identifying development needs, planning learning and evaluating the results. Builds a more capable team.",
+"8605-406": "Explores leadership models and styles and how to adapt yours to different situations. Helps you lead more effectively and flexibly.",
+"8605-407": "Covers budgets, financial information and how financial decisions are made. Gives you confidence with the numbers side of management.",
+"8605-408": "Covers communicating effectively as a manager, including choosing the right methods and overcoming barriers. Better communication improves almost everything you do.",
+"8605-409": "A substantial unit on assessing your development needs, planning and carrying out learning, and reviewing how it has improved your performance. Builds a lasting habit of self-development.",
+"8605-410": "Covers finding, analysing and using existing data and research to inform management decisions. Saves time and strengthens your recommendations.",
+"8605-411": "Covers health and safety law and your responsibilities for keeping your area safe. Essential for any manager responsible for people or premises.",
+"8605-412": "Covers planning, chairing and following up meetings so they achieve their purpose. Makes meetings shorter and more productive.",
+"8605-413": "Covers planning, carrying out and evaluating marketing activities. Useful if your role touches promotion, sales or customers.",
+"8605-414": "Covers collecting and analysing data to justify a management decision. Helps you back up proposals with evidence.",
+"8605-415": "Explores motivation theory and practical ways to motivate your team. Helps improve engagement and performance.",
+"8605-416": "Covers analysing workplace problems, weighing options, and making and reviewing decisions. Builds confidence in tackling difficult issues.",
+"8605-417": "Covers planning change, managing its impact on people and evaluating the outcome. Valuable when you need to lead your team through new ways of working.",
+"8605-418": "Explores organisational culture, structure and the wider context your organisation operates in. Helps you understand why things work the way they do.",
+"8605-419": "Explores how work is changing, including technology, flexible working and workforce trends. Helps you anticipate what's coming.",
+"8605-420": "Covers preparing budgets and monitoring and controlling spend against them. Essential for managers with budget responsibility.",
+"8605-421": "Covers reading financial statements and using ratios to assess how an organisation is performing. Helps you understand the health of a business.",
+"8605-422": "Explores the role marketing plays in an organisation's success. Useful for managers who work alongside marketing or sales.",
+"8605-423": "Covers using numerical and statistical techniques to analyse and solve management problems. Adds rigour to your decision making.",
+"8605-424": "Explores supply, demand, competition and how markets affect your organisation. Helps you understand the commercial pressures you face.",
+"8605-425": "Explores mental toughness and how to build resilience and confidence under pressure. Useful in demanding roles.",
+"8605-426": "Explores the wider economy, including growth, inflation and government policy, and how it affects organisations. Helps you plan with the bigger picture in mind.",
+"8605-427": "Covers creating a culture where people suggest and try new ideas. Helps your team keep improving.",
+"8605-300": "Covers practical techniques for identifying problems, finding solutions and making decisions. A short, hands-on unit.",
+"8605-301": "Explores why organisations need innovation and change and how change affects people. A good introduction to managing change.",
+"8605-302": "Covers planning a change in your area and thinking through its impact. Helps changes go more smoothly.",
+"8605-303": "Covers planning work and allocating it to the right people. Helps your team work efficiently.",
+"8605-304": "Covers writing clear, well structured business documents. Useful for reports, emails and proposals.",
+"8605-305": "Covers generating creative ideas and helping to put them into practice. Encourages fresh thinking in your team.",
+"8605-306": "Explores customer service standards and how to meet customer expectations. Useful in customer-facing roles.",
+"8605-307": "Covers planning and delivering briefings and presentations with confidence. Helps you get your message across.",
+"8605-308": "Explores leadership styles and qualities and what makes leaders effective. A good grounding for newer leaders.",
+"8605-309": "Covers how teams form and how to set one up for success. Useful for new or changing teams.",
+"8605-310": "Explores motivation theory and how to use it to improve performance. Helps you get more from your team.",
+"8605-311": "Covers identifying learning needs and supporting your own and others' development. Builds skills across the team.",
+"8605-312": "Explores the causes of conflict at work and ways to manage it. Helps keep working relationships healthy.",
+"8605-313": "Explores the causes of workplace stress and how to manage it for yourself and others. Supports wellbeing and productivity.",
+"8605-314": "Covers disciplinary procedures and how to handle them fairly and in line with the law. Important for any manager of people.",
+"8605-315": "Covers the stages of recruiting and selecting new staff. Helps you hire the right people.",
+"8605-316": "Covers planning an induction that helps new starters settle in quickly. Improves retention and early performance.",
+"8605-317": "Covers identifying training needs and using training and coaching to develop people. Builds a more skilled team.",
+"8605-318": "Explores quality standards and approaches to managing quality. Helps you deliver consistent results.",
+"8605-319": "Covers organising work and delegating effectively. Frees up your time for higher value tasks.",
+"8605-320": "Covers planning and managing a workplace project. Useful for delivering one-off pieces of work.",
+"8605-321": "Covers health and safety responsibilities and good practice at work. Essential knowledge for managers.",
+"8605-322": "Explores how organisations are structured and the environment they operate in. Helps you see the bigger picture.",
+"8605-323": "Covers setting objectives and monitoring and reviewing performance. A core skill for managing people.",
+"8605-324": "Covers how costs and budgets work in an organisation. Useful if you're new to budget responsibility.",
+"8605-325": "Covers using materials and equipment efficiently and reducing waste. Saves money and resources.",
+"8605-326": "Explores how communication works and how to make it more effective. Reduces misunderstandings.",
+"8605-327": "Covers negotiation techniques and building useful networks. Helps you reach agreements and widen your influence.",
+"8605-328": "Covers planning and leading meetings that achieve their aims. Makes meetings more productive.",
+"8605-329": "Explores the information systems used at work and how to use them well. Helps you manage information effectively.",
+"8605-330": "A short introduction to marketing principles for managers. Helps you work better with marketing teams.",
+"8605-331": "Explores how support services such as facilities, IT or HR operate and are managed. Useful in support service roles.",
+"8605-332": "Explores sustainability and environmental issues and how organisations respond to them. Increasingly important for every manager.",
+"8605-333": "Covers procurement processes and managing suppliers. Helps you get value for money.",
+"8605-334": "Covers building and developing effective working relationships. Helps you get things done through others.",
+"8605-335": "Covers managing contracts and contractors so work is delivered as agreed. Useful where you rely on third parties.",
+"8605-336": "Covers planning for incidents and recovering from disruption. Helps keep the business running when things go wrong.",
+"8605-337": "Explores physical and information security measures at work. Helps protect people, premises and data.",
+"8605-338": "Explores the challenges of managing people who work remotely and how to address them. Useful for hybrid teams.",
+"8605-341": "Covers leading a team and keeping people motivated to achieve shared goals. Practical skills for team leaders.",
+"8605-359": "Explores good practice in workplace coaching and the benefits it brings an organisation. A foundation for coaching others.",
+"8605-361": "Explores good practice in workplace mentoring and the benefits it brings. A foundation for mentoring others.",
+"8605-501": "Covers identifying and putting improvements in place in your area. Helps you drive better results.",
+"8605-502": "Covers building a financial case for a proposal. Helps you get your ideas approved.",
+"8605-503": "Covers analysing arguments and evidence to reach sound judgements. Sharpens your decision making.",
+"8605-504": "Covers leading innovation and change and managing its impact on people. Valuable in fast-changing organisations.",
+"8605-505": "Covers assessing and supporting the development of individuals in your team. Grows your team's capability.",
+"8605-506": "Covers managing stress and conflict across the organisation. Supports a healthier working environment.",
+"8605-507": "Explores the internal and external factors that affect organisations. Helps you plan with the wider context in mind.",
+"8605-508": "Explores organisational culture, values and ethical behaviour. Helps you lead with integrity.",
+"8605-509": "Covers managing customer relationships and service. Helps you keep and grow customers.",
+"8605-510": "Covers improving efficiency and effectiveness in your area. Helps you do more with less.",
+"8605-511": "Covers planning, managing and evaluating projects. Useful for delivering change.",
+"8605-512": "Covers planning and managing physical and human resources. Helps you use resources well.",
+"8605-513": "Covers managing information to support decision making. Helps the right people get the right information.",
+"8605-514": "Covers planning and managing recruitment and selection. Helps you attract and appoint the right people.",
+"8605-515": "Covers analysing work processes to improve how they're done. Helps cut waste and improve productivity.",
+"8605-516": "Covers analysing and interpreting statistics to inform decisions. Adds evidence to your management judgement.",
+"8605-517": "Explores how facilities are managed to support an organisation. Useful in facilities or operations roles.",
+"8605-518": "Covers preparing and delivering professional presentations. Builds confidence in front of an audience.",
+"8605-519": "Covers developing and leading teams to achieve organisational goals. Links team performance to the bigger picture.",
+"8605-520": "Covers assessing your own leadership capability and planning how to improve it. Helps you lead more effectively.",
+"8605-521": "A substantial unit on planning, carrying out and reviewing your continuing professional development. Builds a lasting habit of self-development.",
+"8605-522": "Explores what effective leadership looks like and how to develop it in yourself. Helps you grow as a leader.",
+"8605-523": "Covers lean and continuous improvement methods and how to apply them to service delivery problems. Helps remove waste and improve flow.",
+"8605-525": "Covers improving and maintaining your organisation's environmental performance. Supports sustainability goals.",
+"8605-526": "Covers managing remote workers effectively, including communication and performance. Essential for distributed teams.",
+"8605-527": "Covers setting up and managing partnerships with other organisations. Helps partnerships deliver results.",
+"8605-528": "Explores how organisations are governed and held to account. Useful for senior or board-facing roles.",
+"8605-529": "Covers capturing, sharing and managing knowledge and information. Helps your organisation learn and improve.",
+"8605-533": "Covers recognising mental health issues at work and supporting colleagues. Helps create a supportive workplace.",
+"8605-550": "Covers the skills, principles and practice of coaching and mentoring in an organisation. Prepares you to develop others.",
+"601": "Covers assessing and developing your personal effectiveness and the impact you have on others. Helps you lead with greater confidence and presence.",
+"602": "Covers critical thinking techniques for analysing information and making sound judgements. Essential as your decisions become more complex.",
+"603": "Explores current debates and new thinking in leadership and how they apply to your practice. Keeps your leadership approach current.",
+"604": "Covers leading and developing people to deliver organisational outcomes. A substantial unit at the heart of senior people leadership.",
+"605": "Covers assessing and improving your organisation's capacity to deliver, across people, processes and resources. Helps the organisation do more with what it has.",
+"606": "Covers using data efficiently to support organisational success. Helps you turn information into better decisions.",
+"607": "Explores leading an organisation that is sustainable and ready for the future. Supports long-term thinking and resilience.",
+"608": "Covers developing and delivering a commercially focused strategy. Helps you connect leadership decisions to commercial results.",
+"609": "Covers the principles and practices of managing risk at organisational level. Helps protect the organisation and its plans.",
+"610": "Explores how to encourage innovation, creativity and entrepreneurial thinking. Helps your organisation spot and seize opportunities.",
+"611": "Covers project management approaches and tools for delivering complex projects. Valuable for leaders sponsoring or running major work.",
+"612": "An introduction to strategic management and how strategy is formed and delivered. A bridge into senior strategic roles.",
+"700": "A substantial unit where you investigate a leadership or management issue through enquiry and research. Builds your ability to lead evidence-based change.",
+"701": "A substantial unit on developing a high-level business case for a strategic proposal. Helps you secure investment and support.",
+"702": "A substantial unit on building a high-performance culture and making the best use of resources. Helps you lift organisational performance.",
+"703": "Covers developing strategic leadership and management capability in yourself and others. Prepares you for senior strategic roles.",
+"710": "Covers embedding a culture where leaders develop others. Builds leadership strength throughout the organisation.",
+"711": "Covers designing and leading leadership development at a strategic level. Helps build the leaders your organisation needs.",
+"712": "Covers supporting a culture of innovation while the organisation goes through change. Helps it adapt and improve.",
+"713": "Covers strategic influencing and negotiation with senior stakeholders. Helps you win support for your agenda.",
+"714": "Covers making the best strategic use of the organisation's people. Helps match talent to strategy.",
+"715": "Covers using data to inform and evaluate strategic management. Adds rigour to strategic decisions.",
+"716": "Covers developing a commercially focused organisation. Helps leaders drive financial sustainability and growth.",
+"717": "Explores evolving and emerging approaches to leadership and management. Keeps your practice current.",
+"800": "Explores the role and impact of a chief executive, including leading the organisation, its board and its stakeholders. Available on the Extended Diploma only."
+};
+  function aboutFor(root, code) { if (root.getAttribute("data-level") === "6" && /^5\d\d$/.test(code)) code = "8605-" + code; return ABOUT[code]; }
+  var AB_CSS = ".ilmb-uw{display:flex;flex-direction:column}.ilmb-uw>.ilmb-unit{flex:1}" +
+    ".ilmb-ab{font:inherit;font-size:.86rem;font-weight:700;color:var(--n);background:none;border:0;padding:7px 2px 0;margin:0;cursor:pointer;text-align:left;display:inline-flex;gap:6px;align-items:center;align-self:flex-start}" +
+    ".ilmb-ab::after{content:'+';color:var(--o);font-size:1.1rem;line-height:1}.ilmb-ab[aria-expanded=true]::after{content:'\\2212'}" +
+    ".ilmb-abp{font-size:.9rem;color:var(--mut);line-height:1.45;background:var(--s);border:1px solid var(--ln);border-left:3px solid var(--o);border-radius:8px;padding:9px 11px;margin:6px 0 0}.ilmb-abp[hidden]{display:none}";
+  var abN = 0;
+  function addAbout(root) {
+    if (!document.getElementById("ilmb-ab-css")) {
+      var s = document.createElement("style"); s.id = "ilmb-ab-css"; s.textContent = AB_CSS; document.head.appendChild(s);
+    }
+    Array.prototype.forEach.call(root.querySelectorAll(".ilmb-unit"), function (b) {
+      if (!b.parentNode || b.parentNode.classList.contains("ilmb-uw")) return;
+      var c = b.querySelector(".c"), m = c && c.textContent.match(/\d{4}-\d{3}|\d{3,4}/);
+      var txt = m && aboutFor(root, m[0]);
+      if (!txt) return;
+      var w = document.createElement("div"); w.className = "ilmb-uw";
+      b.parentNode.insertBefore(w, b); w.appendChild(b);
+      w.style.display = b.style.display; b.style.display = "";
+      var t = el("button", "ilmb-ab", "About this unit"); t.type = "button";
+      var p = el("p", "ilmb-abp", txt); p.hidden = true; p.id = "ilmb-ab-" + (++abN);
+      t.setAttribute("aria-expanded", "false"); t.setAttribute("aria-controls", p.id);
+      t.addEventListener("click", function () {
+        var open = p.hidden; p.hidden = !open; t.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+      w.appendChild(t); w.appendChild(p);
+    });
   }
 
   // ---------- Collapsible builder (ILM v28, CMI v12) ----------
@@ -1227,8 +1444,8 @@
       if (!roots.length) return;
       injectCss();
       Array.prototype.forEach.call(roots, function (r, i) {
-        if (r._ilmbMounted) return;
-        try { mount(r, i); if (r._ilmbMounted) addToggle(r, i); } catch (e) { if (window.console) console.error("ILM builder:", e); }
+        if (r._ilmbMounted) { addAbout(r); return; }
+        try { mount(r, i); if (r._ilmbMounted) { addToggle(r, i); addAbout(r); } } catch (e) { if (window.console) console.error("ILM builder:", e); }
       });
     } catch (e) {}
   }
