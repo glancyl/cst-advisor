@@ -1,5 +1,5 @@
 /*!
- * CST Training CMI unit builder widget (v11: Buy now and Enquire always shown; units sent when picked)
+ * CST Training CMI unit builder widget (v12: builder collapsed behind a "Build my ..." button; data-collapsed="false" to opt out)
  * Separate from ilm-builder.js so the live ILM pages can't break.
  * Host on GitHub Pages, load with ?v=N cache buster (N matches this version).
  *
@@ -50,6 +50,7 @@
  *       chosen units attached (needs the cst-builder-units PHP snippet). Product IDs in PRODUCTS below.
  *   v10 Product IDs added for the Level 5 consulting Awards, Certificates and the Practice Diploma.
  *   v11 Buy now and Enquire show from the start; units are attached only when some have been picked.
+ *   v12 Builder starts collapsed behind a "Build my ..." button. Opens on #build links. data-collapsed="false" to opt out.
  */
 (function () {
   "use strict";
@@ -1740,6 +1741,97 @@
     root._cmib = { state: state, render: render };
   }
 
+  // ---------- Collapsible builder (ILM v28, CMI v12) ----------
+  // Builders start closed behind a teaser with a "Build my ..." button.
+  // Opt out per page with data-collapsed="false". Optional overrides:
+  // data-collapse-heading, data-collapse-text, data-collapse-label.
+  // Opens itself when the URL or a clicked link points at the builder or its section (e.g. #build).
+  var TZ_OPEN = {};
+  var TZ_CSS = ".ilmb-tz{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px 24px;max-width:1120px;margin:0 auto;background:#fff;border:1px solid #DCDFEA;border-left:4px solid #ff8c04;border-radius:12px;padding:22px 26px}" +
+    ".ilmb-tz-tx{flex:1;min-width:240px}.ilmb-tz-tx h2{margin:0 0 6px!important}.ilmb-tz-tx p{margin:0!important;color:#565C75}" +
+    ".ilmb-tz .ilmb-btn{white-space:nowrap}" +
+    ".ilmb-tz.open{background:transparent;border:0;padding:0;margin:0 auto 12px;justify-content:flex-end}.ilmb-tz.open .ilmb-tz-tx{display:none}" +
+    ".ilmb-closed>.ilmb-in{display:none}" +
+    ".ilmb-opening>.ilmb-in{animation:ilmbTz .3s ease-out}" +
+    "@keyframes ilmbTz{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}" +
+    "@media(prefers-reduced-motion:reduce){.ilmb-opening>.ilmb-in{animation:none}}";
+
+  function injectTzCss() {
+    if (document.getElementById("ilmb-tz-css")) return;
+    var s = document.createElement("style"); s.id = "ilmb-tz-css"; s.textContent = TZ_CSS;
+    document.head.appendChild(s);
+  }
+
+  function tzTarget(hash) {
+    try { return hash && hash.length > 1 ? document.querySelector(hash) : null; } catch (e) { return null; }
+  }
+  function openFromHash(hash) {
+    var t = tzTarget(hash); if (!t) return;
+    var list = t.classList && t.classList.contains("ilmb") ? [t] : t.querySelectorAll(".ilmb");
+    Array.prototype.forEach.call(list, function (r) { if (r._tzOpen) r._tzOpen(); });
+  }
+  if (!window.__ilmbTzLinks) {
+    window.__ilmbTzLinks = true;
+    window.addEventListener("hashchange", function () { openFromHash(location.hash); });
+    document.addEventListener("click", function (e) {
+      var a = e.target && e.target.closest ? e.target.closest("a[href*='#']") : null;
+      if (a && a.pathname === location.pathname) openFromHash(a.hash);
+    }, true);
+  }
+
+  function addToggle(root, idx) {
+    var inner = root.querySelector(".ilmb-in");
+    if (!inner || root.querySelector(".ilmb-tz")) return;
+    if ((root.getAttribute("data-collapsed") || "").toLowerCase() === "false") return;
+    injectTzCss();
+    var key = (root.className.match(/cst-[a-z-]+/) || ["b"])[0] + "|" + idx;
+    var fixed = root.classList.contains("cmib-fx");
+
+    var tz = el("div", "ilmb-tz"), tx = el("div", "ilmb-tz-tx");
+    var th = el("h2"), tp = el("p");
+    tx.appendChild(th); tx.appendChild(tp); tz.appendChild(tx);
+    var btn = el("button", "ilmb-btn or"); btn.type = "button";
+    if (!inner.id) inner.id = "ilmbtz-" + key.replace(/\W/g, "-");
+    btn.setAttribute("aria-controls", inner.id);
+    tz.appendChild(btn);
+    root.insertBefore(tz, inner);
+
+    function title() {
+      for (var i = 0; i < inner.children.length; i++) if (inner.children[i].tagName === "H2") return inner.children[i].textContent;
+      return "Build your qualification";
+    }
+    function label() {
+      var t = title();
+      return root.getAttribute("data-collapse-label") || (/^Build your /.test(t) ? t.replace(/^Build your /, "Build my ") : "Show options");
+    }
+    function setOpen(open, scroll) {
+      TZ_OPEN[key] = open;
+      root.classList.toggle("ilmb-closed", !open);
+      tz.classList.toggle("open", open);
+      btn.setAttribute("aria-expanded", open ? "true" : "false");
+      if (open) {
+        btn.className = "ilmb-btn ghost"; btn.textContent = "Hide builder";
+        root.classList.add("ilmb-opening");
+        setTimeout(function () { root.classList.remove("ilmb-opening"); }, 400);
+      } else {
+        btn.className = "ilmb-btn or"; btn.textContent = label();
+        th.textContent = root.getAttribute("data-collapse-heading") || title();
+        tp.textContent = root.getAttribute("data-collapse-text") || (fixed
+          ? "Compare the levels side by side, then buy now or send your enquiry to our team."
+          : "Pick the units that fit the work you already do, then buy now or send your picks to our team. Nothing is final until induction.");
+      }
+      if (scroll && root.scrollIntoView) root.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    btn.addEventListener("click", function () {
+      var open = !TZ_OPEN[key];
+      setOpen(open, true);
+      if (open) try { window.dataLayer = window.dataLayer || []; window.dataLayer.push({ event: "course_builder_open", builder_title: title() }); } catch (e) {}
+    });
+    root._tzOpen = function () { if (!TZ_OPEN[key]) setOpen(true, false); };
+    var t = tzTarget(location.hash);
+    setOpen(!!TZ_OPEN[key] || !!(t && (t === root || t.contains(root))), false);
+  }
+
   function init() {
     try {
       injectPageCss();
@@ -1748,7 +1840,7 @@
       injectCss();
       Array.prototype.forEach.call(roots, function (r, i) {
         if (r._cmibMounted) return;
-        try { if (r.classList.contains("cst-cmi-consult")) { mountConsult(r, i); return; } var ck = r.getAttribute("data-course"); if (ck) { if (COURSES[ck]) mountFixed(r, i, COURSES[ck]); } else if (r.hasAttribute("data-quals")) mountCoaching(r, i); else mount(r, i); } catch (e) { if (window.console) console.error("CMI builder:", e); }
+        try { if (r.classList.contains("cst-cmi-consult")) { mountConsult(r, i); return; } var ck = r.getAttribute("data-course"); if (ck) { if (COURSES[ck]) mountFixed(r, i, COURSES[ck]); } else if (r.hasAttribute("data-quals")) mountCoaching(r, i); else mount(r, i); } catch (e) { if (window.console) console.error("CMI builder:", e); } finally { if (r._cmibMounted) addToggle(r, i); }
       });
     } catch (e) {}
   }
