@@ -182,3 +182,8 @@
   #cp-hub .cp-eyebrow{left:18px}
   #cp-hub .cp-calc,#cp-hub .cp-formbox{padding:20px}
 }
+
+/* safety net if the script loads late: hide wpautop debris */
+#cp-hub br{display:none}
+#cp-hub p:empty{display:none}
+#cp-hub .cp-crumb a{display:inline}
