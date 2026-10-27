@@ -290,3 +290,12 @@ body{overflow-x:clip}
   #cp-hub .cp-formbox .hs-form fieldset.form-columns-2{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
   #cp-hub .cp-formbox .hs-form fieldset.form-columns-2 .hs-form-field{width:100% !important;float:none !important;padding:0 !important}
 }
+
+/* ---------- v11: FAQs on navy ---------- */
+#cp-hub #cp-s-faq{background:var(--cp-navy)}
+#cp-hub #cp-s-faq h2{color:#fff}
+#cp-hub #cp-s-faq .cp-faq,#cp-hub #cp-s-faq .cp-faq details{border-color:rgba(255,255,255,.18)}
+#cp-hub #cp-s-faq .cp-faq summary{color:#fff}
+#cp-hub #cp-s-faq .cp-faq summary::after{color:var(--cp-site-orange)}
+#cp-hub #cp-s-faq .cp-faq .a{color:#dfe3f5}
+#cp-hub #cp-s-faq .cp-band.light{box-shadow:0 12px 30px rgba(0,0,0,.25)}
