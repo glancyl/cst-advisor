@@ -23,7 +23,7 @@
 #cp-hub li{margin-bottom:6px}
 #cp-hub strong{font-weight:700;color:var(--cp-navy)}
 #cp-hub .cp-wrap{max-width:var(--cp-maxw);margin:0 auto;padding:0 24px}
-#cp-hub .cp-lede{font-size:1.1rem;max-width:64ch}
+#cp-hub .cp-lede{font-size:1.1rem}
 #cp-hub .cp-fine{font-size:.82rem;color:var(--cp-muted);margin:14px 0 0}
 #cp-hub .cp-small{font-size:.88rem}
 #cp-hub a:focus-visible,#cp-hub button:focus-visible,#cp-hub input:focus-visible,#cp-hub select:focus-visible,#cp-hub summary:focus-visible{outline:3px solid var(--cp-orange);outline-offset:2px}
@@ -74,10 +74,10 @@
 /* sections */
 #cp-hub .cp-block{padding:58px 0}
 #cp-hub .cp-block.tint{background:var(--cp-tint)}
-#cp-hub .cp-head{max-width:70ch;margin-bottom:28px}
+#cp-hub .cp-head{margin-bottom:28px}
 #cp-hub .cp-head p{margin-top:12px}
 #cp-hub .cp-tab{height:8px;width:44px;background:var(--cp-orange);border-radius:0 6px 6px 0;margin-top:12px}
-#cp-hub .cp-quote{font-size:1.15rem;color:var(--cp-navy);max-width:66ch;line-height:1.5}
+#cp-hub .cp-quote{font-size:1.15rem;color:var(--cp-navy);line-height:1.5}
 
 /* cards */
 #cp-hub .cp-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
@@ -161,7 +161,7 @@
 #cp-hub .cp-faq summary::-webkit-details-marker{display:none}
 #cp-hub .cp-faq summary::after{content:"+";position:absolute;right:4px;top:11px;font-size:1.4rem;color:var(--cp-navy)}
 #cp-hub .cp-faq details[open] summary::after{content:"\2212"}
-#cp-hub .cp-faq .a{padding:0 0 18px;max-width:72ch}
+#cp-hub .cp-faq .a{padding:0 0 18px}
 
 /* enquiry panel */
 #cp-hub .cp-cta{background:var(--cp-navy);color:#fff;border-radius:var(--cp-r) var(--cp-r) 56px var(--cp-r);padding:48px 48px 40px}
