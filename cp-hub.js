@@ -5,7 +5,7 @@
   if (document.getElementById("cp-hub-css")) return;
   /* NitroPack rewrites the script tag, so the version can't be read from it.
      Bump CSS_VERSION whenever cp-hub.css changes. */
-  var CSS_VERSION = 16;
+  var CSS_VERSION = 17;
   var v = "v=" + CSS_VERSION;
   if (!document.querySelector('link[href*="family=Alata"]')) {
     var f = document.createElement("link");
@@ -15,7 +15,7 @@
   }
   var l = document.createElement("link");
   l.id = "cp-hub-css"; l.rel = "stylesheet";
-  l.href = "https://glancyl.github.io/cst-advisor/cp-hub.css" + (v ? "?" + v : "");
+  l.href = "https://glancyl.github.io/cst-advisor/cp-hub.css" + "?" + v + "&t=" + Math.floor(Date.now() / 600000);
   document.head.appendChild(l);
 })();
 
