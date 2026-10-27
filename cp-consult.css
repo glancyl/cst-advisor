@@ -1,0 +1,104 @@
+/* CST Training · styles for the consultancy pages (H&S, temporary works) · loaded after cp-hub.css */
+/* =====================================================================
+   v12: shared components for the consultancy pages (H&S, temporary works)
+   ===================================================================== */
+/* hero side box as stacked questions */
+#cp-hub .cp-side-qa dl{grid-template-columns:1fr;gap:4px}
+#cp-hub .cp-side-qa dt{color:#fff;font-weight:700;margin-top:10px}
+#cp-hub .cp-side-qa dt:first-child{margin-top:0}
+#cp-hub .cp-side-qa dd{text-align:left;font-weight:400;color:#c3c8e2}
+
+/* option cards with prices */
+#cp-hub .cp-opts{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+#cp-hub .cp-opt{background:#fff;border-radius:var(--cp-r) var(--cp-r) 26px var(--cp-r);padding:26px;display:flex;flex-direction:column;gap:10px;box-shadow:0 8px 22px rgba(20,27,71,.14)}
+#cp-hub .cp-opt::before{content:"";width:12px;height:12px;background:var(--cp-site-orange);border-radius:3px}
+#cp-hub .cp-opt h3{font-size:1.12rem}
+#cp-hub .cp-price{font-family:var(--cp-head);font-size:1.7rem;color:var(--cp-navy);line-height:1.1}
+#cp-hub .cp-price small{font-family:var(--cp-text);font-size:.82rem;font-weight:700;color:var(--cp-muted)}
+#cp-hub .cp-fit{font-size:.88rem;background:var(--cp-tint);color:var(--cp-navy);padding:10px 12px;border-radius:4px;margin:0}
+#cp-hub .cp-what{font-size:.95rem;margin:0;flex:1}
+#cp-hub .cp-opt .cp-foot{margin-top:6px}
+#cp-hub .cp-opt.featured{background:var(--cp-navy);color:#fff}
+#cp-hub .cp-opt.featured h3,#cp-hub .cp-opt.featured .cp-price{color:#fff}
+#cp-hub .cp-opt.featured .cp-price small,#cp-hub .cp-opt.featured .cp-what{color:#dfe3f5}
+#cp-hub .cp-opt.featured .cp-fit{background:rgba(255,255,255,.1);color:#fff}
+
+/* option detail rows */
+#cp-hub .cp-detail{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start;padding:36px 0;border-top:1px solid var(--cp-line)}
+#cp-hub .cp-detail:first-child{border-top:0;padding-top:0}
+#cp-hub .cp-detail:last-child{padding-bottom:0}
+#cp-hub .cp-detail h3{font-size:1.35rem;margin-bottom:10px}
+#cp-hub .cp-q{color:var(--cp-navy);font-size:1.05rem}
+#cp-hub [id^="cp-h-"],#cp-hub [id^="cp-t-"]{scroll-margin-top:calc(var(--cp-sticky-top) + 60px)}
+#cp-hub .cp-listcards{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#cp-hub .cp-listcards li{margin:0;background:var(--cp-tint);border-left:3px solid var(--cp-blue);border-radius:4px;padding:10px 12px;font-size:.92rem;color:var(--cp-navy);font-weight:600}
+#cp-hub .cp-ticks{list-style:none;padding:0;margin:0 0 14px}
+#cp-hub .cp-ticks li{position:relative;padding:10px 0 10px 28px;border-bottom:1px solid var(--cp-line);margin:0;font-size:.96rem}
+#cp-hub .cp-ticks li::before{content:"";position:absolute;left:0;top:16px;width:12px;height:12px;background:var(--cp-site-orange);border-radius:3px}
+
+/* finder */
+#cp-hub .cp-finder{background:#fff;border-radius:var(--cp-r) var(--cp-r) 26px var(--cp-r);padding:28px 30px;box-shadow:0 8px 22px rgba(20,27,71,.14)}
+#cp-hub .cp-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
+#cp-hub .cp-reco{display:none;margin-top:16px;border-left:4px solid var(--cp-site-orange);background:#fff8ef;padding:20px 22px;border-radius:0 var(--cp-r) var(--cp-r) 0}
+#cp-hub .cp-reco.show{display:block}
+#cp-hub .cp-reco h3{margin:8px 0 4px}
+#cp-hub .cp-reco p{margin:8px 0 14px}
+#cp-hub .cp-reco-price{font-family:var(--cp-head);color:var(--cp-navy);font-size:1.15rem}
+#cp-hub .cp-chip{display:inline-block;padding:2px 10px;border-radius:12px;font-size:.78rem;font-weight:700;background:var(--cp-navy);color:#fff}
+
+/* bridge to the hub */
+#cp-hub .cp-bridge{background:var(--cp-navy);color:#fff;border-radius:var(--cp-r) var(--cp-r) 44px var(--cp-r);padding:40px 38px 34px;display:grid;grid-template-columns:1fr auto;gap:28px;align-items:center;position:relative;margin-top:16px}
+#cp-hub .cp-bridge .cp-eyebrow{top:-16px;left:32px}
+#cp-hub .cp-bridge h3{color:#fff;font-size:1.4rem;margin-bottom:8px}
+#cp-hub .cp-bridge p{color:#dfe3f5;margin:0}
+#cp-hub .cp-bridge-from{display:block;margin-top:10px;font-family:var(--cp-head);color:var(--cp-site-orange);font-size:1.2rem}
+
+/* law tabs */
+#cp-hub .cp-law{display:grid;grid-template-columns:270px 1fr;border:1px solid var(--cp-line);border-radius:var(--cp-r) var(--cp-r) 26px var(--cp-r);overflow:hidden;background:#fff}
+#cp-hub .cp-tabs{background:var(--cp-tint);display:flex;flex-direction:column;padding:10px;gap:4px}
+#cp-hub .cp-tabs button{background:none;border:0;text-align:left;padding:12px 14px;border-radius:var(--cp-r);cursor:pointer;color:var(--cp-navy);font-family:var(--cp-text);font-weight:700;font-size:.92rem;line-height:1.3}
+#cp-hub .cp-tabs button .s{display:block;font-weight:400;color:var(--cp-muted);font-size:.8rem;margin-top:2px}
+#cp-hub .cp-tabs button.on{background:var(--cp-blue);color:#fff}
+#cp-hub .cp-tabs button.on .s{color:#eef1ff}
+#cp-hub .cp-pane{display:none;padding:28px 32px}
+#cp-hub .cp-pane.on{display:block}
+#cp-hub .cp-pane h3{margin-bottom:12px}
+#cp-hub .cp-pane h4{margin:16px 0 6px}
+#cp-hub .cp-lawq{border-left:3px solid var(--cp-blue);background:var(--cp-tint);padding:12px 16px;font-size:.96rem}
+#cp-hub .cp-lawq em{display:block;font-style:normal;font-size:.82rem;color:var(--cp-muted);margin-top:6px}
+#cp-hub .cp-src{font-size:.84rem;color:var(--cp-muted);margin-top:14px}
+#cp-hub .cp-note{background:#fff8ef;border:1px solid #f6dbb8;border-radius:var(--cp-r);padding:12px 16px;font-size:.88rem;margin-top:18px}
+
+/* related course links */
+#cp-hub .cp-courselinks{display:flex;gap:10px;flex-wrap:wrap}
+#cp-hub .cp-courselinks a{text-decoration:none;font-weight:700;font-size:.92rem;color:var(--cp-navy);background:#fff;padding:11px 18px;border-radius:30px;box-shadow:0 6px 16px rgba(20,27,71,.14)}
+#cp-hub .cp-courselinks a:hover{background:var(--cp-navy-tint)}
+
+/* H&S page colour bands */
+#cp-hub #cp-h-options,#cp-hub #cp-h-training{background:var(--cp-blue)}
+#cp-hub #cp-h-options h2,#cp-hub #cp-h-training h2,#cp-hub #cp-h-training .cp-head p{color:#fff}
+#cp-hub #cp-h-finder{background:var(--cp-site-orange)}
+#cp-hub #cp-h-finder h2{color:var(--cp-navy)}
+#cp-hub #cp-h-finder .cp-tab{background:var(--cp-navy)}
+#cp-hub #cp-h-bridge{background:var(--cp-tint)}
+#cp-hub #cp-h-bridge .cp-control{background:var(--cp-blue)}
+#cp-hub #cp-h-bridge .cp-control p{color:#eef1ff}
+#cp-hub #cp-h-faq{background:var(--cp-navy)}
+#cp-hub #cp-h-faq h2{color:#fff}
+#cp-hub #cp-h-faq .cp-faq,#cp-hub #cp-h-faq .cp-faq details{border-color:rgba(255,255,255,.18)}
+#cp-hub #cp-h-faq .cp-faq summary{color:#fff}
+#cp-hub #cp-h-faq .cp-faq summary::after{color:var(--cp-site-orange)}
+#cp-hub #cp-h-faq .cp-faq .a{color:#dfe3f5}
+#cp-hub #cp-h-faq .cp-faq .a a{color:#fff}
+#cp-hub #cp-h-options .cp-btn.ghost,#cp-hub #cp-h-training .cp-btn.ghost{color:#fff}
+
+@media (max-width:960px){
+  #cp-hub .cp-opts,#cp-hub .cp-detail,#cp-hub .cp-bridge,#cp-hub .cp-law{grid-template-columns:1fr}
+  #cp-hub .cp-tabs{flex-direction:row;overflow-x:auto}
+  #cp-hub .cp-tabs button{white-space:nowrap}
+  #cp-hub .cp-tabs button .s{display:none}
+}
+@media (max-width:600px){
+  #cp-hub .cp-listcards{grid-template-columns:1fr}
+  #cp-hub .cp-finder,#cp-hub .cp-pane{padding:20px}
+}
