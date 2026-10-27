@@ -8,7 +8,7 @@
    the product named in the message, so nothing breaks while the products are drafts. */
 (function () {
   if (document.getElementById("cp-hub-css")) return;
-  var CSS_VERSION = 14;
+  var CSS_VERSION = 15;
   if (!document.querySelector('link[href*="family=Alata"]')) {
     var f = document.createElement("link");
     f.rel = "stylesheet";
@@ -268,5 +268,5 @@
     document.head.appendChild(s);
   }
 
-  try{ console.info('CST Training temporary works page script v1 loaded'); }catch(e){}
+  try{ console.info('CST Training temporary works page script v2 loaded'); }catch(e){}
 })();
