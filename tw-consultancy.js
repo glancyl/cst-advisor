@@ -8,7 +8,7 @@
    the product named in the message, so nothing breaks while the products are drafts. */
 (function () {
   if (document.getElementById("cp-hub-css")) return;
-  var CSS_VERSION = 16;
+  var CSS_VERSION = 17;
   if (!document.querySelector('link[href*="family=Alata"]')) {
     var f = document.createElement("link");
     f.rel = "stylesheet";
@@ -18,7 +18,7 @@
   ["cp-hub", "cp-consult"].forEach(function (name) {
     var l = document.createElement("link");
     l.id = name + "-css"; l.rel = "stylesheet";
-    l.href = "https://glancyl.github.io/cst-advisor/" + name + ".css?v=" + CSS_VERSION;
+    l.href = "https://glancyl.github.io/cst-advisor/" + name + ".css?v=" + CSS_VERSION + "&t=" + Math.floor(Date.now() / 600000);
     document.head.appendChild(l);
   });
 })();
