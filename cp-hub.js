@@ -196,12 +196,15 @@
 
   /* ===================== brochure ===================== */
   var bro = document.getElementById('cp-brochure');
-  if(CONFIG.brochureUrl){
-    bro.href = CONFIG.brochureUrl;
-    document.getElementById('cp-brochure-chip').hidden = true;
-    bro.addEventListener('click', function(){ push({event:'cp_brochure'}); });
-  } else {
-    bro.addEventListener('click', function(e){ e.preventDefault(); });
+  var broChip = document.getElementById('cp-brochure-chip');
+  if(broChip){ var bp = broChip.closest('p'); (bp || broChip).parentNode.removeChild(bp || broChip); }
+  if(bro){
+    if(CONFIG.brochureUrl){
+      bro.href = CONFIG.brochureUrl;
+      bro.addEventListener('click', function(){ push({event:'cp_brochure'}); });
+    } else {
+      bro.parentNode.removeChild(bro); // hidden until the brochure URL is set in CONFIG
+    }
   }
 
   /* ===================== cross-links to the consultancy pages ===================== */
