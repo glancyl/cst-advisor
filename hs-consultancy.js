@@ -4,7 +4,7 @@
    and CSS_VERSION below after every CSS edit. */
 (function () {
   if (document.getElementById("cp-hub-css")) return;
-  var CSS_VERSION = 13;
+  var CSS_VERSION = 15;
   if (!document.querySelector('link[href*="family=Alata"]')) {
     var f = document.createElement("link");
     f.rel = "stylesheet";
@@ -180,5 +180,5 @@
     document.head.appendChild(s);
   }
 
-  try{ console.info('CST Training H&S consultancy page script v2 loaded'); }catch(e){}
+  try{ console.info('CST Training H&S consultancy page script v3 loaded'); }catch(e){}
 })();
