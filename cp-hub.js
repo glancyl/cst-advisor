@@ -1,10 +1,12 @@
 /* CST Training · Compliance Partner hub · hosted at https://glancyl.github.io/cst-advisor/
    Loaded on the page with: <script src="https://glancyl.github.io/cst-advisor/cp-hub.js?v=N" defer></script>
-   Bump ?v=N after every edit; the CSS picks up the same version. PRICING and CONFIG live further down. */
+   Bump ?v=N on the page after every JS edit, and CSS_VERSION below after every CSS edit. PRICING and CONFIG live further down. */
 (function () {
   if (document.getElementById("cp-hub-css")) return;
-  var src = (document.currentScript && document.currentScript.src) || "";
-  var v = src.indexOf("?") > -1 ? src.split("?")[1] : "";
+  /* NitroPack rewrites the script tag, so the version can't be read from it.
+     Bump CSS_VERSION whenever cp-hub.css changes. */
+  var CSS_VERSION = 6;
+  var v = "v=" + CSS_VERSION;
   if (!document.querySelector('link[href*="family=Alata"]')) {
     var f = document.createElement("link");
     f.rel = "stylesheet";
