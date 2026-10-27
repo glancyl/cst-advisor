@@ -22,6 +22,21 @@
   var root = document.getElementById('cp-hub');
   if(!root) return;
 
+  /* ===================== undo WordPress auto-formatting =====================
+     wpautop wraps loose elements in <p> and adds <br>, which breaks the grids.
+     Remove every <br>, drop empty <p>, and unwrap any classless <p> that only
+     holds elements (no text of its own). Real paragraphs are left alone. */
+  (function(){
+    Array.prototype.slice.call(root.querySelectorAll('br')).forEach(function(b){ b.parentNode.removeChild(b); });
+    Array.prototype.slice.call(root.querySelectorAll('p')).forEach(function(p){
+      if(p.className) return;
+      var ownText = Array.prototype.some.call(p.childNodes, function(n){ return n.nodeType === 3 && n.textContent.trim() !== ''; });
+      if(ownText) return;
+      while(p.firstChild) p.parentNode.insertBefore(p.firstChild, p);
+      p.parentNode.removeChild(p);
+    });
+  })();
+
   /* ===================== CONFIG: set before go-live ===================== */
   var CONFIG = {
     brochureUrl: '',                                  // e.g. https://www.csttraining.co.uk/wp-content/uploads/2026/11/compliance-partner-brochure.pdf
