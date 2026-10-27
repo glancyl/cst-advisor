@@ -4,7 +4,7 @@
    and CSS_VERSION below after every CSS edit. */
 (function () {
   if (document.getElementById("cp-hub-css")) return;
-  var CSS_VERSION = 12;
+  var CSS_VERSION = 13;
   if (!document.querySelector('link[href*="family=Alata"]')) {
     var f = document.createElement("link");
     f.rel = "stylesheet";
@@ -48,6 +48,35 @@
     while(p.firstChild) p.parentNode.insertBefore(p.firstChild, p);
     p.parentNode.removeChild(p);
   });
+
+  /* ===================== tidy-ups after WordPress formatting =====================
+     1. The JSON-LD above the page gets wrapped in an empty <p>, which shows as a white
+        strip under the header. Remove that wrapper.
+     2. The editor splits answers that contain a link across several lines, so the
+        affected FAQ answers are rewritten here in one clean paragraph. */
+  (function(){
+    var prev = root.previousSibling;
+    while(prev){
+      var before = prev.previousSibling;
+      if(prev.nodeType === 1 && prev.tagName === 'P' && Array.prototype.every.call(prev.childNodes, function(n){ return (n.nodeType === 1 && (n.tagName === 'SCRIPT' || n.tagName === 'BR')) || (n.nodeType === 3 && n.textContent.trim() === ''); })){
+        while(prev.firstChild) prev.parentNode.insertBefore(prev.firstChild, prev);
+        prev.parentNode.removeChild(prev);
+      } else if(prev.nodeType === 1 && prev.tagName === 'BR'){
+        prev.parentNode.removeChild(prev);
+      } else if(prev.nodeType === 1 && prev.tagName !== 'SCRIPT'){
+        break;
+      }
+      prev = before;
+    }
+    var FAQ_FIX = {
+      'Can you act as our competent person?': 'Yes, through <a href="/compliance-partner/" data-cp-xlink="compliance-partner">Compliance Partner</a>. A named consultant acts as your competent H&amp;S assistance under Regulation 7 of the Management of Health and Safety at Work Regulations 1999, alongside managed training records, from £20 per operative a month. You remain the duty holder.'
+    };
+    Array.prototype.forEach.call(root.querySelectorAll('.cp-faq details'), function(d){
+      var s = d.querySelector('summary'), a = d.querySelector('.a');
+      var fix = s && FAQ_FIX[s.textContent.trim()];
+      if(fix && a) a.innerHTML = fix;
+    });
+  })();
 
   /* ===================== extra calls to action ===================== */
   (function(){
@@ -151,5 +180,5 @@
     document.head.appendChild(s);
   }
 
-  try{ console.info('CST Training H&S consultancy page script v1 loaded'); }catch(e){}
+  try{ console.info('CST Training H&S consultancy page script v2 loaded'); }catch(e){}
 })();
