@@ -4,7 +4,7 @@
    and CSS_VERSION below after every CSS edit. */
 (function () {
   if (document.getElementById("cp-hub-css")) return;
-  var CSS_VERSION = 16;
+  var CSS_VERSION = 17;
   if (!document.querySelector('link[href*="family=Alata"]')) {
     var f = document.createElement("link");
     f.rel = "stylesheet";
@@ -13,11 +13,11 @@
   }
   var l = document.createElement("link");
   l.id = "cp-hub-css"; l.rel = "stylesheet";
-  l.href = "https://glancyl.github.io/cst-advisor/cp-hub.css?v=" + CSS_VERSION;
+  l.href = "https://glancyl.github.io/cst-advisor/cp-hub.css?v=" + CSS_VERSION + "&t=" + Math.floor(Date.now() / 600000);
   document.head.appendChild(l);
   var c = document.createElement("link");
   c.id = "cp-consult-css"; c.rel = "stylesheet";
-  c.href = "https://glancyl.github.io/cst-advisor/cp-consult.css?v=" + CSS_VERSION;
+  c.href = "https://glancyl.github.io/cst-advisor/cp-consult.css?v=" + CSS_VERSION + "&t=" + Math.floor(Date.now() / 600000);
   document.head.appendChild(c);
 })();
 
