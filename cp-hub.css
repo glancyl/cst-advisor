@@ -262,3 +262,31 @@ body{overflow-x:clip}
 @media (max-width:960px){
   #cp-hub .cp-two,#cp-hub .cp-band{grid-template-columns:1fr}
 }
+
+/* ---------- v10: buttons on the orange band ---------- */
+#cp-hub #cp-s-how .cp-btn.primary{background:#fff;border-color:#fff;color:var(--cp-navy)}
+#cp-hub #cp-s-how .cp-btn.primary:hover{background:var(--cp-navy-tint);border-color:var(--cp-navy-tint)}
+
+/* ---------- v10: HubSpot form styled to match the page ---------- */
+#cp-hub .cp-formbox .hs-form{font-family:var(--cp-text);max-width:none}
+#cp-hub .cp-formbox .hs-form fieldset{max-width:none !important}
+#cp-hub .cp-formbox .hs-form .hs-form-field{margin-bottom:16px}
+#cp-hub .cp-formbox .hs-form label:not(.hs-error-msg){display:block;font-family:var(--cp-text);font-size:.88rem;font-weight:700;color:var(--cp-navy);margin-bottom:6px}
+#cp-hub .cp-formbox .hs-form .hs-input:not([type=checkbox]):not([type=radio]),
+#cp-hub .cp-formbox .hs-form select,
+#cp-hub .cp-formbox .hs-form textarea{width:100% !important;max-width:100%;height:auto;min-height:46px;padding:11px 14px;border:1px solid #bfc4d6 !important;border-radius:var(--cp-r) !important;background:#fff !important;box-shadow:none !important;font-family:var(--cp-text);font-size:.96rem;color:#1a1a22;outline:0}
+#cp-hub .cp-formbox .hs-form select{appearance:none;-webkit-appearance:none;padding-right:38px;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' fill='none' stroke='%231d2560' stroke-width='2'/></svg>") !important;background-repeat:no-repeat !important;background-position:right 14px center !important}
+#cp-hub .cp-formbox .hs-form textarea{min-height:110px}
+#cp-hub .cp-formbox .hs-form .hs-input::placeholder{color:#6b7394;opacity:1}
+#cp-hub .cp-formbox .hs-form .hs-input:focus{border-color:var(--cp-blue) !important;box-shadow:0 0 0 3px rgba(76,107,216,.2) !important}
+#cp-hub .cp-formbox .hs-form .hs-error-msgs{list-style:none;padding:0;margin:6px 0 0}
+#cp-hub .cp-formbox .hs-form .hs-error-msg,#cp-hub .cp-formbox .hs-form .hs-error-msgs label{color:#c0392b;font-size:.82rem;font-weight:600}
+#cp-hub .cp-formbox .hs-form .legal-consent-container,#cp-hub .cp-formbox .hs-form .hs-richtext{font-size:.84rem;color:var(--cp-muted)}
+#cp-hub .cp-formbox .hs-form .hs_submit,#cp-hub .cp-formbox .hs-form .actions{text-align:left;margin-top:8px;padding:0}
+#cp-hub .cp-formbox .hs-form .hs-button,#cp-hub .cp-formbox .hs-form input[type=submit]{display:inline-block;background:var(--cp-site-orange) !important;border:2px solid var(--cp-site-orange) !important;color:var(--cp-navy) !important;border-radius:30px !important;padding:13px 30px !important;font-family:var(--cp-text) !important;font-weight:700 !important;font-size:1rem !important;line-height:1.1;cursor:pointer;box-shadow:none !important;text-shadow:none;height:auto;width:auto}
+#cp-hub .cp-formbox .hs-form .hs-button:hover,#cp-hub .cp-formbox .hs-form input[type=submit]:hover{background:#ff9b22 !important;border-color:#ff9b22 !important}
+#cp-hub .cp-formbox .submitted-message{font-size:1.05rem;color:var(--cp-navy);font-weight:700}
+@media (min-width:700px){
+  #cp-hub .cp-formbox .hs-form fieldset.form-columns-2{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+  #cp-hub .cp-formbox .hs-form fieldset.form-columns-2 .hs-form-field{width:100% !important;float:none !important;padding:0 !important}
+}
