@@ -1,405 +1,341 @@
-/* CST Training · Compliance Partner hub styles · loaded on /compliance-partner/ only */
-#cp-hub{
-  --cp-navy:#1C2560; --cp-orange:#FF8A00; --cp-orange-text:#B35C00;
-  --cp-navy-deep:#141b47; --cp-navy-tint:#e8eaf4; --cp-tint:#F4F6FA;
-  --cp-line:#DDE3F0; --cp-body:#3D4665; --cp-muted:#5B6175; --cp-soft:#d2d6ea;
-  --cp-amber-bg:#fff3cd; --cp-amber-line:#e3c46a; --cp-amber-text:#5a4300;
-  --cp-r:6px; --cp-maxw:1120px;
-  --cp-head:"Alata","Asap",Helvetica,Arial,sans-serif;
-  --cp-text:"Asap",Helvetica,Arial,sans-serif;
-  --cp-sticky-top:0px; /* set to the site header height if the header is sticky */
-  font-family:var(--cp-text); font-size:17px; line-height:1.55; color:var(--cp-body);
-  background:#fff;
-}
-#cp-hub *,#cp-hub *::before,#cp-hub *::after{box-sizing:border-box}
-#cp-hub h1,#cp-hub h2,#cp-hub h3,#cp-hub h4{font-family:var(--cp-head);color:var(--cp-navy);line-height:1.2;margin:0;font-weight:400;letter-spacing:.01em;text-transform:none}
-#cp-hub h1{font-size:2.6rem}
-#cp-hub h2{font-size:1.85rem}
-#cp-hub h3{font-size:1.15rem}
-#cp-hub h4{font-size:1rem}
-#cp-hub p{margin:0 0 14px}
-#cp-hub a{color:var(--cp-navy)}
-#cp-hub ul{margin:0 0 14px;padding-left:22px}
-#cp-hub li{margin-bottom:6px}
-#cp-hub strong{font-weight:700;color:var(--cp-navy)}
-#cp-hub .cp-wrap{max-width:var(--cp-maxw);margin:0 auto;padding:0 24px}
-#cp-hub .cp-lede{font-size:1.1rem}
-#cp-hub .cp-fine{font-size:.82rem;color:var(--cp-muted);margin:14px 0 0}
-#cp-hub .cp-small{font-size:.88rem}
-#cp-hub a:focus-visible,#cp-hub button:focus-visible,#cp-hub input:focus-visible,#cp-hub select:focus-visible,#cp-hub summary:focus-visible{outline:3px solid var(--cp-orange);outline-offset:2px}
+/* CST Training · Compliance Partner hub · hosted at https://glancyl.github.io/cst-advisor/
+   Loaded on the page with: <script src="https://glancyl.github.io/cst-advisor/cp-hub.js?v=N" defer></script>
+   Bump ?v=N on the page after every JS edit, and CSS_VERSION below after every CSS edit. PRICING and CONFIG live further down. */
+(function () {
+  if (document.getElementById("cp-hub-css")) return;
+  /* NitroPack rewrites the script tag, so the version can't be read from it.
+     Bump CSS_VERSION whenever cp-hub.css changes. */
+  var CSS_VERSION = 11;
+  var v = "v=" + CSS_VERSION;
+  if (!document.querySelector('link[href*="family=Alata"]')) {
+    var f = document.createElement("link");
+    f.rel = "stylesheet";
+    f.href = "https://fonts.googleapis.com/css2?family=Alata&family=Asap:wght@400;600;700&display=swap";
+    document.head.appendChild(f);
+  }
+  var l = document.createElement("link");
+  l.id = "cp-hub-css"; l.rel = "stylesheet";
+  l.href = "https://glancyl.github.io/cst-advisor/cp-hub.css" + (v ? "?" + v : "");
+  document.head.appendChild(l);
+})();
 
-/* CONFIRM chips: visible in staging until each item is cleared */
-#cp-hub .cp-confirm{display:inline-block;background:var(--cp-amber-bg);border:1px solid var(--cp-amber-line);color:var(--cp-amber-text);font-size:.74rem;font-weight:700;padding:1px 8px;border-radius:4px;line-height:1.4}
-#cp-hub .cp-confirm::before{content:"CONFIRM: "}
-#cp-hub .cp-confirm[hidden]{display:none}
+(function(){
+  'use strict';
+  var root = document.getElementById('cp-hub');
+  if(!root) return;
 
-/* breadcrumb */
-#cp-hub .cp-crumb{font-size:.82rem;color:var(--cp-muted);padding-top:14px}
-#cp-hub .cp-crumb a{color:var(--cp-muted)}
+  /* ===================== undo WordPress auto-formatting =====================
+     wpautop wraps loose elements in <p> and adds <br>, which breaks the grids.
+     Remove every <br>, drop empty <p>, and unwrap any classless <p> that only
+     holds elements (no text of its own). Real paragraphs are left alone. */
+  (function(){
+    Array.prototype.slice.call(root.querySelectorAll('br')).forEach(function(b){ b.parentNode.removeChild(b); });
+    Array.prototype.slice.call(root.querySelectorAll('p')).forEach(function(p){
+      if(p.className || p.id) return;
+      var ownText = Array.prototype.some.call(p.childNodes, function(n){ return n.nodeType === 3 && n.textContent.trim() !== ''; });
+      if(ownText) return;
+      while(p.firstChild) p.parentNode.insertBefore(p.firstChild, p);
+      p.parentNode.removeChild(p);
+    });
+  })();
 
-/* buttons (prefixed so BoldGrid's .btn styles can't reach them) */
-#cp-hub .cp-btns{display:flex;gap:12px;flex-wrap:wrap}
-#cp-hub .cp-btn{display:inline-flex;align-items:center;justify-content:center;padding:13px 22px;border-radius:var(--cp-r);font-family:var(--cp-text);font-weight:700;font-size:.95rem;line-height:1.1;text-decoration:none;border:2px solid transparent;cursor:pointer}
-#cp-hub .cp-btn.primary{background:var(--cp-orange);border-color:var(--cp-orange);color:var(--cp-navy)}
-#cp-hub .cp-btn.primary:hover{background:#ff9b22}
-#cp-hub .cp-btn.navy{background:var(--cp-navy);border-color:var(--cp-navy);color:#fff}
-#cp-hub .cp-btn.navy:hover{background:var(--cp-navy-deep)}
-#cp-hub .cp-btn.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.55)}
-#cp-hub .cp-btn.ghost:hover{border-color:#fff}
-#cp-hub .cp-btn.sm{padding:9px 14px;font-size:.88rem}
+  /* ===================== CONFIG: set before go-live ===================== */
+  var CONFIG = {
+    brochureUrl: '',                                  // e.g. https://www.csttraining.co.uk/wp-content/uploads/2026/11/compliance-partner-brochure.pdf
+    hubspot: { portalId: '19996504', formId: 'a81a7d9c-e2dd-41fe-8956-d06c40e11808', region: 'na1' },
+    interestField: 'service_interest',                // HubSpot internal property name
+    interestDefault: 'Compliance Partner',
+    messageField: 'message'
+  };
 
-/* hero */
-#cp-hub .cp-hero{padding:30px 0 0}
-#cp-hub .cp-panel{background:var(--cp-navy);color:#fff;border-radius:var(--cp-r) var(--cp-r) 56px var(--cp-r);padding:56px 56px 52px;position:relative;display:grid;grid-template-columns:1.3fr .9fr;gap:48px;align-items:center}
-#cp-hub .cp-eyebrow{position:absolute;top:-16px;left:40px;background:var(--cp-orange);color:var(--cp-navy);font-family:var(--cp-head);font-size:.78rem;letter-spacing:.1em;padding:7px 18px;border-radius:4px 18px 18px 4px}
-#cp-hub .cp-panel h1{color:#fff;max-width:18ch}
-#cp-hub .cp-panel .cp-lede{color:var(--cp-soft);margin:16px 0 26px}
-#cp-hub .cp-side{background:var(--cp-navy-deep);border:1px solid rgba(255,255,255,.14);border-radius:var(--cp-r) var(--cp-r) 28px var(--cp-r);padding:22px 24px}
-#cp-hub .cp-side h2{color:#fff;font-size:1.05rem;margin-bottom:12px}
-#cp-hub .cp-side dl{margin:0;display:grid;grid-template-columns:1fr auto;gap:9px 16px;font-size:.92rem}
-#cp-hub .cp-side dt{color:#c3c8e2}
-#cp-hub .cp-side dd{margin:0;color:#fff;font-weight:700;text-align:right}
-#cp-hub .cp-side p{color:var(--cp-soft);font-size:.88rem;margin:14px 0 0}
-#cp-hub .cp-labels{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:26px 0 22px}
-#cp-hub .cp-labels div{border-top:3px solid var(--cp-orange);padding-top:10px;font-size:.94rem}
-#cp-hub .cp-labels b{display:block;color:var(--cp-navy);font-family:var(--cp-head);font-weight:400}
+  /* ===================== PRICING: the single source of truth ===================== */
+  var PRICING = {
+    bands: [50, 100, Infinity],
+    bandLabels: ['First 50', '51 to 150 (85%)', '151 and above (70%)'],
+    perOpSetup: 15,
+    levels: [
+      { key:'mt', name:'Managed Training', tag:'We run your training compliance', rate:[6.00, 5.10, 4.20], min:250,
+        setupFixed:0, setupMin:500, setupLabel:'£15 per operative (minimum £500)', hs:false, tw:false,
+        includes:['Compliance Control software','Records set up and checked','Expiry alerts and evidence chasing','Gap analysis and bookings','Quarterly compliance report'] },
+      { key:'cp', name:'Compliance Partner', tag:'Training plus a retained H&S consultant', rate:[20.00, 17.00, 14.00], min:750,
+        setupFixed:1500, setupMin:0, setupLabel:'£1,500 plus £15 per operative', hs:true, tw:false,
+        includes:['Everything in Managed Training','Named consultant as your competent person','H&S policy and annual review','Site inspections and RAMS reviews','Advice line, accident and RIDDOR support','SSIP and prequalification support','Monthly compliance report'],
+        link:['/health-and-safety-consultancy/','More about our H&S consultancy','health-and-safety-consultancy'] },
+      { key:'tw', name:'Compliance Partner + Temporary Works', tag:'The full service, including temporary works', rate:[28.00, 23.80, 19.60], min:1100,
+        setupFixed:2500, setupMin:0, setupLabel:'£2,500 plus £15 per operative', hs:true, tw:true,
+        includes:['Everything in Compliance Partner','Temporary works procedure and register','Temporary works audits','Advisory line for your TWCs and TWSs','TWC or TWS course places each year','Design and design checks quoted per job'],
+        link:['/temporary-works-consultancy/','More about our temporary works consultancy','temporary-works-consultancy'] }
+    ],
+    extras: [
+      ['Training booked with CST Training','Agreed rates, fixed for 12 months'],
+      ['Training with other providers','Their price plus 10% (minimum £25)'],
+      ['Extra H&S consultancy','£650 a day'],
+      ['Extra temporary works engineer time','£995 a day'],
+      ['Temporary works design and checks','Quoted per job']
+    ],
+    allowBands: ['Up to 50 operatives','51 to 150','151 to 250'],
+    allowances: [
+      ['Site safety inspections', ['4','8','12, monthly'], false],
+      ['RAMS and document reviews', ['24','40','60'], false],
+      ['H&S policy and annual review', ['Yes','Yes','Yes'], false],
+      ['H&S management system audit', ['No','Yes','Yes'], false],
+      ['Quarterly review with your directors', ['No','4','4'], false],
+      ['Full accident investigations', ['1','1','2'], false],
+      ['Temporary works audits (TW level only)', ['2','4','6'], true],
+      ['TWC or TWS course places (TW level only)', ['2','3','4'], true]
+    ],
+    examples: [
+      { title:'Groundworks contractor, 40 operatives', level:'mt', n:40,
+        inc:['Records for all 40 operatives set up and checked','Expiry alerts, chasing and bookings','Quarterly compliance report'] },
+      { title:'Building contractor, 120 operatives', level:'cp', n:120,
+        inc:['Named competent person','8 site inspections and 40 RAMS reviews a year','H&S system audit and quarterly director reviews'] },
+      { title:'Main contractor, 250 operatives', level:'tw', n:250,
+        inc:['Monthly site inspections and 60 RAMS reviews a year','TW procedure, register and 6 audits a year','4 TWC or TWS course places'] }
+    ]
+  };
 
-/* in-page nav */
-#cp-hub .cp-subnav{background:#fff;border-bottom:1px solid var(--cp-line);position:sticky;top:var(--cp-sticky-top);z-index:40}
-#cp-hub .cp-subnav .cp-wrap{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
-#cp-hub .cp-subnav a{white-space:nowrap;text-decoration:none;color:var(--cp-muted);font-size:.86rem;font-weight:700;padding:12px;border-bottom:3px solid transparent}
-#cp-hub .cp-subnav a:hover,#cp-hub .cp-subnav a.on{color:var(--cp-navy);border-bottom-color:var(--cp-orange)}
-#cp-hub [id^="cp-s-"]{scroll-margin-top:calc(var(--cp-sticky-top) + 60px)}
+  /* ===================== helpers ===================== */
+  function q(sel){ return root.querySelector(sel); }
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function gbp(n){ var whole = Math.round(n) === n; return '£' + n.toLocaleString('en-GB', whole ? {} : {minimumFractionDigits:2, maximumFractionDigits:2}); }
+  function rate(r){ return '£' + r.toFixed(2); }
+  function rateShort(r){ return rate(r).replace('.00',''); }
+  function push(ev){ try{ window.dataLayer = window.dataLayer || []; window.dataLayer.push(ev); }catch(e){} }
+  function levelByKey(k){ for(var i=0;i<PRICING.levels.length;i++){ if(PRICING.levels[i].key===k) return PRICING.levels[i]; } return PRICING.levels[0]; }
 
-/* sections */
-#cp-hub .cp-block{padding:58px 0}
-#cp-hub .cp-block.tint{background:var(--cp-tint)}
-#cp-hub .cp-head{margin-bottom:28px}
-#cp-hub .cp-head p{margin-top:12px}
-#cp-hub .cp-tab{height:8px;width:44px;background:var(--cp-orange);border-radius:0 6px 6px 0;margin-top:12px}
-#cp-hub .cp-quote{font-size:1.15rem;color:var(--cp-navy);line-height:1.5}
+  function fee(level, n){
+    var left = Math.max(0, Math.floor(n)), sum = 0, lines = [];
+    PRICING.bands.forEach(function(size, i){
+      var inBand = Math.min(left, size); if(inBand <= 0) return;
+      var amt = Math.round(inBand * level.rate[i] * 100) / 100;
+      lines.push({count:inBand, rate:level.rate[i], amt:amt});
+      sum = Math.round((sum + amt) * 100) / 100; left -= inBand;
+    });
+    var minApplied = sum < level.min;
+    return { lines:lines, sum:sum, total: minApplied ? level.min : sum, minApplied:minApplied };
+  }
+  function setup(level, n){ return Math.max(level.setupFixed + n * PRICING.perOpSetup, level.setupMin); }
+  function allowBand(n){ return n <= 50 ? 0 : n <= 150 ? 1 : n <= 250 ? 2 : -1; }
+  function table(head, rows, caption, numFrom){
+    var h = '<table>' + (caption ? '<caption>'+esc(caption)+'</caption>' : '') + '<thead><tr>';
+    head.forEach(function(c,i){ h += '<th scope="col"'+(numFrom!=null && i>=numFrom?' class="num"':'')+'>'+esc(c)+'</th>'; });
+    h += '</tr></thead><tbody>';
+    rows.forEach(function(r){ h += '<tr>'; r.forEach(function(c,i){ h += '<td'+(numFrom!=null && i>=numFrom?' class="num"':'')+'>'+esc(c)+'</td>'; }); h += '</tr>'; });
+    return h + '</tbody></table>';
+  }
 
-/* cards */
-#cp-hub .cp-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
-#cp-hub .cp-card{background:#fff;border:1px solid var(--cp-line);border-radius:var(--cp-r) var(--cp-r) 22px var(--cp-r);padding:24px;display:flex;flex-direction:column;gap:10px}
-#cp-hub .cp-card::before{content:"";width:12px;height:12px;background:var(--cp-orange);border-radius:3px;margin-bottom:4px}
-#cp-hub .cp-card h3{font-size:1.08rem}
-#cp-hub .cp-card p{margin:0;font-size:.95rem}
+  /* accreditation CONFIRM chip removed at Liam's request */
+  Array.prototype.forEach.call(root.querySelectorAll('#cp-s-why .cp-confirm'), function(c){ var p = c.closest('p'); (p || c).parentNode.removeChild(p || c); });
 
-/* steps */
-#cp-hub .cp-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;counter-reset:cps;list-style:none;padding:0;margin:0}
-#cp-hub .cp-step{position:relative;margin:0;padding:18px 20px 18px 58px;background:#fff;border:1px solid var(--cp-line);border-radius:var(--cp-r) var(--cp-r) 22px var(--cp-r)}
-#cp-hub .cp-step::before{counter-increment:cps;content:counter(cps);position:absolute;left:16px;top:18px;width:30px;height:30px;border-radius:50%;background:var(--cp-navy);color:#fff;font-weight:700;font-size:.85rem;display:flex;align-items:center;justify-content:center}
-#cp-hub .cp-step h3{font-size:1rem;margin-bottom:6px}
-#cp-hub .cp-step p{font-size:.92rem;margin:0}
-#cp-hub .cp-control{background:var(--cp-navy);color:#fff;border-radius:var(--cp-r) var(--cp-r) 40px var(--cp-r);padding:30px 34px;display:grid;grid-template-columns:auto 1fr;gap:26px;align-items:center;margin-top:28px}
-#cp-hub .cp-mark{width:56px;height:56px;border-radius:14px;background:var(--cp-orange);display:flex;align-items:center;justify-content:center;color:var(--cp-navy);font-family:var(--cp-head);font-size:1.2rem}
-#cp-hub .cp-control h3{color:#fff;margin-bottom:6px}
-#cp-hub .cp-control p{color:var(--cp-soft);margin:0}
+  /* ===================== render from PRICING ===================== */
+  q('[data-cp="hero-levels"]').innerHTML = PRICING.levels.map(function(l){
+    return '<dt>'+esc(l.name)+'</dt><dd>from '+rateShort(l.rate[0])+' per operative</dd>';
+  }).join('');
 
-/* level cards */
-#cp-hub .cp-levels{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-#cp-hub .cp-level{background:#fff;border:1px solid var(--cp-line);border-radius:var(--cp-r) var(--cp-r) 26px var(--cp-r);padding:26px;display:flex;flex-direction:column;gap:12px}
-#cp-hub .cp-level.mid{background:var(--cp-navy);border-color:var(--cp-navy);color:#fff;box-shadow:0 14px 34px rgba(28,37,96,.18)}
-#cp-hub .cp-level.mid h3,#cp-hub .cp-level.mid .cp-from b{color:#fff}
-#cp-hub .cp-level .cp-tag{font-size:.88rem;color:var(--cp-muted);margin:0}
-#cp-hub .cp-level.mid .cp-tag,#cp-hub .cp-level.mid .cp-from{color:var(--cp-soft)}
-#cp-hub .cp-from{font-size:.9rem;color:var(--cp-muted);margin:4px 0 6px}
-#cp-hub .cp-from b{display:block;font-family:var(--cp-head);font-weight:400;font-size:2rem;color:var(--cp-navy);line-height:1.1}
-#cp-hub .cp-level ul{font-size:.93rem;flex:1;margin:0;padding-left:18px}
-#cp-hub .cp-level.mid ul{color:#e4e7f3}
-#cp-hub .cp-level .cp-foot{display:flex;flex-direction:column;gap:10px;margin-top:8px}
-#cp-hub .cp-level .cp-foot a:not(.cp-btn){font-size:.9rem;font-weight:700}
-#cp-hub .cp-level.mid .cp-foot a:not(.cp-btn){color:#fff}
+  q('[data-cp="levels"]').innerHTML = PRICING.levels.map(function(l, i){
+    var mid = i === 1;
+    return '<div class="cp-level'+(mid?' mid':'')+'">'
+      + '<h3>'+esc(l.name)+'</h3><p class="cp-tag">'+esc(l.tag)+'</p>'
+      + '<p class="cp-from"><b>'+rateShort(l.rate[0])+'</b>per operative a month</p>'
+      + '<ul>'+l.includes.map(function(x){ return '<li>'+esc(x)+'</li>'; }).join('')+'</ul>'
+      + '<div class="cp-foot"><a class="cp-btn '+(mid?'primary':'navy')+' sm" href="#cp-s-enquire" data-cp-msg="I’m interested in '+esc(l.name)+'.">Book a free records review</a>'
+      + (l.link ? '<a href="'+l.link[0]+'" data-cp-xlink="'+l.link[2]+'">'+esc(l.link[1])+'</a>' : '')
+      + '</div></div>';
+  }).join('');
 
-/* tables */
-#cp-hub .cp-tw{overflow-x:auto;margin:18px 0 8px;border:1px solid var(--cp-line);border-radius:var(--cp-r);-webkit-overflow-scrolling:touch}
-#cp-hub table{width:100%;border-collapse:collapse;font-size:.93rem;min-width:560px;margin:0;border:0}
-#cp-hub th{background:var(--cp-navy);color:#fff;text-align:left;padding:11px 14px;font-weight:700;font-size:.82rem;vertical-align:bottom;border:0}
-#cp-hub td{padding:11px 14px;border:0;border-bottom:1px solid var(--cp-line);vertical-align:top;color:var(--cp-body);background:#fff}
-#cp-hub tbody tr:nth-child(even) td{background:var(--cp-tint)}
-#cp-hub td:first-child{color:var(--cp-navy);font-weight:700}
-#cp-hub .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
-#cp-hub caption{caption-side:bottom;text-align:left;font-size:.82rem;color:var(--cp-muted);padding:10px 12px}
-#cp-hub .cp-subhead{margin:34px 0 4px}
+  q('[data-cp="allow-table"]').innerHTML = table(
+    ['Included each year'].concat(PRICING.allowBands),
+    PRICING.allowances.map(function(a){ return [a[0]].concat(a[1]); }),
+    'Yearly allowances on Compliance Partner and Compliance Partner + Temporary Works. Temporary works rows apply to the + Temporary Works level only.', 1);
 
-/* calculator */
-#cp-hub .cp-calc{background:#fff;border:1px solid var(--cp-line);border-top:5px solid var(--cp-orange);border-radius:var(--cp-r) var(--cp-r) 30px var(--cp-r);padding:30px 32px;display:grid;grid-template-columns:1fr 1.15fr;gap:34px}
-#cp-hub .cp-field{margin-bottom:16px}
-#cp-hub .cp-field label{display:block;font-size:.86rem;font-weight:700;color:var(--cp-navy);margin-bottom:6px}
-#cp-hub .cp-field input,#cp-hub .cp-field select{width:100%;height:auto;padding:11px 12px;border:1px solid #bfc4d6;border-radius:var(--cp-r);font:inherit;font-size:.96rem;background:#fff;color:#1a1a22;box-shadow:none}
-#cp-hub .cp-hint{font-size:.82rem;color:var(--cp-muted);margin-top:5px}
-#cp-hub .cp-out{background:var(--cp-tint);border-radius:var(--cp-r) var(--cp-r) 22px var(--cp-r);padding:24px 26px}
-#cp-hub .cp-out h3{font-size:1rem;margin-bottom:12px}
-#cp-hub .cp-big{font-family:var(--cp-head);font-size:2.3rem;color:var(--cp-navy);line-height:1.05}
-#cp-hub .cp-big small{font-family:var(--cp-text);font-size:.9rem;font-weight:700;color:var(--cp-muted);margin-left:6px}
-#cp-hub .cp-lines{margin:14px 0;border-top:1px solid var(--cp-line)}
-#cp-hub .cp-lines div{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--cp-line);font-size:.92rem}
-#cp-hub .cp-lines b{color:var(--cp-navy);font-variant-numeric:tabular-nums}
-#cp-hub .cp-lines .sub{font-size:.86rem;color:var(--cp-muted)}
-#cp-hub .cp-inc{font-size:.9rem}
-#cp-hub .cp-inc h4{margin:14px 0 6px;font-size:.92rem}
-#cp-hub .cp-inc ul{margin:0;padding-left:18px}
-#cp-hub .cp-inc li{margin-bottom:3px}
+  q('[data-cp="rate-table"]').innerHTML = table(
+    ['Level'].concat(PRICING.bandLabels, ['Monthly minimum']),
+    PRICING.levels.map(function(l){ return [l.name].concat(l.rate.map(rate), [gbp(l.min)]); }),
+    'The rate applies only to the operatives within each band. Monthly fee is the sum across bands, or the monthly minimum if higher. All prices exclude VAT.', 1);
 
-/* worked examples */
-#cp-hub .cp-examples{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-#cp-hub .cp-ex{background:#fff;border:1px solid var(--cp-line);border-radius:var(--cp-r) var(--cp-r) 22px var(--cp-r);padding:22px 24px;display:flex;flex-direction:column;gap:8px}
-#cp-hub .cp-ex .lvl{font-size:.82rem;font-weight:700;color:var(--cp-orange-text);margin:0}
-#cp-hub .cp-ex h3{font-size:1.05rem}
-#cp-hub .cp-ex .calcline{font-size:.86rem;color:var(--cp-muted);font-variant-numeric:tabular-nums;margin:0;border-left:3px solid var(--cp-orange);padding-left:10px}
-#cp-hub .cp-figs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:6px 0}
-#cp-hub .cp-figs div{background:var(--cp-tint);border-radius:var(--cp-r);padding:8px 10px}
-#cp-hub .cp-figs b{display:block;font-family:var(--cp-head);font-weight:400;color:var(--cp-navy);font-size:1.05rem;line-height:1.15}
-#cp-hub .cp-figs span{font-size:.74rem;color:var(--cp-muted)}
-#cp-hub .cp-ex ul{margin:0;padding-left:18px;font-size:.9rem}
+  q('[data-cp="setup-table"]').innerHTML = table(['Level','Onboarding fee'],
+    PRICING.levels.map(function(l){ return [l.name, l.setupLabel]; }));
 
-/* FAQ */
-#cp-hub .cp-faq{border-top:1px solid var(--cp-line)}
-#cp-hub .cp-faq details{border-bottom:1px solid var(--cp-line)}
-#cp-hub .cp-faq summary{cursor:pointer;list-style:none;padding:16px 36px 16px 0;font-weight:700;color:var(--cp-navy);position:relative}
-#cp-hub .cp-faq summary::-webkit-details-marker{display:none}
-#cp-hub .cp-faq summary::after{content:"+";position:absolute;right:4px;top:11px;font-size:1.4rem;color:var(--cp-navy)}
-#cp-hub .cp-faq details[open] summary::after{content:"\2212"}
-#cp-hub .cp-faq .a{padding:0 0 18px}
+  q('[data-cp="extra-table"]').innerHTML = table(['Item','Price'], PRICING.extras);
 
-/* enquiry panel */
-#cp-hub .cp-cta{background:var(--cp-navy);color:#fff;border-radius:var(--cp-r) var(--cp-r) 56px var(--cp-r);padding:48px 48px 40px}
-#cp-hub .cp-cta h2{color:#fff}
-#cp-hub .cp-cta .cp-lede{color:var(--cp-soft);margin-top:12px}
-#cp-hub .cp-formbox{background:#fff;color:var(--cp-body);border-radius:var(--cp-r) var(--cp-r) 26px var(--cp-r);padding:30px 32px;margin-top:24px;min-height:120px}
+  q('[data-cp="examples"]').innerHTML = PRICING.examples.map(function(ex){
+    var l = levelByKey(ex.level), f = fee(l, ex.n), s = setup(l, ex.n);
+    var line = f.lines.map(function(x){ return x.count+' × '+rate(x.rate)+' = '+gbp(x.amt); }).join('; ') + (f.minApplied ? '; monthly minimum applies' : '');
+    return '<div class="cp-ex"><p class="lvl">'+esc(l.name)+'</p><h3>'+esc(ex.title)+'</h3><p class="calcline">'+line+'</p>'
+      + '<div class="cp-figs"><div><b>'+gbp(f.total)+'</b><span>a month</span></div><div><b>'+gbp(Math.round(f.total*1200)/100)+'</b><span>a year</span></div><div><b>'+gbp(s)+'</b><span>set-up</span></div></div>'
+      + '<ul>'+ex.inc.map(function(x){ return '<li>'+esc(x)+'</li>'; }).join('')+'</ul></div>';
+  }).join('');
 
-/* responsive */
-@media (max-width:960px){
-  #cp-hub .cp-panel{grid-template-columns:1fr;padding:44px 32px 40px}
-  #cp-hub .cp-labels,#cp-hub .cp-cards,#cp-hub .cp-steps,#cp-hub .cp-levels,#cp-hub .cp-examples,#cp-hub .cp-calc,#cp-hub .cp-control{grid-template-columns:1fr}
-  #cp-hub h1{font-size:2rem}
-  #cp-hub .cp-cta{padding:34px 22px}
-}
-@media (max-width:600px){
-  #cp-hub .cp-block{padding:40px 0}
-  #cp-hub .cp-panel{padding:40px 22px 34px;border-radius:var(--cp-r) var(--cp-r) 36px var(--cp-r)}
-  #cp-hub .cp-eyebrow{left:18px}
-  #cp-hub .cp-calc,#cp-hub .cp-formbox{padding:20px}
-}
+  /* ===================== extra calls to action and pricing layout ===================== */
+  (function(){
+    var PHONE = '020 3488 4472', TEL = 'tel:02034884472';
+    function el(html){ var d = document.createElement('div'); d.innerHTML = html.trim(); return d.firstChild; }
+    function after(node, html){ if(node && node.parentNode){ var n = el(html); node.parentNode.insertBefore(n, node.nextSibling); return n; } }
+    function subhead(text){ var hs = root.querySelectorAll('#cp-s-pricing .cp-subhead'); for(var i=0;i<hs.length;i++){ if(hs[i].textContent.trim() === text) return hs[i]; } return null; }
+    var review = function(msg, label, cls){ return '<a class="cp-btn '+(cls||'primary')+'" href="#cp-s-enquire"'+(msg?' data-cp-msg="'+esc(msg)+'"':'')+'>'+esc(label||'Book a free records review')+'</a>'; };
+    var call = function(cls){ return '<a class="cp-btn '+(cls||'outline')+'" href="'+TEL+'">Call '+PHONE+'</a>'; };
 
-/* safety net if the script loads late: hide wpautop debris */
-#cp-hub br{display:none}
-#cp-hub p:empty{display:none}
-#cp-hub .cp-crumb a{display:inline}
+    // How it works: buttons under the "You stay in control" panel
+    after(root.querySelector('#cp-s-how .cp-control'), '<div class="cp-btns cp-center">'+review()+call('navy')+'</div>');
 
-/* =====================================================================
-   SITE COLOUR SCHEME: matches the live course pages
-   blue #4c6bd8, orange #ff8c04, navy #1d2560, grey #f4f5f9,
-   CTA gradient #4776e6 to #8e54e9, rounded bottom-right corners
-   ===================================================================== */
-body{overflow-x:clip}
-#cp-hub{--cp-blue:#4c6bd8; --cp-site-orange:#ff8c04; --cp-navy:#1d2560; --cp-tint:#f4f5f9}
+    // Pricing: set-up and extras side by side
+    var h1 = subhead('One-off set-up'), t1 = root.querySelector('[data-cp="setup-table"]');
+    var h2 = subhead('Charged separately'), t2 = root.querySelector('[data-cp="extra-table"]');
+    if(h1 && t1 && h2 && t2){
+      var note = t2.nextElementSibling;
+      var grid = el('<div class="cp-two"><div></div><div></div></div>');
+      h1.parentNode.insertBefore(grid, h1);
+      grid.children[0].appendChild(h1); grid.children[0].appendChild(t1);
+      grid.children[1].appendChild(h2); grid.children[1].appendChild(t2);
+      if(note && note.classList.contains('cp-small')) grid.children[1].appendChild(note);
+    }
 
-/* full-width colour bands, even inside the theme's content column */
-#cp-hub .cp-hero,#cp-hub .cp-subnav,#cp-hub .cp-block{width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw)}
+    // Pricing: terms as a card, then a call to action band
+    var th = subhead('Terms');
+    if(th){
+      var card = el('<div class="cp-terms"></div>');
+      th.parentNode.insertBefore(card, th);
+      var p1 = th.nextElementSibling, p2 = p1 && p1.nextElementSibling;
+      card.appendChild(th); if(p1) card.appendChild(p1); if(p2 && p2.tagName === 'P') card.appendChild(p2);
+      after(card, '<div class="cp-band"><div><h3>Want a fixed quote for your headcount?</h3><p>We’ll review your training records and H&amp;S arrangements, recommend the right level and confirm your price, free of charge.</p></div><div class="cp-btns">'+review('I’d like a fixed quote.','Get my fixed quote')+call('ghost')+'</div></div>');
+    }
 
-/* pill buttons, as on the rest of the site */
-#cp-hub .cp-btn{border-radius:30px}
+    // Examples: button under the three examples
+    after(root.querySelector('#cp-s-examples .cp-examples'), '<div class="cp-btns cp-center">'+review('I’d like a quote like the examples on your page.','Get a quote like this for your business')+'</div>');
 
-/* hero: blue band with the site's rounded corner */
-#cp-hub .cp-hero{background:var(--cp-blue);border-bottom-right-radius:50px;padding:66px 0 8px;margin-top:14px}
-#cp-hub .cp-panel{background:none;border-radius:0;padding:0}
-#cp-hub .cp-eyebrow{top:-38px;left:0}
-#cp-hub .cp-panel .cp-lede{color:#eef1ff}
-#cp-hub .cp-side{background:var(--cp-navy);border:0;border-radius:var(--cp-r) var(--cp-r) 30px var(--cp-r);box-shadow:0 12px 30px rgba(20,27,71,.25)}
-#cp-hub .cp-labels div{color:#eef1ff;border-top-color:var(--cp-site-orange)}
-#cp-hub .cp-labels b{color:#fff}
+    // Why CST Training: button under the cards
+    after(root.querySelector('#cp-s-why .cp-cards'), '<div class="cp-btns cp-center">'+review()+'</div>');
 
-/* section bands */
-#cp-hub #cp-s-what,#cp-hub #cp-s-examples{background:var(--cp-blue)}
-#cp-hub #cp-s-how{background:var(--cp-site-orange)}
-#cp-hub #cp-s-levels,#cp-hub #cp-s-pricing,#cp-hub #cp-s-faq{background:var(--cp-tint)}
-#cp-hub #cp-s-what h2,#cp-hub #cp-s-examples h2{color:#fff}
-#cp-hub #cp-s-examples .cp-fine{color:#eef1ff}
-#cp-hub #cp-s-how h2{color:var(--cp-navy)}
-#cp-hub #cp-s-how .cp-tab{background:var(--cp-navy)}
-#cp-hub #cp-s-what .cp-card,#cp-hub #cp-s-examples .cp-ex,#cp-hub #cp-s-how .cp-step{border:0;box-shadow:0 8px 22px rgba(20,27,71,.14)}
-#cp-hub .cp-card::before{background:var(--cp-site-orange)}
-#cp-hub #cp-s-enquire{padding-top:58px !important}
+    // FAQs: still got a question
+    after(root.querySelector('#cp-s-faq .cp-faq'), '<div class="cp-band light"><div><h3>Still got a question?</h3><p>Talk it through with our team, or send us a message and we’ll come back to you.</p></div><div class="cp-btns">'+call('navy')+review('','Send us a message','primary')+'</div></div>');
+  })();
 
-/* featured level card in site blue */
-#cp-hub .cp-level.mid{background:var(--cp-blue);border-color:var(--cp-blue)}
-#cp-hub .cp-level.mid .cp-tag,#cp-hub .cp-level.mid .cp-from{color:#eef1ff}
+  /* ===================== calculator =====================
+     Listeners sit on the document and elements are looked up on every change,
+     because NitroPack re-inserts page content after load, which drops any
+     listener attached to the original elements. This also means
+     it keeps working if the theme re-renders the page. */
+  var calcTimer = null;
+  function calcEls(scope){ return { ops:scope.querySelector('#cp-calc-ops'), lvl:scope.querySelector('#cp-calc-level'), out:scope.querySelector('#cp-calc-out') }; }
+  function runCalc(scope, track){
+    var el = calcEls(scope); if(!el.ops || !el.lvl || !el.out) return;
+    var n = Math.max(1, Math.min(2000, parseInt(el.ops.value,10) || 1)), l = levelByKey(el.lvl.value);
+    var f = fee(l, n), s = setup(l, n), band = allowBand(n);
+    var h = '<h3>'+esc(l.name)+', '+n+' operative'+(n===1?'':'s')+'</h3>'
+      + '<div class="cp-big">'+gbp(f.total)+'<small>a month, ex VAT</small></div><div class="cp-lines">'
+      + f.lines.map(function(x){ return '<div class="sub"><span>'+x.count+' operatives at '+rate(x.rate)+'</span><b>'+gbp(x.amt)+'</b></div>'; }).join('')
+      + (f.minApplied ? '<div class="sub"><span>Below the monthly minimum, so the minimum of '+gbp(l.min)+' applies</span><b>'+gbp(l.min)+'</b></div>' : '')
+      + '<div><span>Over a year</span><b>'+gbp(Math.round(f.total*1200)/100)+'</b></div>'
+      + '<div><span>One-off set-up</span><b>'+gbp(s)+'</b></div></div>';
+    if(l.hs){
+      h += '<div class="cp-inc"><h4>Included each year at this headcount</h4>';
+      h += band < 0 ? '<p class="cp-small">Over 250 operatives, we scope and quote your allowance.</p>'
+        : '<ul>'+PRICING.allowances.filter(function(a){ return !a[2] || l.tw; }).map(function(a){ return '<li>'+esc(a[0].replace(' (TW level only)',''))+': <strong>'+esc(a[1][band])+'</strong></li>'; }).join('')+'</ul>';
+      h += '</div>';
+    } else {
+      h += '<div class="cp-inc"><h4>Included</h4><ul>'+l.includes.map(function(x){ return '<li>'+esc(x)+'</li>'; }).join('')+'</ul></div>';
+    }
+    h += '<div class="cp-btns" style="margin-top:16px"><a class="cp-btn primary" href="#cp-s-enquire" data-cp-msg="I’d like a fixed quote for '+esc(l.name)+', '+n+' operatives.">Get a fixed quote for '+n+' operatives</a></div>';
+    h += '<p class="cp-fine">Prices exclude VAT. Your quote is based on your actual headcount. Training booked through the service is charged separately.</p>';
+    el.out.innerHTML = h;
+    if(track){
+      clearTimeout(calcTimer);
+      calcTimer = setTimeout(function(){ push({event:'cp_calculator', cp_level:l.name, cp_operatives:n, cp_monthly:f.total}); }, 1200);
+    }
+  }
+  Array.prototype.forEach.call(root.querySelectorAll('.cp-calc'), function(c){
+    var el = calcEls(c); if(!el.lvl) return;
+    el.lvl.innerHTML = PRICING.levels.map(function(l){ return '<option value="'+l.key+'">'+esc(l.name)+'</option>'; }).join('');
+    el.lvl.value = 'cp';
+    runCalc(c, false);
+  });
+  ['input','change','keyup'].forEach(function(type){
+    document.addEventListener(type, function(e){
+      var t = e.target; if(!t || (t.id !== 'cp-calc-ops' && t.id !== 'cp-calc-level')) return;
+      var c = t.closest ? t.closest('.cp-calc') : null; if(c) runCalc(c, true);
+    }, true);
+  });
 
-/* tables, calculator and examples pick up the blue */
-#cp-hub th{background:var(--cp-blue)}
-#cp-hub .cp-calc{border-top-color:var(--cp-blue)}
-#cp-hub .cp-ex .calcline{border-left-color:var(--cp-site-orange)}
-#cp-hub .cp-faq summary::after{color:var(--cp-blue)}
+  /* ===================== brochure ===================== */
+  var bro = document.getElementById('cp-brochure');
+  var broChip = document.getElementById('cp-brochure-chip');
+  if(broChip){ var bp = broChip.closest('p'); (bp || broChip).parentNode.removeChild(bp || broChip); }
+  if(bro){
+    if(CONFIG.brochureUrl){
+      bro.href = CONFIG.brochureUrl;
+      bro.addEventListener('click', function(){ push({event:'cp_brochure'}); });
+    } else {
+      bro.parentNode.removeChild(bro); // hidden until the brochure URL is set in CONFIG
+    }
+  }
 
-/* enquiry panel uses the site's purple-blue gradient */
-#cp-hub .cp-cta{background:linear-gradient(to left,#4776e6,#8e54e9);border-radius:var(--cp-r) var(--cp-r) 50px var(--cp-r)}
-#cp-hub .cp-cta .cp-lede{color:#fff}
+  /* ===================== cross-links to the consultancy pages ===================== */
+  document.addEventListener('click', function(e){
+    var a = e.target.closest ? e.target.closest('a[data-cp-xlink]') : null;
+    if(a) push({event:'cp_crosslink', cp_destination:a.getAttribute('data-cp-xlink')});
+  });
 
-@media (max-width:960px){
-  #cp-hub .cp-hero{border-bottom-right-radius:36px}
-}
+  /* ===================== subnav highlight ===================== */
+  var links = root.querySelectorAll('.cp-subnav a');
+  if('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(!en.isIntersecting) return;
+        links.forEach(function(a){ a.classList.toggle('on', a.getAttribute('href') === '#'+en.target.id); });
+      });
+    }, {rootMargin:'-30% 0px -60% 0px'});
+    links.forEach(function(a){ var s = document.getElementById(a.getAttribute('href').slice(1)); if(s) io.observe(s); });
+  }
 
-/* breadcrumb bar hidden; BreadcrumbList schema stays in the JSON-LD */
-#cp-hub .cp-crumb{display:none}
-#cp-hub .cp-hero{margin-top:0}
+  /* ===================== HubSpot form ===================== */
+  var hsForm = null, pendingMsg = (function(){ try{ return new URLSearchParams(location.search).get('msg') || ''; }catch(e){ return ''; } })();
+  function setField(form, name, value, onlyIfEmpty){
+    var el = form && form.querySelector('[name="'+name+'"]'); if(!el || !value) return;
+    if(onlyIfEmpty && el.value) return;
+    var proto = el.tagName === 'SELECT' ? HTMLSelectElement.prototype : el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+    var setter = Object.getOwnPropertyDescriptor(proto, 'value').set;
+    setter.call(el, value);
+    el.dispatchEvent(new Event('input', {bubbles:true}));
+    el.dispatchEvent(new Event('change', {bubbles:true}));
+  }
+  document.addEventListener('click', function(e){
+    var a = e.target.closest ? e.target.closest('a[data-cp-msg]') : null; if(!a) return;
+    pendingMsg = a.getAttribute('data-cp-msg');
+    if(hsForm){ setField(hsForm, CONFIG.interestField, CONFIG.interestDefault); setField(hsForm, CONFIG.messageField, pendingMsg, true); }
+  });
 
-/* ---------- extra calls to action and pricing layout (v9) ---------- */
-#cp-hub .cp-btn.outline{background:#fff;color:var(--cp-navy);border-color:var(--cp-navy)}
-#cp-hub .cp-btn.outline:hover{background:var(--cp-navy-tint)}
-#cp-hub .cp-center{justify-content:center;margin-top:30px}
-#cp-hub .cp-two{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
-#cp-hub .cp-terms{background:#fff;border:1px solid var(--cp-line);border-left:5px solid var(--cp-site-orange);border-radius:var(--cp-r) var(--cp-r) 22px var(--cp-r);padding:20px 24px;margin-top:30px}
-#cp-hub .cp-terms .cp-subhead{margin-top:0}
-#cp-hub .cp-terms p:last-child{margin-bottom:0}
-#cp-hub .cp-band{background:var(--cp-navy);color:#fff;border-radius:var(--cp-r) var(--cp-r) 40px var(--cp-r);padding:28px 32px;margin-top:30px;display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center}
-#cp-hub .cp-band h3{color:#fff;font-size:1.3rem;margin-bottom:6px}
-#cp-hub .cp-band p{color:#dfe3f5;margin:0}
-#cp-hub .cp-band.light{background:var(--cp-blue)}
-#cp-hub .cp-band.light p{color:#eef1ff}
-#cp-hub #cp-s-how .cp-btn.navy{border-color:var(--cp-navy)}
-@media (max-width:960px){
-  #cp-hub .cp-two,#cp-hub .cp-band{grid-template-columns:1fr}
-}
+  if(CONFIG.hubspot.portalId && CONFIG.hubspot.formId){
+    var fchip = document.getElementById('cp-form-chip'); if(fchip) fchip.hidden = true;
+    Array.prototype.forEach.call(root.querySelectorAll('#cp-s-enquire .cp-formbox > .cp-confirm'), function(c){ c.parentNode.removeChild(c); });
+    var s = document.createElement('script');
+    s.src = 'https://js' + (CONFIG.hubspot.region === 'eu1' ? '-eu1' : '') + '.hsforms.net/forms/embed/v2.js';
+    s.async = true;
+    s.onload = function(){
+      if(!window.hbspt) return;
+      window.hbspt.forms.create({
+        region: CONFIG.hubspot.region, portalId: CONFIG.hubspot.portalId, formId: CONFIG.hubspot.formId,
+        target: '#cp-hs-form',
+        onFormReady: function($f){
+          hsForm = ($f && $f[0]) ? $f[0] : ($f && $f.querySelector ? $f : document.querySelector('#cp-hs-form form'));
+          setField(hsForm, CONFIG.interestField, CONFIG.interestDefault);
+          setField(hsForm, CONFIG.messageField, pendingMsg, true);
+        },
+        onFormSubmitted: function(){
+          var v = '';
+          try{ var el = hsForm && hsForm.querySelector('[name="'+CONFIG.interestField+'"]'); v = el ? el.value : ''; }catch(e){}
+          push({event:'cp_form_submit', cp_service_interest: v || CONFIG.interestDefault});
+        }
+      });
+    };
+    document.head.appendChild(s);
+  }
 
-/* ---------- v10: buttons on the orange band ---------- */
-#cp-hub #cp-s-how .cp-btn.primary{background:#fff;border-color:#fff;color:var(--cp-navy)}
-#cp-hub #cp-s-how .cp-btn.primary:hover{background:var(--cp-navy-tint);border-color:var(--cp-navy-tint)}
-
-/* ---------- v10: HubSpot form styled to match the page ---------- */
-#cp-hub .cp-formbox .hs-form{font-family:var(--cp-text);max-width:none}
-#cp-hub .cp-formbox .hs-form fieldset{max-width:none !important}
-#cp-hub .cp-formbox .hs-form .hs-form-field{margin-bottom:16px}
-#cp-hub .cp-formbox .hs-form label:not(.hs-error-msg){display:block;font-family:var(--cp-text);font-size:.88rem;font-weight:700;color:var(--cp-navy);margin-bottom:6px}
-#cp-hub .cp-formbox .hs-form .hs-input:not([type=checkbox]):not([type=radio]),
-#cp-hub .cp-formbox .hs-form select,
-#cp-hub .cp-formbox .hs-form textarea{width:100% !important;max-width:100%;height:auto;min-height:46px;padding:11px 14px;border:1px solid #bfc4d6 !important;border-radius:var(--cp-r) !important;background:#fff !important;box-shadow:none !important;font-family:var(--cp-text);font-size:.96rem;color:#1a1a22;outline:0}
-#cp-hub .cp-formbox .hs-form select{appearance:none;-webkit-appearance:none;padding-right:38px;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' fill='none' stroke='%231d2560' stroke-width='2'/></svg>") !important;background-repeat:no-repeat !important;background-position:right 14px center !important}
-#cp-hub .cp-formbox .hs-form textarea{min-height:110px}
-#cp-hub .cp-formbox .hs-form .hs-input::placeholder{color:#6b7394;opacity:1}
-#cp-hub .cp-formbox .hs-form .hs-input:focus{border-color:var(--cp-blue) !important;box-shadow:0 0 0 3px rgba(76,107,216,.2) !important}
-#cp-hub .cp-formbox .hs-form .hs-error-msgs{list-style:none;padding:0;margin:6px 0 0}
-#cp-hub .cp-formbox .hs-form .hs-error-msg,#cp-hub .cp-formbox .hs-form .hs-error-msgs label{color:#c0392b;font-size:.82rem;font-weight:600}
-#cp-hub .cp-formbox .hs-form .legal-consent-container,#cp-hub .cp-formbox .hs-form .hs-richtext{font-size:.84rem;color:var(--cp-muted)}
-#cp-hub .cp-formbox .hs-form .hs_submit,#cp-hub .cp-formbox .hs-form .actions{text-align:left;margin-top:8px;padding:0}
-#cp-hub .cp-formbox .hs-form .hs-button,#cp-hub .cp-formbox .hs-form input[type=submit]{display:inline-block;background:var(--cp-site-orange) !important;border:2px solid var(--cp-site-orange) !important;color:var(--cp-navy) !important;border-radius:30px !important;padding:13px 30px !important;font-family:var(--cp-text) !important;font-weight:700 !important;font-size:1rem !important;line-height:1.1;cursor:pointer;box-shadow:none !important;text-shadow:none;height:auto;width:auto}
-#cp-hub .cp-formbox .hs-form .hs-button:hover,#cp-hub .cp-formbox .hs-form input[type=submit]:hover{background:#ff9b22 !important;border-color:#ff9b22 !important}
-#cp-hub .cp-formbox .submitted-message{font-size:1.05rem;color:var(--cp-navy);font-weight:700}
-@media (min-width:700px){
-  #cp-hub .cp-formbox .hs-form fieldset.form-columns-2{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
-  #cp-hub .cp-formbox .hs-form fieldset.form-columns-2 .hs-form-field{width:100% !important;float:none !important;padding:0 !important}
-}
-
-/* ---------- v11: FAQs on navy ---------- */
-#cp-hub #cp-s-faq{background:var(--cp-navy)}
-#cp-hub #cp-s-faq h2{color:#fff}
-#cp-hub #cp-s-faq .cp-faq,#cp-hub #cp-s-faq .cp-faq details{border-color:rgba(255,255,255,.18)}
-#cp-hub #cp-s-faq .cp-faq summary{color:#fff}
-#cp-hub #cp-s-faq .cp-faq summary::after{color:var(--cp-site-orange)}
-#cp-hub #cp-s-faq .cp-faq .a{color:#dfe3f5}
-#cp-hub #cp-s-faq .cp-band.light{box-shadow:0 12px 30px rgba(0,0,0,.25)}
-
-/* =====================================================================
-   v12: shared components for the consultancy pages (H&S, temporary works)
-   ===================================================================== */
-/* hero side box as stacked questions */
-#cp-hub .cp-side-qa dl{grid-template-columns:1fr;gap:4px}
-#cp-hub .cp-side-qa dt{color:#fff;font-weight:700;margin-top:10px}
-#cp-hub .cp-side-qa dt:first-child{margin-top:0}
-#cp-hub .cp-side-qa dd{text-align:left;font-weight:400;color:#c3c8e2}
-
-/* option cards with prices */
-#cp-hub .cp-opts{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-#cp-hub .cp-opt{background:#fff;border-radius:var(--cp-r) var(--cp-r) 26px var(--cp-r);padding:26px;display:flex;flex-direction:column;gap:10px;box-shadow:0 8px 22px rgba(20,27,71,.14)}
-#cp-hub .cp-opt::before{content:"";width:12px;height:12px;background:var(--cp-site-orange);border-radius:3px}
-#cp-hub .cp-opt h3{font-size:1.12rem}
-#cp-hub .cp-price{font-family:var(--cp-head);font-size:1.7rem;color:var(--cp-navy);line-height:1.1}
-#cp-hub .cp-price small{font-family:var(--cp-text);font-size:.82rem;font-weight:700;color:var(--cp-muted)}
-#cp-hub .cp-fit{font-size:.88rem;background:var(--cp-tint);color:var(--cp-navy);padding:10px 12px;border-radius:4px;margin:0}
-#cp-hub .cp-what{font-size:.95rem;margin:0;flex:1}
-#cp-hub .cp-opt .cp-foot{margin-top:6px}
-#cp-hub .cp-opt.featured{background:var(--cp-navy);color:#fff}
-#cp-hub .cp-opt.featured h3,#cp-hub .cp-opt.featured .cp-price{color:#fff}
-#cp-hub .cp-opt.featured .cp-price small,#cp-hub .cp-opt.featured .cp-what{color:#dfe3f5}
-#cp-hub .cp-opt.featured .cp-fit{background:rgba(255,255,255,.1);color:#fff}
-
-/* option detail rows */
-#cp-hub .cp-detail{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start;padding:36px 0;border-top:1px solid var(--cp-line)}
-#cp-hub .cp-detail:first-child{border-top:0;padding-top:0}
-#cp-hub .cp-detail:last-child{padding-bottom:0}
-#cp-hub .cp-detail h3{font-size:1.35rem;margin-bottom:10px}
-#cp-hub .cp-q{color:var(--cp-navy);font-size:1.05rem}
-#cp-hub [id^="cp-h-"],#cp-hub [id^="cp-t-"]{scroll-margin-top:calc(var(--cp-sticky-top) + 60px)}
-#cp-hub .cp-listcards{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:1fr 1fr;gap:10px}
-#cp-hub .cp-listcards li{margin:0;background:var(--cp-tint);border-left:3px solid var(--cp-blue);border-radius:4px;padding:10px 12px;font-size:.92rem;color:var(--cp-navy);font-weight:600}
-#cp-hub .cp-ticks{list-style:none;padding:0;margin:0 0 14px}
-#cp-hub .cp-ticks li{position:relative;padding:10px 0 10px 28px;border-bottom:1px solid var(--cp-line);margin:0;font-size:.96rem}
-#cp-hub .cp-ticks li::before{content:"";position:absolute;left:0;top:16px;width:12px;height:12px;background:var(--cp-site-orange);border-radius:3px}
-
-/* finder */
-#cp-hub .cp-finder{background:#fff;border-radius:var(--cp-r) var(--cp-r) 26px var(--cp-r);padding:28px 30px;box-shadow:0 8px 22px rgba(20,27,71,.14)}
-#cp-hub .cp-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
-#cp-hub .cp-reco{display:none;margin-top:16px;border-left:4px solid var(--cp-site-orange);background:#fff8ef;padding:20px 22px;border-radius:0 var(--cp-r) var(--cp-r) 0}
-#cp-hub .cp-reco.show{display:block}
-#cp-hub .cp-reco h3{margin:8px 0 4px}
-#cp-hub .cp-reco p{margin:8px 0 14px}
-#cp-hub .cp-reco-price{font-family:var(--cp-head);color:var(--cp-navy);font-size:1.15rem}
-#cp-hub .cp-chip{display:inline-block;padding:2px 10px;border-radius:12px;font-size:.78rem;font-weight:700;background:var(--cp-navy);color:#fff}
-
-/* bridge to the hub */
-#cp-hub .cp-bridge{background:var(--cp-navy);color:#fff;border-radius:var(--cp-r) var(--cp-r) 44px var(--cp-r);padding:40px 38px 34px;display:grid;grid-template-columns:1fr auto;gap:28px;align-items:center;position:relative;margin-top:16px}
-#cp-hub .cp-bridge .cp-eyebrow{top:-16px;left:32px}
-#cp-hub .cp-bridge h3{color:#fff;font-size:1.4rem;margin-bottom:8px}
-#cp-hub .cp-bridge p{color:#dfe3f5;margin:0}
-#cp-hub .cp-bridge-from{display:block;margin-top:10px;font-family:var(--cp-head);color:var(--cp-site-orange);font-size:1.2rem}
-
-/* law tabs */
-#cp-hub .cp-law{display:grid;grid-template-columns:270px 1fr;border:1px solid var(--cp-line);border-radius:var(--cp-r) var(--cp-r) 26px var(--cp-r);overflow:hidden;background:#fff}
-#cp-hub .cp-tabs{background:var(--cp-tint);display:flex;flex-direction:column;padding:10px;gap:4px}
-#cp-hub .cp-tabs button{background:none;border:0;text-align:left;padding:12px 14px;border-radius:var(--cp-r);cursor:pointer;color:var(--cp-navy);font-family:var(--cp-text);font-weight:700;font-size:.92rem;line-height:1.3}
-#cp-hub .cp-tabs button .s{display:block;font-weight:400;color:var(--cp-muted);font-size:.8rem;margin-top:2px}
-#cp-hub .cp-tabs button.on{background:var(--cp-blue);color:#fff}
-#cp-hub .cp-tabs button.on .s{color:#eef1ff}
-#cp-hub .cp-pane{display:none;padding:28px 32px}
-#cp-hub .cp-pane.on{display:block}
-#cp-hub .cp-pane h3{margin-bottom:12px}
-#cp-hub .cp-pane h4{margin:16px 0 6px}
-#cp-hub .cp-lawq{border-left:3px solid var(--cp-blue);background:var(--cp-tint);padding:12px 16px;font-size:.96rem}
-#cp-hub .cp-lawq em{display:block;font-style:normal;font-size:.82rem;color:var(--cp-muted);margin-top:6px}
-#cp-hub .cp-src{font-size:.84rem;color:var(--cp-muted);margin-top:14px}
-#cp-hub .cp-note{background:#fff8ef;border:1px solid #f6dbb8;border-radius:var(--cp-r);padding:12px 16px;font-size:.88rem;margin-top:18px}
-
-/* related course links */
-#cp-hub .cp-courselinks{display:flex;gap:10px;flex-wrap:wrap}
-#cp-hub .cp-courselinks a{text-decoration:none;font-weight:700;font-size:.92rem;color:var(--cp-navy);background:#fff;padding:11px 18px;border-radius:30px;box-shadow:0 6px 16px rgba(20,27,71,.14)}
-#cp-hub .cp-courselinks a:hover{background:var(--cp-navy-tint)}
-
-/* H&S page colour bands */
-#cp-hub #cp-h-options,#cp-hub #cp-h-training{background:var(--cp-blue)}
-#cp-hub #cp-h-options h2,#cp-hub #cp-h-training h2,#cp-hub #cp-h-training .cp-head p{color:#fff}
-#cp-hub #cp-h-finder{background:var(--cp-site-orange)}
-#cp-hub #cp-h-finder h2{color:var(--cp-navy)}
-#cp-hub #cp-h-finder .cp-tab{background:var(--cp-navy)}
-#cp-hub #cp-h-bridge{background:var(--cp-tint)}
-#cp-hub #cp-h-bridge .cp-control{background:var(--cp-blue)}
-#cp-hub #cp-h-bridge .cp-control p{color:#eef1ff}
-#cp-hub #cp-h-faq{background:var(--cp-navy)}
-#cp-hub #cp-h-faq h2{color:#fff}
-#cp-hub #cp-h-faq .cp-faq,#cp-hub #cp-h-faq .cp-faq details{border-color:rgba(255,255,255,.18)}
-#cp-hub #cp-h-faq .cp-faq summary{color:#fff}
-#cp-hub #cp-h-faq .cp-faq summary::after{color:var(--cp-site-orange)}
-#cp-hub #cp-h-faq .cp-faq .a{color:#dfe3f5}
-#cp-hub #cp-h-faq .cp-faq .a a{color:#fff}
-#cp-hub #cp-h-options .cp-btn.ghost,#cp-hub #cp-h-training .cp-btn.ghost{color:#fff}
-
-@media (max-width:960px){
-  #cp-hub .cp-opts,#cp-hub .cp-detail,#cp-hub .cp-bridge,#cp-hub .cp-law{grid-template-columns:1fr}
-  #cp-hub .cp-tabs{flex-direction:row;overflow-x:auto}
-  #cp-hub .cp-tabs button{white-space:nowrap}
-  #cp-hub .cp-tabs button .s{display:none}
-}
-@media (max-width:600px){
-  #cp-hub .cp-listcards{grid-template-columns:1fr}
-  #cp-hub .cp-finder,#cp-hub .cp-pane{padding:20px}
-}
+  try{ console.info('CST Training Compliance Partner hub script v12 loaded'); }catch(e){}
+  /* self-test hook: in the console, cpHub.check() should log nine passes */
+  window.cpHub = { fee:fee, check:function(){
+    var want = {25:[250,750,1100], 100:[555,1850,2590], 200:[1020,3400,4760]};
+    Object.keys(want).forEach(function(n){ PRICING.levels.forEach(function(l,i){
+      var got = fee(l, +n).total; console.log((got===want[n][i]?'PASS ':'FAIL ')+l.name+' @ '+n+': '+got);
+    }); });
+  }};
+})();
