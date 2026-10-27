@@ -240,3 +240,7 @@ body{overflow-x:clip}
 @media (max-width:960px){
   #cp-hub .cp-hero{border-bottom-right-radius:36px}
 }
+
+/* breadcrumb bar hidden; BreadcrumbList schema stays in the JSON-LD */
+#cp-hub .cp-crumb{display:none}
+#cp-hub .cp-hero{margin-top:0}
