@@ -9,7 +9,7 @@
   --cp-text:"Asap",Helvetica,Arial,sans-serif;
   --cp-sticky-top:0px; /* set to the site header height if the header is sticky */
   font-family:var(--cp-text); font-size:17px; line-height:1.55; color:var(--cp-body);
-  background:#fff; overflow-x:clip;
+  background:#fff;
 }
 #cp-hub *,#cp-hub *::before,#cp-hub *::after{box-sizing:border-box}
 #cp-hub h1,#cp-hub h2,#cp-hub h3,#cp-hub h4{font-family:var(--cp-head);color:var(--cp-navy);line-height:1.2;margin:0;font-weight:400;letter-spacing:.01em;text-transform:none}
@@ -187,3 +187,56 @@
 #cp-hub br{display:none}
 #cp-hub p:empty{display:none}
 #cp-hub .cp-crumb a{display:inline}
+
+/* =====================================================================
+   SITE COLOUR SCHEME: matches the live course pages
+   blue #4c6bd8, orange #ff8c04, navy #1d2560, grey #f4f5f9,
+   CTA gradient #4776e6 to #8e54e9, rounded bottom-right corners
+   ===================================================================== */
+body{overflow-x:clip}
+#cp-hub{--cp-blue:#4c6bd8; --cp-site-orange:#ff8c04; --cp-navy:#1d2560; --cp-tint:#f4f5f9}
+
+/* full-width colour bands, even inside the theme's content column */
+#cp-hub .cp-hero,#cp-hub .cp-subnav,#cp-hub .cp-block{width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw)}
+
+/* pill buttons, as on the rest of the site */
+#cp-hub .cp-btn{border-radius:30px}
+
+/* hero: blue band with the site's rounded corner */
+#cp-hub .cp-hero{background:var(--cp-blue);border-bottom-right-radius:50px;padding:66px 0 8px;margin-top:14px}
+#cp-hub .cp-panel{background:none;border-radius:0;padding:0}
+#cp-hub .cp-eyebrow{top:-38px;left:0}
+#cp-hub .cp-panel .cp-lede{color:#eef1ff}
+#cp-hub .cp-side{background:var(--cp-navy);border:0;border-radius:var(--cp-r) var(--cp-r) 30px var(--cp-r);box-shadow:0 12px 30px rgba(20,27,71,.25)}
+#cp-hub .cp-labels div{color:#eef1ff;border-top-color:var(--cp-site-orange)}
+#cp-hub .cp-labels b{color:#fff}
+
+/* section bands */
+#cp-hub #cp-s-what,#cp-hub #cp-s-examples{background:var(--cp-blue)}
+#cp-hub #cp-s-how{background:var(--cp-site-orange)}
+#cp-hub #cp-s-levels,#cp-hub #cp-s-pricing,#cp-hub #cp-s-faq{background:var(--cp-tint)}
+#cp-hub #cp-s-what h2,#cp-hub #cp-s-examples h2{color:#fff}
+#cp-hub #cp-s-examples .cp-fine{color:#eef1ff}
+#cp-hub #cp-s-how h2{color:var(--cp-navy)}
+#cp-hub #cp-s-how .cp-tab{background:var(--cp-navy)}
+#cp-hub #cp-s-what .cp-card,#cp-hub #cp-s-examples .cp-ex,#cp-hub #cp-s-how .cp-step{border:0;box-shadow:0 8px 22px rgba(20,27,71,.14)}
+#cp-hub .cp-card::before{background:var(--cp-site-orange)}
+#cp-hub #cp-s-enquire{padding-top:58px !important}
+
+/* featured level card in site blue */
+#cp-hub .cp-level.mid{background:var(--cp-blue);border-color:var(--cp-blue)}
+#cp-hub .cp-level.mid .cp-tag,#cp-hub .cp-level.mid .cp-from{color:#eef1ff}
+
+/* tables, calculator and examples pick up the blue */
+#cp-hub th{background:var(--cp-blue)}
+#cp-hub .cp-calc{border-top-color:var(--cp-blue)}
+#cp-hub .cp-ex .calcline{border-left-color:var(--cp-site-orange)}
+#cp-hub .cp-faq summary::after{color:var(--cp-blue)}
+
+/* enquiry panel uses the site's purple-blue gradient */
+#cp-hub .cp-cta{background:linear-gradient(to left,#4776e6,#8e54e9);border-radius:var(--cp-r) var(--cp-r) 50px var(--cp-r)}
+#cp-hub .cp-cta .cp-lede{color:#fff}
+
+@media (max-width:960px){
+  #cp-hub .cp-hero{border-bottom-right-radius:36px}
+}
