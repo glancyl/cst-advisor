@@ -1,6 +1,6 @@
 /* CST Training · Health & Safety Consultancy page · hosted at https://glancyl.github.io/cst-advisor/
    Loaded on the page with: <script src="https://glancyl.github.io/cst-advisor/hs-consultancy.js?v=N" defer></script>
-   Shares cp-hub.css with the Compliance Partner hub. Bump ?v=N on the page after every JS edit,
+   Uses cp-hub.css (shared with the hub) plus cp-consult.css (consultancy pages only). Bump ?v=N on the page after every JS edit,
    and CSS_VERSION below after every CSS edit. */
 (function () {
   if (document.getElementById("cp-hub-css")) return;
@@ -15,6 +15,10 @@
   l.id = "cp-hub-css"; l.rel = "stylesheet";
   l.href = "https://glancyl.github.io/cst-advisor/cp-hub.css?v=" + CSS_VERSION;
   document.head.appendChild(l);
+  var c = document.createElement("link");
+  c.id = "cp-consult-css"; c.rel = "stylesheet";
+  c.href = "https://glancyl.github.io/cst-advisor/cp-consult.css?v=" + CSS_VERSION;
+  document.head.appendChild(c);
 })();
 
 (function(){
