@@ -5,7 +5,7 @@
   if (document.getElementById("cp-hub-css")) return;
   /* NitroPack rewrites the script tag, so the version can't be read from it.
      Bump CSS_VERSION whenever cp-hub.css changes. */
-  var CSS_VERSION = 9;
+  var CSS_VERSION = 10;
   var v = "v=" + CSS_VERSION;
   if (!document.querySelector('link[href*="family=Alata"]')) {
     var f = document.createElement("link");
@@ -208,8 +208,10 @@
   })();
 
   /* ===================== calculator =====================
-     Delegated listeners on the hub, and elements looked up on every change,
-     so it keeps working if NitroPack or the theme re-renders the page. */
+     Listeners sit on the document and elements are looked up on every change,
+     because NitroPack re-inserts page content after load, which drops any
+     listener attached to the original elements. This also means
+     it keeps working if the theme re-renders the page. */
   var calcTimer = null;
   function calcEls(scope){ return { ops:scope.querySelector('#cp-calc-ops'), lvl:scope.querySelector('#cp-calc-level'), out:scope.querySelector('#cp-calc-out') }; }
   function runCalc(scope, track){
@@ -245,10 +247,10 @@
     runCalc(c, false);
   });
   ['input','change','keyup'].forEach(function(type){
-    root.addEventListener(type, function(e){
+    document.addEventListener(type, function(e){
       var t = e.target; if(!t || (t.id !== 'cp-calc-ops' && t.id !== 'cp-calc-level')) return;
       var c = t.closest ? t.closest('.cp-calc') : null; if(c) runCalc(c, true);
-    });
+    }, true);
   });
 
   /* ===================== brochure ===================== */
@@ -265,7 +267,7 @@
   }
 
   /* ===================== cross-links to the consultancy pages ===================== */
-  root.addEventListener('click', function(e){
+  document.addEventListener('click', function(e){
     var a = e.target.closest ? e.target.closest('a[data-cp-xlink]') : null;
     if(a) push({event:'cp_crosslink', cp_destination:a.getAttribute('data-cp-xlink')});
   });
@@ -293,7 +295,7 @@
     el.dispatchEvent(new Event('input', {bubbles:true}));
     el.dispatchEvent(new Event('change', {bubbles:true}));
   }
-  root.addEventListener('click', function(e){
+  document.addEventListener('click', function(e){
     var a = e.target.closest ? e.target.closest('a[data-cp-msg]') : null; if(!a) return;
     pendingMsg = a.getAttribute('data-cp-msg');
     if(hsForm){ setField(hsForm, CONFIG.interestField, CONFIG.interestDefault); setField(hsForm, CONFIG.messageField, pendingMsg, true); }
@@ -325,7 +327,7 @@
     document.head.appendChild(s);
   }
 
-  try{ console.info('CST Training Compliance Partner hub script v9 loaded'); }catch(e){}
+  try{ console.info('CST Training Compliance Partner hub script v10 loaded'); }catch(e){}
   /* self-test hook: in the console, cpHub.check() should log nine passes */
   window.cpHub = { fee:fee, check:function(){
     var want = {25:[250,750,1100], 100:[555,1850,2590], 200:[1020,3400,4760]};
