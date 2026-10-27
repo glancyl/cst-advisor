@@ -5,7 +5,7 @@
   if (document.getElementById("cp-hub-css")) return;
   /* NitroPack rewrites the script tag, so the version can't be read from it.
      Bump CSS_VERSION whenever cp-hub.css changes. */
-  var CSS_VERSION = 10;
+  var CSS_VERSION = 11;
   var v = "v=" + CSS_VERSION;
   if (!document.querySelector('link[href*="family=Alata"]')) {
     var f = document.createElement("link");
@@ -330,7 +330,7 @@
     document.head.appendChild(s);
   }
 
-  try{ console.info('CST Training Compliance Partner hub script v11 loaded'); }catch(e){}
+  try{ console.info('CST Training Compliance Partner hub script v12 loaded'); }catch(e){}
   /* self-test hook: in the console, cpHub.check() should log nine passes */
   window.cpHub = { fee:fee, check:function(){
     var want = {25:[250,750,1100], 100:[555,1850,2590], 200:[1020,3400,4760]};
