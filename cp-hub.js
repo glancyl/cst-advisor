@@ -124,6 +124,9 @@
     return h + '</tbody></table>';
   }
 
+  /* accreditation CONFIRM chip removed at Liam's request */
+  Array.prototype.forEach.call(root.querySelectorAll('#cp-s-why .cp-confirm'), function(c){ var p = c.closest('p'); (p || c).parentNode.removeChild(p || c); });
+
   /* ===================== render from PRICING ===================== */
   q('[data-cp="hero-levels"]').innerHTML = PRICING.levels.map(function(l){
     return '<dt>'+esc(l.name)+'</dt><dd>from '+rateShort(l.rate[0])+' per operative</dd>';
@@ -327,7 +330,7 @@
     document.head.appendChild(s);
   }
 
-  try{ console.info('CST Training Compliance Partner hub script v10 loaded'); }catch(e){}
+  try{ console.info('CST Training Compliance Partner hub script v11 loaded'); }catch(e){}
   /* self-test hook: in the console, cpHub.check() should log nine passes */
   window.cpHub = { fee:fee, check:function(){
     var want = {25:[250,750,1100], 100:[555,1850,2590], 200:[1020,3400,4760]};
