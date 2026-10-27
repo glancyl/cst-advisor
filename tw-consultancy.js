@@ -88,6 +88,24 @@
     }
   })();
 
+  /* ===================== close any gap between the site header and the hero =====================
+     Whatever the theme or editor puts above the page content, measure the space between the
+     bottom of the site header and the top of our hero and pull the page up by exactly that much. */
+  (function(){
+    function closeGap(){
+      var header = document.querySelector('header.site-header, #masthead, .site-header, header');
+      if(!header || header.contains(root)) return;
+      var pos = getComputedStyle(header).position;
+      if(pos === 'fixed' || pos === 'sticky') return;
+      root.style.marginTop = '';
+      var gap = Math.round(root.getBoundingClientRect().top - header.getBoundingClientRect().bottom);
+      if(gap > 0 && gap < 120) root.style.marginTop = (-gap) + 'px';
+    }
+    closeGap();
+    window.addEventListener('load', closeGap);
+    window.addEventListener('resize', closeGap);
+  })();
+
   /* ===================== extra calls to action ===================== */
   (function(){
     function el(html){ var d = document.createElement('div'); d.innerHTML = html.trim(); return d.firstChild; }
@@ -268,5 +286,5 @@
     document.head.appendChild(s);
   }
 
-  try{ console.info('CST Training temporary works page script v2 loaded'); }catch(e){}
+  try{ console.info('CST Training temporary works page script v3 loaded'); }catch(e){}
 })();
