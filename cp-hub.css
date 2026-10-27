@@ -244,3 +244,21 @@ body{overflow-x:clip}
 /* breadcrumb bar hidden; BreadcrumbList schema stays in the JSON-LD */
 #cp-hub .cp-crumb{display:none}
 #cp-hub .cp-hero{margin-top:0}
+
+/* ---------- extra calls to action and pricing layout (v9) ---------- */
+#cp-hub .cp-btn.outline{background:#fff;color:var(--cp-navy);border-color:var(--cp-navy)}
+#cp-hub .cp-btn.outline:hover{background:var(--cp-navy-tint)}
+#cp-hub .cp-center{justify-content:center;margin-top:30px}
+#cp-hub .cp-two{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+#cp-hub .cp-terms{background:#fff;border:1px solid var(--cp-line);border-left:5px solid var(--cp-site-orange);border-radius:var(--cp-r) var(--cp-r) 22px var(--cp-r);padding:20px 24px;margin-top:30px}
+#cp-hub .cp-terms .cp-subhead{margin-top:0}
+#cp-hub .cp-terms p:last-child{margin-bottom:0}
+#cp-hub .cp-band{background:var(--cp-navy);color:#fff;border-radius:var(--cp-r) var(--cp-r) 40px var(--cp-r);padding:28px 32px;margin-top:30px;display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center}
+#cp-hub .cp-band h3{color:#fff;font-size:1.3rem;margin-bottom:6px}
+#cp-hub .cp-band p{color:#dfe3f5;margin:0}
+#cp-hub .cp-band.light{background:var(--cp-blue)}
+#cp-hub .cp-band.light p{color:#eef1ff}
+#cp-hub #cp-s-how .cp-btn.navy{border-color:var(--cp-navy)}
+@media (max-width:960px){
+  #cp-hub .cp-two,#cp-hub .cp-band{grid-template-columns:1fr}
+}
