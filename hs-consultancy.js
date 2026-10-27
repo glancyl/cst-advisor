@@ -4,7 +4,7 @@
    and CSS_VERSION below after every CSS edit. */
 (function () {
   if (document.getElementById("cp-hub-css")) return;
-  var CSS_VERSION = 15;
+  var CSS_VERSION = 16;
   if (!document.querySelector('link[href*="family=Alata"]')) {
     var f = document.createElement("link");
     f.rel = "stylesheet";
