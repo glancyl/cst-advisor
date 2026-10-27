@@ -5,7 +5,7 @@
   if (document.getElementById("cp-hub-css")) return;
   /* NitroPack rewrites the script tag, so the version can't be read from it.
      Bump CSS_VERSION whenever cp-hub.css changes. */
-  var CSS_VERSION = 7;
+  var CSS_VERSION = 9;
   var v = "v=" + CSS_VERSION;
   if (!document.querySelector('link[href*="family=Alata"]')) {
     var f = document.createElement("link");
@@ -31,7 +31,7 @@
   (function(){
     Array.prototype.slice.call(root.querySelectorAll('br')).forEach(function(b){ b.parentNode.removeChild(b); });
     Array.prototype.slice.call(root.querySelectorAll('p')).forEach(function(p){
-      if(p.className) return;
+      if(p.className || p.id) return;
       var ownText = Array.prototype.some.call(p.childNodes, function(n){ return n.nodeType === 3 && n.textContent.trim() !== ''; });
       if(ownText) return;
       while(p.firstChild) p.parentNode.insertBefore(p.firstChild, p);
@@ -42,7 +42,7 @@
   /* ===================== CONFIG: set before go-live ===================== */
   var CONFIG = {
     brochureUrl: '',                                  // e.g. https://www.csttraining.co.uk/wp-content/uploads/2026/11/compliance-partner-brochure.pdf
-    hubspot: { portalId: '', formId: '', region: 'eu1' },
+    hubspot: { portalId: '19996504', formId: 'a81a7d9c-e2dd-41fe-8956-d06c40e11808', region: 'na1' },
     interestField: 'service_interest',                // HubSpot internal property name
     interestDefault: 'Compliance Partner',
     messageField: 'message'
@@ -163,13 +163,58 @@
       + '<ul>'+ex.inc.map(function(x){ return '<li>'+esc(x)+'</li>'; }).join('')+'</ul></div>';
   }).join('');
 
-  /* ===================== calculator ===================== */
-  var ops = document.getElementById('cp-calc-ops'), lvl = document.getElementById('cp-calc-level'), out = document.getElementById('cp-calc-out');
-  lvl.innerHTML = PRICING.levels.map(function(l){ return '<option value="'+l.key+'">'+esc(l.name)+'</option>'; }).join('');
-  lvl.value = 'cp';
+  /* ===================== extra calls to action and pricing layout ===================== */
+  (function(){
+    var PHONE = '020 3488 4472', TEL = 'tel:02034884472';
+    function el(html){ var d = document.createElement('div'); d.innerHTML = html.trim(); return d.firstChild; }
+    function after(node, html){ if(node && node.parentNode){ var n = el(html); node.parentNode.insertBefore(n, node.nextSibling); return n; } }
+    function subhead(text){ var hs = root.querySelectorAll('#cp-s-pricing .cp-subhead'); for(var i=0;i<hs.length;i++){ if(hs[i].textContent.trim() === text) return hs[i]; } return null; }
+    var review = function(msg, label, cls){ return '<a class="cp-btn '+(cls||'primary')+'" href="#cp-s-enquire"'+(msg?' data-cp-msg="'+esc(msg)+'"':'')+'>'+esc(label||'Book a free records review')+'</a>'; };
+    var call = function(cls){ return '<a class="cp-btn '+(cls||'outline')+'" href="'+TEL+'">Call '+PHONE+'</a>'; };
+
+    // How it works: buttons under the "You stay in control" panel
+    after(root.querySelector('#cp-s-how .cp-control'), '<div class="cp-btns cp-center">'+review()+call('navy')+'</div>');
+
+    // Pricing: set-up and extras side by side
+    var h1 = subhead('One-off set-up'), t1 = root.querySelector('[data-cp="setup-table"]');
+    var h2 = subhead('Charged separately'), t2 = root.querySelector('[data-cp="extra-table"]');
+    if(h1 && t1 && h2 && t2){
+      var note = t2.nextElementSibling;
+      var grid = el('<div class="cp-two"><div></div><div></div></div>');
+      h1.parentNode.insertBefore(grid, h1);
+      grid.children[0].appendChild(h1); grid.children[0].appendChild(t1);
+      grid.children[1].appendChild(h2); grid.children[1].appendChild(t2);
+      if(note && note.classList.contains('cp-small')) grid.children[1].appendChild(note);
+    }
+
+    // Pricing: terms as a card, then a call to action band
+    var th = subhead('Terms');
+    if(th){
+      var card = el('<div class="cp-terms"></div>');
+      th.parentNode.insertBefore(card, th);
+      var p1 = th.nextElementSibling, p2 = p1 && p1.nextElementSibling;
+      card.appendChild(th); if(p1) card.appendChild(p1); if(p2 && p2.tagName === 'P') card.appendChild(p2);
+      after(card, '<div class="cp-band"><div><h3>Want a fixed quote for your headcount?</h3><p>We’ll review your training records and H&amp;S arrangements, recommend the right level and confirm your price, free of charge.</p></div><div class="cp-btns">'+review('I’d like a fixed quote.','Get my fixed quote')+call('ghost')+'</div></div>');
+    }
+
+    // Examples: button under the three examples
+    after(root.querySelector('#cp-s-examples .cp-examples'), '<div class="cp-btns cp-center">'+review('I’d like a quote like the examples on your page.','Get a quote like this for your business')+'</div>');
+
+    // Why CST Training: button under the cards
+    after(root.querySelector('#cp-s-why .cp-cards'), '<div class="cp-btns cp-center">'+review()+'</div>');
+
+    // FAQs: still got a question
+    after(root.querySelector('#cp-s-faq .cp-faq'), '<div class="cp-band light"><div><h3>Still got a question?</h3><p>Talk it through with our team, or send us a message and we’ll come back to you.</p></div><div class="cp-btns">'+call('navy')+review('','Send us a message','primary')+'</div></div>');
+  })();
+
+  /* ===================== calculator =====================
+     Delegated listeners on the hub, and elements looked up on every change,
+     so it keeps working if NitroPack or the theme re-renders the page. */
   var calcTimer = null;
-  function runCalc(track){
-    var n = Math.max(1, Math.min(2000, parseInt(ops.value,10) || 1)), l = levelByKey(lvl.value);
+  function calcEls(scope){ return { ops:scope.querySelector('#cp-calc-ops'), lvl:scope.querySelector('#cp-calc-level'), out:scope.querySelector('#cp-calc-out') }; }
+  function runCalc(scope, track){
+    var el = calcEls(scope); if(!el.ops || !el.lvl || !el.out) return;
+    var n = Math.max(1, Math.min(2000, parseInt(el.ops.value,10) || 1)), l = levelByKey(el.lvl.value);
     var f = fee(l, n), s = setup(l, n), band = allowBand(n);
     var h = '<h3>'+esc(l.name)+', '+n+' operative'+(n===1?'':'s')+'</h3>'
       + '<div class="cp-big">'+gbp(f.total)+'<small>a month, ex VAT</small></div><div class="cp-lines">'
@@ -185,16 +230,26 @@
     } else {
       h += '<div class="cp-inc"><h4>Included</h4><ul>'+l.includes.map(function(x){ return '<li>'+esc(x)+'</li>'; }).join('')+'</ul></div>';
     }
+    h += '<div class="cp-btns" style="margin-top:16px"><a class="cp-btn primary" href="#cp-s-enquire" data-cp-msg="I’d like a fixed quote for '+esc(l.name)+', '+n+' operatives.">Get a fixed quote for '+n+' operatives</a></div>';
     h += '<p class="cp-fine">Prices exclude VAT. Your quote is based on your actual headcount. Training booked through the service is charged separately.</p>';
-    out.innerHTML = h;
+    el.out.innerHTML = h;
     if(track){
       clearTimeout(calcTimer);
       calcTimer = setTimeout(function(){ push({event:'cp_calculator', cp_level:l.name, cp_operatives:n, cp_monthly:f.total}); }, 1200);
     }
   }
-  ops.addEventListener('input', function(){ runCalc(true); });
-  lvl.addEventListener('change', function(){ runCalc(true); });
-  runCalc(false);
+  Array.prototype.forEach.call(root.querySelectorAll('.cp-calc'), function(c){
+    var el = calcEls(c); if(!el.lvl) return;
+    el.lvl.innerHTML = PRICING.levels.map(function(l){ return '<option value="'+l.key+'">'+esc(l.name)+'</option>'; }).join('');
+    el.lvl.value = 'cp';
+    runCalc(c, false);
+  });
+  ['input','change','keyup'].forEach(function(type){
+    root.addEventListener(type, function(e){
+      var t = e.target; if(!t || (t.id !== 'cp-calc-ops' && t.id !== 'cp-calc-level')) return;
+      var c = t.closest ? t.closest('.cp-calc') : null; if(c) runCalc(c, true);
+    });
+  });
 
   /* ===================== brochure ===================== */
   var bro = document.getElementById('cp-brochure');
@@ -245,7 +300,8 @@
   });
 
   if(CONFIG.hubspot.portalId && CONFIG.hubspot.formId){
-    document.getElementById('cp-form-chip').hidden = true;
+    var fchip = document.getElementById('cp-form-chip'); if(fchip) fchip.hidden = true;
+    Array.prototype.forEach.call(root.querySelectorAll('#cp-s-enquire .cp-formbox > .cp-confirm'), function(c){ c.parentNode.removeChild(c); });
     var s = document.createElement('script');
     s.src = 'https://js' + (CONFIG.hubspot.region === 'eu1' ? '-eu1' : '') + '.hsforms.net/forms/embed/v2.js';
     s.async = true;
@@ -269,6 +325,7 @@
     document.head.appendChild(s);
   }
 
+  try{ console.info('CST Training Compliance Partner hub script v9 loaded'); }catch(e){}
   /* self-test hook: in the console, cpHub.check() should log nine passes */
   window.cpHub = { fee:fee, check:function(){
     var want = {25:[250,750,1100], 100:[555,1850,2590], 200:[1020,3400,4760]};
