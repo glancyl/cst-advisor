@@ -102,3 +102,9 @@
   #cp-hub .cp-listcards{grid-template-columns:1fr}
   #cp-hub .cp-finder,#cp-hub .cp-pane{padding:20px}
 }
+
+/* FAQ answers: keep links inline and readable on navy */
+#cp-hub .cp-faq .a a{display:inline;font-weight:700;text-decoration:underline}
+#cp-hub .cp-faq .a p:last-child{margin-bottom:0}
+/* no gap between the site header and the hero */
+#cp-hub.cp-hs .cp-hero{margin-top:0}
