@@ -5,7 +5,7 @@
   if (document.getElementById("cp-hub-css")) return;
   /* NitroPack rewrites the script tag, so the version can't be read from it.
      Bump CSS_VERSION whenever cp-hub.css changes. */
-  var CSS_VERSION = 6;
+  var CSS_VERSION = 7;
   var v = "v=" + CSS_VERSION;
   if (!document.querySelector('link[href*="family=Alata"]')) {
     var f = document.createElement("link");
