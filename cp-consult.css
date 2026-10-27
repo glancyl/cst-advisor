@@ -210,3 +210,8 @@
   #cp-hub .cp-day{border-right:0;border-bottom:1px solid var(--cp-line)}
   #cp-hub .cp-day:last-child{border-bottom:0}
 }
+
+/* v15: hide the empty paragraph WordPress wraps round the page schema,
+   which shows as a white strip between the site header and the hero */
+p:has(> script[type="application/ld+json"]),
+p:has(+ #cp-hub){display:none !important;margin:0 !important}
