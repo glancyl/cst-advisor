@@ -322,3 +322,9 @@ body{overflow-x:clip}
 /* ---------- v14: consultancy links on the hub as buttons ---------- */
 #cp-hub .cp-card .cp-card-btn{align-self:flex-start;margin-top:auto}
 #cp-hub .cp-level .cp-foot .cp-btn{align-self:stretch;text-align:center}
+
+/* ---------- v15: level card buttons centred and full width ---------- */
+#cp-hub .cp-btn.white{background:#fff;border-color:#fff;color:var(--cp-navy)}
+#cp-hub .cp-btn.white:hover{background:var(--cp-navy-tint);border-color:var(--cp-navy-tint)}
+#cp-hub .cp-level .cp-foot{align-items:stretch}
+#cp-hub .cp-level .cp-foot .cp-btn{width:100%;justify-content:center;text-align:center}
