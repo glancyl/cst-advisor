@@ -60,11 +60,11 @@
       { key:'cp', name:'Compliance Partner', tag:'Training plus a retained H&S consultant', rate:[20.00, 17.00, 14.00], min:750,
         setupFixed:1500, setupMin:0, setupLabel:'£1,500 plus £15 per operative', hs:true, tw:false,
         includes:['Everything in Managed Training','Named consultant as your competent person','H&S policy and annual review','Site inspections and RAMS reviews','Advice line, accident and RIDDOR support','SSIP and prequalification support','Monthly compliance report'],
-        link:['/health-and-safety-consultancy/','Explore H&S','health-and-safety-consultancy'] },
+        link:['/health-and-safety-consultancy/','More about H&S consultancy','health-and-safety-consultancy'] },
       { key:'tw', name:'Compliance Partner + Temporary Works', tag:'The full service, including temporary works', rate:[28.00, 23.80, 19.60], min:1100,
         setupFixed:2500, setupMin:0, setupLabel:'£2,500 plus £15 per operative', hs:true, tw:true,
         includes:['Everything in Compliance Partner','Temporary works procedure and register','Temporary works audits','Advisory line for your TWCs and TWSs','TWC or TWS course places each year','Design and design checks quoted per job'],
-        link:['/temporary-works-consultancy/','Explore temporary works','temporary-works-consultancy'] }
+        link:['/temporary-works-consultancy/','More about TW consultancy','temporary-works-consultancy'] }
     ],
     extras: [
       ['Training booked with CST Training','Agreed rates, fixed for 12 months'],
@@ -139,7 +139,7 @@
       + '<p class="cp-from"><b>'+rateShort(l.rate[0])+'</b>per operative a month</p>'
       + '<ul>'+l.includes.map(function(x){ return '<li>'+esc(x)+'</li>'; }).join('')+'</ul>'
       + '<div class="cp-foot"><a class="cp-btn '+(mid?'primary':'navy')+' sm" href="#cp-s-enquire" data-cp-msg="I’m interested in '+esc(l.name)+'.">Book a free records review</a>'
-      + (l.link ? '<a class="cp-btn '+(mid?'ghost':'outline')+' sm" href="'+l.link[0]+'" data-cp-xlink="'+l.link[2]+'">'+esc(l.link[1])+'</a>' : '')
+      + (l.link ? '<a class="cp-btn '+(mid?'white':'primary')+' sm" href="'+l.link[0]+'" data-cp-xlink="'+l.link[2]+'">'+esc(l.link[1])+'</a>' : '')
       + '</div></div>';
   }).join('');
 
@@ -341,7 +341,7 @@
     document.head.appendChild(s);
   }
 
-  try{ console.info('CST Training Compliance Partner hub script v14 loaded'); }catch(e){}
+  try{ console.info('CST Training Compliance Partner hub script v15 loaded'); }catch(e){}
   /* self-test hook: in the console, cpHub.check() should log nine passes */
   window.cpHub = { fee:fee, check:function(){
     var want = {25:[250,750,1100], 100:[555,1850,2590], 200:[1020,3400,4760]};
