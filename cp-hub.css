@@ -328,3 +328,16 @@ body{overflow-x:clip}
 #cp-hub .cp-btn.white:hover{background:var(--cp-navy-tint);border-color:var(--cp-navy-tint)}
 #cp-hub .cp-level .cp-foot{align-items:stretch}
 #cp-hub .cp-level .cp-foot .cp-btn{width:100%;justify-content:center;text-align:center}
+
+/* =====================================================================
+   v16: brand typography (all three pages)
+   Alata: main headings only, used sparingly. Leading 100%, tracking 25.
+   Asap: Bold for sub headings, Regular for body copy. Leading 120%, tracking 25.
+   ===================================================================== */
+#cp-hub{--cp-head:"Asap",Helvetica,Arial,sans-serif;font-family:"Asap",Helvetica,Arial,sans-serif;letter-spacing:.025em;line-height:1.2;font-kerning:normal}
+#cp-hub h1,#cp-hub h2{font-family:"Alata","Asap",Helvetica,Arial,sans-serif;font-weight:400;line-height:1;letter-spacing:.025em}
+#cp-hub h3,#cp-hub h4{font-family:"Asap",Helvetica,Arial,sans-serif;font-weight:700;line-height:1.2;letter-spacing:.025em}
+#cp-hub p,#cp-hub li,#cp-hub td,#cp-hub th,#cp-hub .cp-quote,#cp-hub .cp-lede,#cp-hub .cp-faq .a{line-height:1.2}
+#cp-hub .cp-eyebrow,#cp-hub .cp-labels b,#cp-hub .cp-mark,#cp-hub .cp-big,#cp-hub .cp-from b,#cp-hub .cp-figs b,
+#cp-hub .cp-price,#cp-hub .cp-bridge-from,#cp-hub .cp-reco-price,#cp-hub .cp-tot b,#cp-hub .cp-d{font-family:"Asap",Helvetica,Arial,sans-serif;font-weight:700;letter-spacing:.025em}
+#cp-hub .cp-btn,#cp-hub .cp-subnav a,#cp-hub .cp-courselinks a{font-family:"Asap",Helvetica,Arial,sans-serif;letter-spacing:.025em}
