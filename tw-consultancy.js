@@ -37,9 +37,9 @@
     phone: '020 3488 4472', tel: 'tel:02034884472',
     basketUrl: '/basket/',            /* the WooCommerce basket page */
     products: {
-      proc: 0,                        /* Generic Temporary Works Procedure, £599 */
-      pack: 0,                        /* Temporary Works Document Pack (all 11), £200 */
-      templates: [0,0,0,0,0,0,0,0,0,0,0]   /* TW-01 to TW-11, £25 each, in order */
+      proc: 192447,                   /* Generic Temporary Works Procedure, £599 */
+      pack: 192437,                   /* Temporary Works Document Pack (all 11), £200 */
+      templates: [192468,192469,192472,192474,192478,192479,192480,192481,192483,192485,192487]   /* TW-01 to TW-11, £25 each, in order */
     }
   };
 
@@ -286,5 +286,5 @@
     document.head.appendChild(s);
   }
 
-  try{ console.info('CST Training temporary works page script v3 loaded'); }catch(e){}
+  try{ console.info('CST Training temporary works page script v4 loaded'); }catch(e){}
 })();
