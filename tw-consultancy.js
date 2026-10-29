@@ -121,6 +121,12 @@
     pendingMsg = msg;
     if(hsForm){ setField(hsForm, CONFIG.interestField, CONFIG.interestDefault); setField(hsForm, CONFIG.messageField, msg, true); }
   }
+  /* WooCommerce gives every page its own basket and add-to-basket addresses; use them when present */
+  function wcParams(){ return window.wc_add_to_cart_params || window.wc_cart_fragments_params || null; }
+  function cartUrl(){ var p = wcParams(); return (p && p.cart_url) ? p.cart_url : CONFIG.basketUrl; }
+  function ajaxAddUrl(){ var p = wcParams(); return (p && p.wc_ajax_url) ? p.wc_ajax_url.toString().replace('%%endpoint%%','add_to_cart') : '/?wc-ajax=add_to_cart'; }
+  function addViaUrl(id){ var c = cartUrl(); window.location.href = c + (c.indexOf('?') > -1 ? '&' : '?') + 'add-to-cart=' + id; }
+
   function addToBasket(ids, names, btn){
     if(!ids.length || ids.some(function(id){ return !id; })){
       /* products not set up yet: route to the enquiry form with the order in the message */
@@ -129,13 +135,20 @@
     }
     push({event:'cp_add_to_basket', cp_page:'tw', cp_items:names.join(' | ')});
     if(btn){ btn.setAttribute('aria-busy','true'); btn.textContent = 'Adding to basket…'; }
+    /* one product: the standard WooCommerce add-to-basket link, which always works */
+    if(ids.length === 1){ addViaUrl(ids[0]); return true; }
+    /* several products: add them one at a time, then open the basket */
     var i = 0;
     function next(){
-      if(i >= ids.length){ window.location.href = CONFIG.basketUrl; return; }
+      if(i >= ids.length){ window.location.href = cartUrl(); return; }
       var body = new FormData(); body.append('product_id', ids[i]); body.append('quantity', 1);
-      fetch('/?wc-ajax=add_to_cart', {method:'POST', body:body, credentials:'same-origin'})
-        .then(function(r){ if(!r.ok) throw new Error('add failed'); i++; next(); })
-        .catch(function(){ window.location.href = CONFIG.basketUrl + '?add-to-cart=' + ids[i]; });
+      fetch(ajaxAddUrl(), {method:'POST', body:body, credentials:'same-origin'})
+        .then(function(r){ return r.json().catch(function(){ return {}; }); })
+        .then(function(d){
+          if(d && d.error){ try{ console.warn('CST Training TW: could not add product', ids[i], d); }catch(e){} }
+          i++; next();
+        })
+        .catch(function(err){ try{ console.warn('CST Training TW: add to basket failed', err); }catch(e){} addViaUrl(ids[i]); });
     }
     next();
     return true;
@@ -286,5 +299,5 @@
     document.head.appendChild(s);
   }
 
-  try{ console.info('CST Training temporary works page script v4 loaded'); }catch(e){}
+  try{ console.info('CST Training temporary works page script v5 loaded'); }catch(e){}
 })();
