@@ -1,5 +1,5 @@
 /*!
- * CST Training About Us page (v4: content lives in the page, this file adds styling and interactions)
+ * CST Training About Us page (v5: content lives in the page; each feature fails safely, this file adds styling and interactions)
  * Host on GitHub Pages (cst-advisor repo, root), load with ?v=N cache buster.
  * The page content is the about-page.html markup inside <div id="cst-about">, editable in the visual editor.
  * Add a person: copy a .cab-p card inside the right .cab-dept. No photo? Leave the img out and initials show.
@@ -93,7 +93,7 @@
     '#cst-about .cab-tl{position:relative;max-width:980px;margin:0 auto}',
     '#cst-about .cab-tl-line{position:absolute;left:50%;top:0;bottom:0;width:4px;margin-left:-2px;background:var(--b);border-radius:4px}',
     '#cst-about .cab-tl-fill{position:absolute;left:0;top:0;width:100%;height:0;background:linear-gradient(var(--n),var(--o));border-radius:4px}',
-    '#cst-about .cab-tl-item{position:relative;width:50%;padding:0 48px 56px 0;opacity:0;transform:translateY(30px);transition:opacity .7s,transform .7s}',
+    '#cst-about .cab-tl-item{position:relative;width:50%;padding:0 48px 56px 0;transition:opacity .7s,transform .7s}#cst-about.cab-js .cab-tl-item{opacity:0;transform:translateY(30px)}',
     '#cst-about .cab-tl-item:nth-child(odd){margin-left:50%;padding:0 0 56px 48px}',
     '#cst-about .cab-tl-item.cab-on{opacity:1;transform:none}@media(min-width:701px){#cst-about .cab-tl-item+.cab-tl-item{margin-top:-90px}}',
     '#cst-about .cab-tl-dot{position:absolute;top:22px;right:-11px;width:22px;height:22px;border-radius:50%;background:#fff;border:4px solid var(--b);transition:border-color .4s,transform .4s;z-index:1}',
@@ -189,7 +189,7 @@
     '#cst-about .cab-cta .cab-txt{text-align:center;max-width:560px;margin:0 auto 30px;color:var(--m)}',
     '#cst-about .cab-foot{font-size:12.5px;color:var(--m);text-align:center;margin-top:36px}',
     /* reveal */
-    '#cst-about .cab-rv{opacity:0;transform:translateY(28px);transition:opacity .8s ease,transform .8s ease}',
+    '#cst-about.cab-js .cab-rv{opacity:0;transform:translateY(28px);transition:opacity .8s ease,transform .8s ease}',
     '#cst-about .cab-rv.cab-on{opacity:1;transform:none}',
     /* responsive */
     '#cst-about .cab-dept{display:none}#cst-about .cab-dept.cab-active{display:block}',
@@ -226,20 +226,29 @@
     if (!document.getElementById('cab-css')) { var st = el('style'); st.id = 'cab-css'; st.textContent = CSS; document.head.appendChild(st); }
     var $ = function (s, c) { return (c || root).querySelector(s); };
     var $$ = function (s, c) { return Array.prototype.slice.call((c || root).querySelectorAll(s)); };
+    root.classList.add('cab-js');
+    var safe = function (fn) { try { fn(); } catch (err) { if (window.console) console.error('[cst-about]', err); } };
+    // Failsafe: never leave content hidden
+    setTimeout(function () { $$('.cab-rv, .cab-tl-item').forEach(function (t) { t.classList.add('cab-on'); }); }, 2500);
     var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+    safe(function () {
     // Strip stray <p> and <br> that the editor sometimes adds between blocks
     $$('p:empty, .cab-people > br, .cab-vlist > br, .cab-gal > br, .cab-acc > br, .cab-roles > br').forEach(function (n) { n.parentNode.removeChild(n); });
-
+    });
+    safe(function () {
     // Hero decoration
     var hero = $('.cab-hero');
     if (hero) {
       hero.insertBefore(el('div', 'cab-grid-bg'), hero.firstChild);
       for (var r = 0; r < 9; r++) { var s = el('span', 'cab-rise'); s.style.cssText = 'left:' + (6 + r * 11) + '%;animation-duration:' + (9 + (r * 7) % 9) + 's;animation-delay:-' + (r * 1.7) + 's'; hero.insertBefore(s, hero.children[1]); }
     }
+    });
+    safe(function () {
     // Button arrows
     $$('.cab-btn-o, .cab-btn-n').forEach(function (b) { if (!$('.cab-arrow', b)) b.appendChild(el('span', 'cab-arrow', ' →')); });
-
+    });
+    safe(function () {
     // Story tabs
     var panels = $$('.cab-panel');
     if (panels.length) {
@@ -264,10 +273,12 @@
       });
       select(0);
     }
-
+    });
+    safe(function () {
     // Pillar icons
     $$('.cab-pillar').forEach(function (p) { var k = p.getAttribute('data-icon'); if (ICON[k]) p.insertBefore(el('div', 'cab-ic', ICON[k]), p.firstChild); });
-
+    });
+    safe(function () {
     // Timeline
     var tl = $('.cab-tl');
     if (tl) {
@@ -277,7 +288,8 @@
       var onScroll = function () { var r = tl.getBoundingClientRect(); fill.style.height = Math.max(0, Math.min(1, (window.innerHeight * 0.6 - r.top) / r.height)) * 100 + '%'; };
       window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
     }
-
+    });
+    safe(function () {
     // Gallery + lightbox
     var gis = $$('.cab-gi');
     if (gis.length) {
@@ -295,7 +307,8 @@
       lb.addEventListener('click', function (e) { if (e.target === lb) close(); });
       document.addEventListener('keydown', function (e) { if (!lb.classList.contains('cab-open')) return; if (e.key === 'Escape') close(); else if (e.key === 'ArrowLeft') open(gi - 1); else if (e.key === 'ArrowRight') open(gi + 1); });
     }
-
+    });
+    safe(function () {
     // Team explorer
     var depts = $$('.cab-dept');
     if (depts.length) {
@@ -345,10 +358,12 @@
       });
       show(0);
     }
-
+    });
+    safe(function () {
     // Accreditation logo fallback
     $$('.cab-acc img').forEach(function (im) { im.loading = 'lazy'; im.addEventListener('error', function () { im.parentNode.classList.add('cab-noimg'); im.remove(); }); });
-
+    });
+    safe(function () {
     // Venues map
     var vs = $$('.cab-v');
     if (vs.length) {
@@ -370,7 +385,8 @@
       };
       pick(0);
     }
-
+    });
+    safe(function () {
     // Reveal on scroll + counters
     var count = function (n) {
       var end = +n.getAttribute('data-count'), suf = n.getAttribute('data-suffix') || '', t0 = null;
@@ -385,11 +401,14 @@
       }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
       targets.forEach(function (t) { io.observe(t); });
     } else targets.forEach(function (t) { t.classList.add('cab-on'); });
-
+    });
+    safe(function () {
     // Smooth in-page links
     $$('a[href^="#cab-"]').forEach(function (a) {
       a.addEventListener('click', function (e) { var t = document.getElementById(a.getAttribute('href').slice(1)); if (t) { e.preventDefault(); t.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }); } });
     });
+    });
+
   }
 
   function start() { var root = document.getElementById('cst-about'); if (root && !root.getAttribute('data-ready')) { root.setAttribute('data-ready', '1'); init(root); } }
