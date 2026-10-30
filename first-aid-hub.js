@@ -1,5 +1,5 @@
 /*!
- * CST Training First Aid hub (v5: faster dates: early prefetch, parallel pages, configurable fallback)
+ * CST Training First Aid hub (v6: hide cancelled courses, only lists published, visible, in-stock dates)
  * Host on GitHub Pages (cst-advisor repo), load with ?v=N cache buster.
  * Load AFTER nebosh-hub.js, which supplies the shared nbx/nbi page CSS.
  * Mount point:
@@ -187,19 +187,19 @@
   // ---------- Live dates (v3) ----------
   var MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   var DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-  var CACHE_MS = 15 * 60 * 1000, KEEP_MS = 24 * 60 * 60 * 1000;
+  var CACHE_MS = 5 * 60 * 1000, KEEP_MS = 24 * 60 * 60 * 1000;
   function decode(s) { var t = document.createElement("textarea"); t.innerHTML = s; return t.value; }
-  function cacheGet(k) { try { var c = JSON.parse(localStorage.getItem("fad:" + k) || "null"); return c && Date.now() - c.t < KEEP_MS ? c : null; } catch (e) { return null; } }
+  function cacheGet(k) { try { var c = JSON.parse(localStorage.getItem("fad2:" + k) || "null"); return c && Date.now() - c.t < KEEP_MS ? c : null; } catch (e) { return null; } }
   function cacheSet(k, d) {
     try {
       var slim = d.map(function (p) { return { id: p.id, name: p.name, permalink: p.permalink, prices: p.prices && { price: p.prices.price, currency_minor_unit: p.prices.currency_minor_unit }, is_in_stock: p.is_in_stock, is_purchasable: p.is_purchasable, low_stock_remaining: p.low_stock_remaining }; });
-      localStorage.setItem("fad:" + k, JSON.stringify({ t: Date.now(), d: slim }));
+      localStorage.setItem("fad2:" + k, JSON.stringify({ t: Date.now(), d: slim }));
     } catch (e) {}
   }
   function fetchPages(base, q) {
     var sep = base.indexOf("?") > -1 ? "&" : "?";
     var filter = q.cat ? "category=" + encodeURIComponent(q.cat) : "search=" + encodeURIComponent(q.search);
-    function url(n) { return base + sep + filter + "&per_page=100&page=" + n + "&_fields=id,name,permalink,prices,is_in_stock,is_purchasable,low_stock_remaining"; }
+    function url(n) { return base + sep + filter + "&per_page=100&page=" + n + "&catalog_visibility=catalog&stock_status=instock,onbackorder&_fields=id,name,permalink,prices,is_in_stock,is_purchasable,low_stock_remaining"; }
     function get(n) {
       return fetch(url(n), { credentials: "same-origin" })
         .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); var tp = +(r.headers.get("X-WP-TotalPages") || 1); return r.json().then(function (j) { return { j: j, tp: tp }; }); });
