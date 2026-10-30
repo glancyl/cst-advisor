@@ -1,7 +1,7 @@
 /* CST Training About Us page v1
    Page content: a div with id "cst-about", followed by a script tag loading this file
-   (https://glancyl.github.io/cst-advisor/about/about.js?v=1).
-   Images load from the img/ folder next to this file unless window.CST_ABOUT_IMAGES overrides them. */
+   (https://glancyl.github.io/cst-advisor/about/about.js?v=3).
+   Images load from the WordPress Media Library (see IMG below). */
 (function () {
   'use strict';
 
@@ -193,18 +193,14 @@
     ]}
   ];
 
-  /* ---------- Image base ---------- */
-  function scriptBase() {
-    var s = document.currentScript;
-    if (!s || !s.src) {
-      var all = document.getElementsByTagName('script');
-      for (var i = 0; i < all.length; i++) if (/about\.js/.test(all[i].src || '')) { s = all[i]; break; }
-    }
-    return s && s.src ? s.src.split('?')[0].replace(/[^\/]*$/, '') + 'img/' : '';
-  }
-  var BASE = scriptBase();
-  var IMG = { team: 'about-team.jpg', meeting: 'about-meeting.jpg', classroom: 'about-classroom.jpg', sign: 'about-sign.jpg', reception: 'about-reception.jpg' };
-  Object.keys(IMG).forEach(function (k) { IMG[k] = BASE + IMG[k]; });
+  /* ---------- Images (WordPress Media Library) ---------- */
+  var IMG = {
+    team: WP + '2026/10/IMG_1683-1-scaled.jpeg',
+    meeting: WP + '2026/10/IMG_5383-scaled.jpg',
+    sign: WP + '2026/10/IMG_4281.jpg',
+    classroom: WP + '2026/10/classroom-photo-no-logo-2.png',
+    reception: ''  // TODO: add URL once about-reception.jpg (cropped version) is uploaded
+  };
   if (window.CST_ABOUT_IMAGES) Object.keys(window.CST_ABOUT_IMAGES).forEach(function (k) { IMG[k] = window.CST_ABOUT_IMAGES[k]; });
 
   var GALLERY = [
@@ -213,7 +209,7 @@
     { k: 'sign', cap: 'River House, Bexley High Street', cls: 'tall' },
     { k: 'classroom', cap: 'SSSTS delegates on the last day of their course', cls: 'wide' },
     { k: 'reception', cap: 'Reception at River House', cls: 'wide logo' }
-  ];
+  ].filter(function (g) { return IMG[g.k]; });
 
   /* ---------- Styles ---------- */
   var CSS = [
