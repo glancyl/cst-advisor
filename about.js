@@ -1,5 +1,5 @@
 /*!
- * CST Training About Us page (v5: content lives in the page; each feature fails safely, this file adds styling and interactions)
+ * CST Training About Us page (v6: unwraps editor <p> tags, starts after DOMContentLoaded rewrites; each feature fails safely, this file adds styling and interactions)
  * Host on GitHub Pages (cst-advisor repo, root), load with ?v=N cache buster.
  * The page content is the about-page.html markup inside <div id="cst-about">, editable in the visual editor.
  * Add a person: copy a .cab-p card inside the right .cab-dept. No photo? Leave the img out and initials show.
@@ -229,9 +229,23 @@
     root.classList.add('cab-js');
     var safe = function (fn) { try { fn(); } catch (err) { if (window.console) console.error('[cst-about]', err); } };
     // Failsafe: never leave content hidden
-    setTimeout(function () { $$('.cab-rv, .cab-tl-item').forEach(function (t) { t.classList.add('cab-on'); }); }, 2500);
+    setTimeout(function () { Array.prototype.forEach.call(document.querySelectorAll('#cst-about .cab-rv, #cst-about .cab-tl-item'), function (t) { t.classList.add('cab-on'); }); }, 2500);
     var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+    safe(function () {
+    // Unwrap <p> tags the WordPress editor adds around images, links and buttons
+    $$('p').forEach(function (p) {
+      if (p.className && p.className !== 'mod-reset') return;
+      var ok = p.children.length > 0;
+      for (var n = p.firstChild; n; n = n.nextSibling) {
+        if (n.nodeType === 3 && n.textContent.trim()) { ok = false; break; }
+        if (n.nodeType === 1 && !/^(A|IMG|STRONG|BR)$/.test(n.tagName)) { ok = false; break; }
+      }
+      if (!ok) return;
+      while (p.firstChild) { if (p.firstChild.nodeName === 'BR') p.removeChild(p.firstChild); else p.parentNode.insertBefore(p.firstChild, p); }
+      p.parentNode.removeChild(p);
+    });
+    });
     safe(function () {
     // Strip stray <p> and <br> that the editor sometimes adds between blocks
     $$('p:empty, .cab-people > br, .cab-vlist > br, .cab-gal > br, .cab-acc > br, .cab-roles > br').forEach(function (n) { n.parentNode.removeChild(n); });
@@ -412,5 +426,9 @@
   }
 
   function start() { var root = document.getElementById('cst-about'); if (root && !root.getAttribute('data-ready')) { root.setAttribute('data-ready', '1'); init(root); } }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+  // A sitewide snippet rewrites document.body.innerHTML on DOMContentLoaded, which wipes event listeners,
+  // so wait until every DOMContentLoaded handler has run before wiring the page up.
+  function later() { setTimeout(start, 0); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', later); else later();
+  window.addEventListener('load', start);
 })();
