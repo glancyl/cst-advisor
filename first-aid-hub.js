@@ -1,12 +1,13 @@
 /*!
- * CST Training First Aid hub (v1)
+ * CST Training First Aid hub (v2: separate dates links for FAW and EFAW)
  * Host on GitHub Pages (cst-advisor repo), load with ?v=N cache buster.
  * Load AFTER nebosh-hub.js, which supplies the shared nbx/nbi page CSS.
  * Mount point:
  *   <div class="cst-fa-finder"
  *        data-faw-url="/level-3-award-in-first-aid-at-work-3-day-course-rqf/"
  *        data-efaw-url="/emergency-first-aid-work/"
- *        data-dates-anchor="#filter-section"
+ *        data-faw-dates="/level-3-first-aid-at-work-locations-page/"
+ *        data-efaw-dates="/emergency-first-aid-work/#filter-section"
  *        data-faw-price="215" data-efaw-price="95"></div>
  * Suggested numbers follow HSE's table of suggested first-aid personnel (INDG214 / L74).
  */
@@ -67,15 +68,16 @@
       faw: {
         name: "First Aid at Work", length: "3 days",
         price: +(root.getAttribute("data-faw-price") || 215),
-        url: abs(root.getAttribute("data-faw-url") || "/level-3-award-in-first-aid-at-work-3-day-course-rqf/")
+        url: abs(root.getAttribute("data-faw-url") || "/level-3-award-in-first-aid-at-work-3-day-course-rqf/"),
+        dates: abs(root.getAttribute("data-faw-dates") || "/level-3-first-aid-at-work-locations-page/")
       },
       efaw: {
         name: "Emergency First Aid at Work", length: "1 day",
         price: +(root.getAttribute("data-efaw-price") || 95),
-        url: abs(root.getAttribute("data-efaw-url") || "/emergency-first-aid-work/")
+        url: abs(root.getAttribute("data-efaw-url") || "/emergency-first-aid-work/"),
+        dates: abs(root.getAttribute("data-efaw-dates") || "/emergency-first-aid-work/#filter-section")
       }
     };
-    var anchor = root.getAttribute("data-dates-anchor") || "#filter-section";
 
     var bar = el("div", "nbi-bar"); root.appendChild(bar);
     function sel(list, ph, label) {
@@ -145,7 +147,7 @@
       box.appendChild(el("p", null, "HSE expects cover whenever people are at work, including holidays and sickness, so most employers train at least one more person than the minimum."));
 
       var bb = el("div", "nbi-btns");
-      bb.appendChild(linkBtn(K.url + anchor, "or", "See " + K.name + " dates"));
+      bb.appendChild(linkBtn(K.dates, "or", "See " + K.name + " dates"));
       bb.appendChild(linkBtn(CONTACT, "gh", total >= 5 ? "Ask about group or on-site training" : "Enquire"));
       box.appendChild(bb);
 
