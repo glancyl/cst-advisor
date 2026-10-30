@@ -1,5 +1,5 @@
 /*!
- * CST Training First Aid hub (v2: separate dates links for FAW and EFAW)
+ * CST Training First Aid hub (v3: live first aid dates list)
  * Host on GitHub Pages (cst-advisor repo), load with ?v=N cache buster.
  * Load AFTER nebosh-hub.js, which supplies the shared nbx/nbi page CSS.
  * Mount point:
@@ -9,6 +9,14 @@
  *        data-faw-dates="/level-3-first-aid-at-work-locations-page/"
  *        data-efaw-dates="/emergency-first-aid-work/#filter-section"
  *        data-faw-price="215" data-efaw-price="95"></div>
+ * Live dates:
+ *   <div class="cst-fa-dates" data-search="First Aid At Work" data-match="first aid at work"
+ *        data-exclude="emergency|requal" data-theme="dark"
+ *        data-fallback="/level-3-first-aid-at-work-locations-page/"></div>
+ *   Reads published WooCommerce products through the Store API. First aid titles look like
+ *   "London (Dartford) | Level 3 First Aid At Work | Highfields Approved | 09-12-2026":
+ *   the first part is the location, and the date is read from anywhere in the title.
+ *   ?location=dartford preselects a location. Past and sold-out dates are hidden.
  * Suggested numbers follow HSE's table of suggested first-aid personnel (INDG214 / L74).
  */
 (function () {
@@ -173,12 +181,126 @@
     num.addEventListener("input", update);
   }
 
+
+  // ---------- Live dates (v3) ----------
+  var MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  var DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  var CACHE_MS = 15 * 60 * 1000, KEEP_MS = 24 * 60 * 60 * 1000;
+  function decode(s) { var t = document.createElement("textarea"); t.innerHTML = s; return t.value; }
+  function cacheGet(k) { try { var c = JSON.parse(localStorage.getItem("fad:" + k) || "null"); return c && Date.now() - c.t < KEEP_MS ? c : null; } catch (e) { return null; } }
+  function cacheSet(k, d) {
+    try {
+      var slim = d.map(function (p) { return { id: p.id, name: p.name, permalink: p.permalink, prices: p.prices && { price: p.prices.price, currency_minor_unit: p.prices.currency_minor_unit }, is_in_stock: p.is_in_stock, is_purchasable: p.is_purchasable, low_stock_remaining: p.low_stock_remaining }; });
+      localStorage.setItem("fad:" + k, JSON.stringify({ t: Date.now(), d: slim }));
+    } catch (e) {}
+  }
+  function fetchPages(base, search) {
+    var out = [], sep = base.indexOf("?") > -1 ? "&" : "?";
+    function page(n) {
+      return fetch(base + sep + "search=" + encodeURIComponent(search) + "&per_page=100&page=" + n +
+        "&_fields=id,name,permalink,prices,is_in_stock,is_purchasable,low_stock_remaining", { credentials: "same-origin" })
+        .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); var tp = +(r.headers.get("X-WP-TotalPages") || 1); return r.json().then(function (j) { return { j: j, tp: tp }; }); })
+        .then(function (res) { out = out.concat(res.j || []); return n < res.tp && n < 8 ? page(n + 1) : out; });
+    }
+    return page(1);
+  }
+  function parseFA(p) {
+    var name = decode(p.name || ""), parts = name.split("|").map(function (x) { return x.trim(); });
+    var m = /(\d{1,2})-(\d{1,2})-(\d{4})/.exec(name);
+    if (!m) return null;
+    var pr = p.prices || {}, mu = Math.pow(10, pr.currency_minor_unit == null ? 2 : pr.currency_minor_unit);
+    return {
+      id: p.id, date: new Date(+m[3], +m[2] - 1, +m[1]), loc: parts.length > 1 ? parts[0] : "",
+      price: pr.price ? Math.round(+pr.price / mu) : null,
+      inStock: p.is_in_stock !== false && p.is_purchasable !== false,
+      low: p.low_stock_remaining || null, url: p.permalink
+    };
+  }
+  function mountDates(root) {
+    if (root._fad) return; root._fad = true;
+    root.classList.add("nbd"); if (root.getAttribute("data-theme") === "dark") root.classList.add("nbd-dark");
+    root.innerHTML = "";
+    var search = root.getAttribute("data-search") || "First Aid At Work";
+    var must = (root.getAttribute("data-match") || "").split("|").map(function (x) { return x.trim().toLowerCase(); }).filter(Boolean);
+    var not = (root.getAttribute("data-exclude") || "").split("|").map(function (x) { return x.trim().toLowerCase(); }).filter(Boolean);
+    var base = root.getAttribute("data-endpoint") || "/wp-json/wc/store/v1/products";
+    var fallback = abs(root.getAttribute("data-fallback") || "/level-3-first-aid-at-work-locations-page/");
+    var course = root.getAttribute("data-course-label") || "First Aid at Work";
+    var step = +(root.getAttribute("data-show") || 8);
+    var want = ""; try { want = (new URLSearchParams(location.search).get("location") || "").toLowerCase(); } catch (e) {}
+    var state = { loc: "", shown: step }, items = [];
+
+    var bar = el("div", "nbd-bar"); root.appendChild(bar);
+    var list = el("div", "nbd-list"); list.setAttribute("aria-live", "polite"); root.appendChild(list);
+    var more = el("button", "nbd-more", "Show more dates"); more.type = "button"; root.appendChild(more);
+    more.addEventListener("click", function () { state.shown += step; draw(); });
+    var locSel = el("select", "nbd-loc"); locSel.setAttribute("aria-label", "Choose a location");
+    locSel.addEventListener("change", function () { state.loc = locSel.value; state.shown = step; draw(); });
+
+    function msg(t) {
+      list.innerHTML = ""; var p = el("p", "nbd-msg", t + " "); var a = el("a", null, "See all locations"); a.href = fallback;
+      p.appendChild(a); list.appendChild(p); more.style.display = "none";
+    }
+    (function skeleton() {
+      for (var k = 0; k < 4; k++) { var r = el("div", "nbd-row nbd-skel"); ["w1", "w2", "w3", "w4"].forEach(function (w) { r.appendChild(el("div", "nbd-sk " + w)); }); list.appendChild(r); }
+      more.style.display = "none";
+    })();
+
+    function buildBar() {
+      bar.innerHTML = "";
+      var locs = items.map(function (i) { return i.loc; }).filter(function (v, k, a) { return v && a.indexOf(v) === k; }).sort();
+      locSel.innerHTML = ""; var o = el("option", null, "All locations"); o.value = ""; locSel.appendChild(o);
+      locs.forEach(function (l) { var op = el("option", null, l); op.value = l; locSel.appendChild(op); });
+      if (want && !state.loc) { for (var i = 0; i < locs.length; i++) if (locs[i].toLowerCase().indexOf(want) > -1) { state.loc = locs[i]; break; } }
+      locSel.value = state.loc; bar.appendChild(locSel);
+    }
+    function draw() {
+      var rows = items.filter(function (i) { return !state.loc || i.loc === state.loc; });
+      list.innerHTML = "";
+      if (!rows.length) { msg("No upcoming dates for this location right now."); return; }
+      rows.slice(0, state.shown).forEach(function (i) {
+        var r = el("div", "nbd-row");
+        var dt = el("div", "nbd-date", i.date.getDate() + " " + MONTHS[i.date.getMonth()] + " " + i.date.getFullYear());
+        dt.appendChild(el("span", null, DAYS[i.date.getDay()] + " start")); r.appendChild(dt);
+        var w = el("div", "nbd-what"); w.appendChild(el("b", null, course));
+        if (i.loc) w.appendChild(document.createTextNode(" in " + i.loc));
+        if (i.low) w.appendChild(el("span", "nbd-low", "Only " + i.low + " place" + (i.low === 1 ? "" : "s") + " left"));
+        r.appendChild(w);
+        r.appendChild(el("div", "nbd-price", i.price != null ? money(i.price) + " + VAT" : ""));
+        var a = el("a", "nbx-btn or", "Book now"); a.href = i.url;
+        a.addEventListener("click", function () { try { window.dataLayer = window.dataLayer || []; window.dataLayer.push({ event: "fa_date_click", fa_course: course, fa_location: i.loc, fa_date: i.date.toISOString().slice(0, 10) }); } catch (e) {} });
+        r.appendChild(a); list.appendChild(r);
+      });
+      more.style.display = rows.length > state.shown ? "" : "none";
+    }
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    var shown = false, settled = false;
+    setTimeout(function () { if (!settled && !shown && root.isConnected) msg("The dates are taking longer than usual to load."); }, 12000);
+    function show(data) {
+      items = (data || []).filter(function (p) {
+        var n = decode(p.name || "").toLowerCase();
+        return must.every(function (w) { return n.indexOf(w) > -1; }) && !not.some(function (w) { return n.indexOf(w) > -1; });
+      }).map(parseFA).filter(function (i) { return i && i.inStock && i.date >= today; })
+        .sort(function (a, b) { return a.date - b.date; });
+      if (!items.length) { msg("No upcoming dates are listed online right now."); return; }
+      shown = true; buildBar(); draw();
+    }
+    var key = base + "|" + search, cached = cacheGet(key);
+    if (cached) show(cached.d);
+    if (!cached || Date.now() - cached.t >= CACHE_MS) {
+      fetchPages(base, search).then(function (d) { settled = true; cacheSet(key, d); show(d); })
+        .catch(function () { settled = true; if (!shown) msg("We couldn't load the dates just now."); });
+    } else settled = true;
+  }
+
   function init() {
     Array.prototype.forEach.call(document.querySelectorAll(".cst-fa-finder"), mount);
+    Array.prototype.forEach.call(document.querySelectorAll(".cst-fa-dates"), mountDates);
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
   if (window.MutationObserver) new MutationObserver(function () {
     if (!document.getElementById("fa-css")) injectCss();
     Array.prototype.forEach.call(document.querySelectorAll(".cst-fa-finder"), function (r) { if (!r._fa || !r.firstChild) { r._fa = false; mount(r); } });
+    Array.prototype.forEach.call(document.querySelectorAll(".cst-fa-dates"), function (r) { if (!r._fad) mountDates(r); });
   }).observe(document.documentElement, { childList: true, subtree: true });
 })();
