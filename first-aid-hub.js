@@ -1,22 +1,24 @@
 /*!
- * CST Training First Aid hub (v3: live first aid dates list)
+ * CST Training First Aid hub (v5: faster dates: early prefetch, parallel pages, configurable fallback)
  * Host on GitHub Pages (cst-advisor repo), load with ?v=N cache buster.
  * Load AFTER nebosh-hub.js, which supplies the shared nbx/nbi page CSS.
  * Mount point:
  *   <div class="cst-fa-finder"
  *        data-faw-url="/level-3-award-in-first-aid-at-work-3-day-course-rqf/"
  *        data-efaw-url="/emergency-first-aid-work/"
- *        data-faw-dates="/level-3-first-aid-at-work-locations-page/"
- *        data-efaw-dates="/emergency-first-aid-work/#filter-section"
+ *        data-faw-dates="/level-3-award-in-first-aid-at-work-3-day-course-rqf/#dates"
+ *        data-efaw-dates="/emergency-first-aid-work/#dates"
  *        data-faw-price="215" data-efaw-price="95"></div>
  * Live dates:
- *   <div class="cst-fa-dates" data-search="First Aid At Work" data-match="first aid at work"
+ *   <div class="cst-fa-dates" data-category="product-category-slug" (preferred; or data-search="First Aid At Work") data-match="first aid at work"
  *        data-exclude="emergency|requal" data-theme="dark"
- *        data-fallback="/level-3-first-aid-at-work-locations-page/"></div>
+ *        data-fallback="#enquire" data-fallback-label="Ask us about dates"></div>
  *   Reads published WooCommerce products through the Store API. First aid titles look like
  *   "London (Dartford) | Level 3 First Aid At Work | Highfields Approved | 09-12-2026":
  *   the first part is the location, and the date is read from anywhere in the title.
  *   ?location=dartford preselects a location. Past and sold-out dates are hidden.
+ *   Optional early start: an inline snippet at the top of the page can set
+ *   window.CSTFA[categorySlug] = fetch(...first page...) so the request begins before this script loads.
  * Suggested numbers follow HSE's table of suggested first-aid personnel (INDG214 / L74).
  */
 (function () {
@@ -77,13 +79,13 @@
         name: "First Aid at Work", length: "3 days",
         price: +(root.getAttribute("data-faw-price") || 215),
         url: abs(root.getAttribute("data-faw-url") || "/level-3-award-in-first-aid-at-work-3-day-course-rqf/"),
-        dates: abs(root.getAttribute("data-faw-dates") || "/level-3-first-aid-at-work-locations-page/")
+        dates: abs(root.getAttribute("data-faw-dates") || "/level-3-award-in-first-aid-at-work-3-day-course-rqf/#dates")
       },
       efaw: {
         name: "Emergency First Aid at Work", length: "1 day",
         price: +(root.getAttribute("data-efaw-price") || 95),
         url: abs(root.getAttribute("data-efaw-url") || "/emergency-first-aid-work/"),
-        dates: abs(root.getAttribute("data-efaw-dates") || "/emergency-first-aid-work/#filter-section")
+        dates: abs(root.getAttribute("data-efaw-dates") || "/emergency-first-aid-work/#dates")
       }
     };
 
@@ -194,15 +196,24 @@
       localStorage.setItem("fad:" + k, JSON.stringify({ t: Date.now(), d: slim }));
     } catch (e) {}
   }
-  function fetchPages(base, search) {
-    var out = [], sep = base.indexOf("?") > -1 ? "&" : "?";
-    function page(n) {
-      return fetch(base + sep + "search=" + encodeURIComponent(search) + "&per_page=100&page=" + n +
-        "&_fields=id,name,permalink,prices,is_in_stock,is_purchasable,low_stock_remaining", { credentials: "same-origin" })
-        .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); var tp = +(r.headers.get("X-WP-TotalPages") || 1); return r.json().then(function (j) { return { j: j, tp: tp }; }); })
-        .then(function (res) { out = out.concat(res.j || []); return n < res.tp && n < 8 ? page(n + 1) : out; });
+  function fetchPages(base, q) {
+    var sep = base.indexOf("?") > -1 ? "&" : "?";
+    var filter = q.cat ? "category=" + encodeURIComponent(q.cat) : "search=" + encodeURIComponent(q.search);
+    function url(n) { return base + sep + filter + "&per_page=100&page=" + n + "&_fields=id,name,permalink,prices,is_in_stock,is_purchasable,low_stock_remaining"; }
+    function get(n) {
+      return fetch(url(n), { credentials: "same-origin" })
+        .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); var tp = +(r.headers.get("X-WP-TotalPages") || 1); return r.json().then(function (j) { return { j: j, tp: tp }; }); });
     }
-    return page(1);
+    var early = q.cat && window.CSTFA && window.CSTFA[q.cat];
+    var first = early ? Promise.resolve(early).then(function (res) { if (!res || !res.j) throw new Error("early"); return res; }).catch(function () { return get(1); }) : get(1);
+    // First page tells us how many pages there are; fetch the rest at the same time rather than one by one
+    return first.then(function (res) {
+      var rest = [];
+      for (var n = 2; n <= Math.min(res.tp, 8); n++) rest.push(get(n));
+      return Promise.all(rest).then(function (more) {
+        return more.reduce(function (all, m) { return all.concat(m.j || []); }, res.j || []);
+      });
+    });
   }
   function parseFA(p) {
     var name = decode(p.name || ""), parts = name.split("|").map(function (x) { return x.trim(); });
@@ -224,7 +235,9 @@
     var must = (root.getAttribute("data-match") || "").split("|").map(function (x) { return x.trim().toLowerCase(); }).filter(Boolean);
     var not = (root.getAttribute("data-exclude") || "").split("|").map(function (x) { return x.trim().toLowerCase(); }).filter(Boolean);
     var base = root.getAttribute("data-endpoint") || "/wp-json/wc/store/v1/products";
-    var fallback = abs(root.getAttribute("data-fallback") || "/level-3-first-aid-at-work-locations-page/");
+    var fb = root.getAttribute("data-fallback") || "#enquire";
+    var fallback = fb.charAt(0) === "#" ? fb : abs(fb);
+    var fallbackLabel = root.getAttribute("data-fallback-label") || "Ask us about dates";
     var course = root.getAttribute("data-course-label") || "First Aid at Work";
     var step = +(root.getAttribute("data-show") || 8);
     var want = ""; try { want = (new URLSearchParams(location.search).get("location") || "").toLowerCase(); } catch (e) {}
@@ -238,7 +251,7 @@
     locSel.addEventListener("change", function () { state.loc = locSel.value; state.shown = step; draw(); });
 
     function msg(t) {
-      list.innerHTML = ""; var p = el("p", "nbd-msg", t + " "); var a = el("a", null, "See all locations"); a.href = fallback;
+      list.innerHTML = ""; var p = el("p", "nbd-msg", t + " "); var a = el("a", null, fallbackLabel); a.href = fallback;
       p.appendChild(a); list.appendChild(p); more.style.display = "none";
     }
     (function skeleton() {
@@ -285,10 +298,11 @@
       if (!items.length) { msg("No upcoming dates are listed online right now."); return; }
       shown = true; buildBar(); draw();
     }
-    var key = base + "|" + search, cached = cacheGet(key);
-    if (cached) show(cached.d);
+    var cat = root.getAttribute("data-category") || "";
+    var key = base + "|" + (cat ? "cat:" + cat : search), cached = cacheGet(key);
+    if (cached && cached.d.length) show(cached.d); else cached = null;
     if (!cached || Date.now() - cached.t >= CACHE_MS) {
-      fetchPages(base, search).then(function (d) { settled = true; cacheSet(key, d); show(d); })
+      fetchPages(base, { cat: cat, search: search }).then(function (d) { settled = true; if (d.length) cacheSet(key, d); show(d); })
         .catch(function () { settled = true; if (!shown) msg("We couldn't load the dates just now."); });
     } else settled = true;
   }
