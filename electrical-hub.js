@@ -1,6 +1,6 @@
 /* CST Training Electrical hub: route finder + team cost calculator.
    Host on the cst-advisor repo (GitHub Pages) and load from the hub page:
-   <script nitro-exclude src="https://glancyl.github.io/cst-advisor/electrical-hub.js?v=1" defer></script>
+   <script nitro-exclude src="https://glancyl.github.io/cst-advisor/electrical-hub.js?v=3" defer></script>
    Mounts: <div class="cst-elec-finder"></div> and <div class="cst-elec-team"></div>
    All prices ex VAT. Facts from the Electrical audit, 27 Oct 2026.
    OPEN ITEMS (check before publish):
@@ -22,7 +22,7 @@
       short: "Experienced Worker Qualification",
       code: "City & Guilds 2346-03",
       list: 1550,
-      priceLine: "£1,395 + VAT paid in full, or £1,550 + VAT on a plan (£155 a month over 10 months at 0%)",
+      priceLine: "£1,550 + VAT, or £155 + VAT a month over 10 months, interest free",
       cta: "View the Experienced Worker Qualification"
     },
     wiring: {
@@ -38,7 +38,7 @@
   var BANDS = [{ min: 7, pct: 0.10 }, { min: 3, pct: 0.05 }];
 
   var ROUTE = [
-    ["Free skills scan", "We check your years on the tools and your certificates before you pay anything.", "CST Training"],
+    ["Free eligibility check", "Enquire and we check your years on the tools and your certificates before you commit.", "CST Training"],
     ["Register", "City & Guilds 2346-03 registration. You can apply for an ECS Experienced Worker card while you work through it.", "CST Training"],
     ["Experienced Worker Qualification", "A portfolio of your real jobs, plus an assessor observing you on site.", "CST Training"],
     ["18th Edition (2382-26)", "Required for the qualification to be certificated. Online with us.", "CST Training"],
@@ -71,6 +71,16 @@
     ".elx select:focus,.elx input:focus{outline:2px solid var(--bl);outline-offset:1px}",
     ".elx-go{display:block;margin:22px auto 0;background:var(--or);color:#fff;border:0;border-radius:30px;padding:14px 34px;font-size:17px;font-weight:700;cursor:pointer;font-family:inherit}",
     ".elx-go:hover{background:var(--nv)}",
+    ".elx-ask{text-align:center;font-size:20px;font-weight:700;color:var(--nv);margin:0 0 18px}",
+    ".elx-opts{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr))}",
+    ".elx-opt{display:flex;flex-direction:column;gap:6px;text-align:left;background:var(--sf);border:2px solid transparent;border-radius:12px;padding:18px;cursor:pointer;font-family:inherit;transition:border-color .15s,background .15s}",
+    ".elx-opt b{color:var(--nv);font-size:17px;line-height:1.3}",
+    ".elx-opt span{color:var(--mu);font-size:14px;line-height:1.4}",
+    ".elx-opt:hover{border-color:var(--bd);background:#fff}",
+    ".elx-opt.on{border-color:var(--or);background:#fff7ec}",
+    ".elx-opt:focus-visible{outline:2px solid var(--bl);outline-offset:2px}",
+    ".elx-more{margin-top:16px}",
+    ".elx-more summary{cursor:pointer;font-weight:700;color:var(--nv)}",
     ".elx-res{margin-top:26px;border-top:1px solid var(--bd);padding-top:24px}",
     ".elx-res[hidden]{display:none}",
     ".elx-res h3{color:var(--nv);font-size:26px;margin:0 0 6px;line-height:1.25}",
@@ -111,107 +121,63 @@
     return '<div><label for="' + id + '">' + label + '</label><select id="' + id + '">' + o + "</select></div>";
   }
 
-  /* ---------- finder ---------- */
-  function recommend(a) {
-    var r = { course: "wiring", h: "", why: "", warn: "", route: false };
-    var scotland = a.where === "sco";
+  /* ---------- finder: one tap ---------- */
+  var CHOICES = [
+    ["ewq", "I'm an electrician with 5+ years but no NVQ", "I want my ECS Gold Card"],
+    ["wiring", "I need the current 18th Edition", "For my card, scheme or employer"],
+    ["allied", "I'm in another trade", "Plumbing, heating, kitchens or maintenance"],
+    ["team", "I'm qualifying a team", "Electricians I already employ"]
+  ];
 
-    if (a.role === "experienced" || (a.role === "employer" && a.goal !== "current")) {
-      if (a.goal === "current" && a.role === "experienced") {
-        r.course = "wiring";
-        r.why = "The 18th Edition (2382-26) is the current Amendment 4 wiring regulations award, so it's what a card, scheme or employer asking for the current 18th Edition wants. It's also one of the three parts you'll need if you later go for the Experienced Worker Qualification and an ECS Gold Card.";
-      } else if (scotland) {
-        r.course = "wiring";
-        r.warn = "City & Guilds doesn't offer the Experienced Worker Qualification (2346-03) in Scotland. The 18th Edition is available wherever you are, and SJIB can advise on the Scottish route.";
-        r.why = "The 18th Edition (2382-26) is the current Amendment 4 wiring regulations award, online with the exam sat remotely.";
-      } else {
-        r.course = "ewq";
-        r.route = true;
-        r.why = a.role === "employer"
-          ? "The Experienced Worker Qualification qualifies the electricians you already employ, assessed on your own sites with no time out for college. Each person needs five years as a practising electrician and a Level 2 electrical qualification, and we check that at a free skills scan before anyone pays."
-          : "The Experienced Worker Qualification recognises the work you already do. You build a portfolio from real jobs, an assessor observes you on site, and there's no classroom course. You'll need five years as a practising electrician (training time doesn't count) and a Level 2 electrical qualification. We check this at a free skills scan before you pay anything.";
-      }
-    } else if (a.role === "newer") {
-      r.course = "wiring";
-      r.why = "The Experienced Worker Qualification needs five years as a practising electrician, so the 18th Edition (2382-26) is the right place to start now. It's one of the three parts of the Experienced Worker route, so it counts when you get there.";
-    } else if (a.role === "qualified") {
-      r.course = "wiring";
-      r.why = a.goal === "gold"
-        ? "With an NVQ Level 3 or a completed apprenticeship you're already at the standard the Experienced Worker Qualification recognises, so you don't need it. If your card or scheme wants Amendment 4, the 18th Edition (2382-26) is the course."
-        : "The 18th Edition (2382-26) is the only 18th Edition exam City & Guilds now runs, and it's what schemes, card renewals and employers expect for Amendment 4.";
-    } else if (a.role === "allied") {
-      r.course = "wiring";
-      r.why = "If you do fixed electrical work in another trade, the 18th Edition (2382-26) shows you work to the current regulations. There are no formal entry requirements, though basic electrical knowledge is expected. The Experienced Worker Qualification is only for practising electricians.";
-    } else {
-      r.course = "wiring";
-      r.why = "The 18th Edition (2382-26) brings your team up to Amendment 4, online at their own pace with the City & Guilds exam sat remotely.";
-    }
+  var RESULTS = {
+    ewq: { course: "ewq", h: "The Experienced Worker Qualification",
+      why: "It recognises the work you already do. You build a portfolio from real jobs, an assessor observes you on site, and there's no classroom course. You'll need five years as a practising electrician and a Level 2 electrical qualification, so enquire and we'll check your eligibility for free before you commit.",
+      note: "Under five years, or based in Scotland? Start with the 18th Edition instead, as it counts towards the route later.",
+      route: true, cta2: "Check my eligibility" },
+    wiring: { course: "wiring", h: "The 18th Edition (2382-26)",
+      why: "It's the current Amendment 4 wiring regulations award and the only 18th Edition exam City & Guilds now runs. Online at your own pace, with the exam sat remotely.",
+      cta2: "Enquire" },
+    allied: { course: "wiring", h: "The 18th Edition (2382-26)",
+      why: "If you do fixed electrical work in another trade, the 18th Edition shows you work to the current regulations. There are no formal entry requirements, though basic electrical knowledge is expected.",
+      cta2: "Enquire" },
+    team: { course: "ewq", h: "The Experienced Worker Qualification for your team",
+      why: "Qualify the electricians you already employ without releasing them for college. One eligibility check for the whole team, site observations grouped by job, and three or more people get the team rate.",
+      route: true, team: true, cta2: "Request a team quote" }
+  };
 
-    r.h = "We'd recommend the " + COURSES[r.course].short;
-    return r;
-  }
-
-  function renderResult(box, a) {
-    var r = recommend(a);
+  function renderResult(box, key) {
+    var r = RESULTS[key];
     var c = COURSES[r.course];
-    var html = "<h3>" + esc(r.h) + "</h3>" +
-      '<p class="elx-code">' + esc(c.code) + "</p>";
-    if (r.warn) html += '<div class="elx-warn">' + esc(r.warn) + "</div>";
-    html += "<p>" + esc(r.why) + "</p>";
-    html += '<div class="elx-price">' + esc(c.priceLine) + "</div>";
-
+    var html = "<h3>We'd recommend " + esc(r.h) + "</h3>" +
+      '<p class="elx-code">' + esc(c.code) + "</p>" +
+      "<p>" + esc(r.why) + "</p>" +
+      '<div class="elx-price">' + esc(c.priceLine) + "</div>";
+    if (r.note) html += '<div class="elx-note">' + esc(r.note) + "</div>";
     if (r.route) {
-      html += "<p><b>Your whole route to an ECS Gold Card.</b> Steps 3, 4 and 5 must all be done within 18 months of registering. Orange steps are with CST Training.</p>";
-      html += '<ol class="elx-steps">' + ROUTE.map(function (s, i) {
-        var ours = s[2] === "CST Training";
-        return '<li class="' + (ours ? "ours" : "") + '"><b>' + esc(s[0]) + '</b><span class="elx-who">' + esc(s[2]) + "</span><br>" + esc(s[1]) + "</li>";
-      }).join("") + "</ol>";
-      html += '<p class="elx-small">Not included in the qualification price: the 18th Edition (£290 + VAT with us), Initial Verification, the Orange Book, the AM2E and ECS card fees. We show you the full total at the skills scan.</p>';
+      html += '<details class="elx-more"><summary>See the full route to a Gold Card</summary>' +
+        '<ol class="elx-steps">' + ROUTE.map(function (s) {
+          return '<li class="' + (s[2] === "CST Training" ? "ours" : "") + '"><b>' + esc(s[0]) + '</b><span class="elx-who">' + esc(s[2]) + "</span><br>" + esc(s[1]) + "</li>";
+        }).join("") + "</ol>" +
+        '<p class="elx-small">Steps 3, 4 and 5 must all be done within 18 months of registering. Initial Verification, the Orange Book, the AM2E and ECS card fees are separate.</p></details>';
     }
-
-    var n = parseInt(a.n, 10) || 1;
-    if (n >= 3) {
-      var p = pct(n);
-      html += '<div class="elx-note">Booking for ' + n + " people? Team rates take " + Math.round(p * 100) + "% off every place, and we can run the skills scan for the whole team in one session. <a href=\"#team\">Work out the cost</a>.</div>";
-    }
-
     html += '<div class="elx-btns"><a class="elx-btn or" href="' + (r.course === "ewq" ? URLS.ewq : URLS.wiring) + '">' + esc(c.cta) + "</a>" +
-      '<a class="elx-btn gh" href="' + URLS.contact + '">' + (r.course === "ewq" ? "Book my free skills scan" : "Enquire") + "</a></div>";
-    html += '<p class="elx-small">Prefer to talk it through? Call us on <a href="tel:02034884472">' + URLS.phone + "</a>.</p>";
-
+      '<a class="elx-btn gh" href="' + (r.team ? "#team" : URLS.contact) + '">' + esc(r.cta2) + "</a></div>";
     box.innerHTML = html;
     box.hidden = false;
-    if (box.scrollIntoView) box.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
   function mountFinder(el) {
-    el.innerHTML = '<div class="elx"><div class="elx-card"><div class="elx-grid">' +
-      select("elx-role", "I am", [
-        ["experienced", "An electrician with 5+ years but no NVQ Level 3 or apprenticeship"],
-        ["newer", "An electrician with under 5 years' experience"],
-        ["qualified", "A qualified electrician (NVQ Level 3 or apprenticeship)"],
-        ["allied", "Another trade that does some electrical work"],
-        ["employer", "An employer with electricians to qualify"]
-      ]) +
-      select("elx-goal", "I need it for", [
-        ["gold", "An ECS Gold Card / fully qualified status"],
-        ["current", "Amendment 4: my card, scheme or employer wants the current 18th Edition"]
-      ]) +
-      select("elx-where", "I work in", [
-        ["ewni", "England, Wales or Northern Ireland"],
-        ["sco", "Scotland"]
-      ]) +
-      '<div><label for="elx-n">How many people?</label><input id="elx-n" type="number" min="1" max="200" value="1"></div>' +
-      '</div><button type="button" class="elx-go">Show my route</button>' +
-      '<div class="elx-res" hidden aria-live="polite"></div></div></div>';
-
+    el.innerHTML = '<div class="elx"><div class="elx-card"><p class="elx-ask">Which sounds most like you?</p><div class="elx-opts">' +
+      CHOICES.map(function (c) {
+        return '<button type="button" class="elx-opt" data-k="' + c[0] + '"><b>' + esc(c[1]) + "</b><span>" + esc(c[2]) + "</span></button>";
+      }).join("") +
+      '</div><div class="elx-res" hidden aria-live="polite"></div></div></div>';
     var box = el.querySelector(".elx-res");
-    el.querySelector(".elx-go").addEventListener("click", function () {
-      renderResult(box, {
-        role: el.querySelector("#elx-role").value,
-        goal: el.querySelector("#elx-goal").value,
-        where: el.querySelector("#elx-where").value,
-        n: el.querySelector("#elx-n").value
+    var btns = el.querySelectorAll(".elx-opt");
+    Array.prototype.forEach.call(btns, function (b) {
+      b.addEventListener("click", function () {
+        Array.prototype.forEach.call(btns, function (x) { x.classList.toggle("on", x === b); });
+        renderResult(box, b.getAttribute("data-k"));
       });
     });
   }
@@ -222,7 +188,7 @@
     el.innerHTML = '<div class="elx"><div class="elx-card"><div class="elx-grid">' +
       select("elx-tc", "Qualification", [
         ["wiring", "18th Edition (2382-26), £290 + VAT"],
-        ["ewq", "Experienced Worker Qualification, £1,550 + VAT list"]
+        ["ewq", "Experienced Worker Qualification, £1,550 + VAT"]
       ]) +
       '<div><label for="elx-tn">Number of people</label><input id="elx-tn" type="number" min="1" max="200" value="3"></div>' +
       '</div><div class="elx-tot"></div>' +
