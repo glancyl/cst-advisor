@@ -4,7 +4,7 @@
    Mounts: <div class="cst-elec-finder"></div> and <div class="cst-elec-team"></div>
    All prices ex VAT. Facts from the Electrical audit, 27 Oct 2026.
    OPEN ITEMS (check before publish):
-   - 18th Edition £290 includes C&G registration and remote exam (Photis)
+   - 18th Edition \u00a3290 includes C&G registration and remote exam (Photis)
    - Team ladder 5% (3 to 6) / 10% (7+) on NVQ products (Luisa) */
 (function () {
   "use strict";
@@ -22,7 +22,7 @@
       short: "Experienced Worker Qualification",
       code: "City & Guilds 2346-03",
       list: 1550,
-      priceLine: "£1,550 + VAT, or £155 + VAT a month over 10 months, interest free",
+      priceLine: "\u00a31,550 + VAT, or \u00a3155 + VAT a month over 10 months, interest free",
       cta: "View the Experienced Worker Qualification"
     },
     wiring: {
@@ -30,7 +30,7 @@
       short: "18th Edition",
       code: "City & Guilds 2382-26",
       list: 290,
-      priceLine: "£290 + VAT, City & Guilds registration and remote exam included. You'll need your own Orange Book (about £106).",
+      priceLine: "\u00a3290 + VAT, City & Guilds registration and remote exam included. You'll need your own Orange Book (about \u00a3106).",
       cta: "View the 18th Edition course"
     }
   };
@@ -48,7 +48,7 @@
   ];
 
   function gbp(n) {
-    return "£" + Math.round(n).toLocaleString("en-GB");
+    return "\u00a3" + Math.round(n).toLocaleString("en-GB");
   }
   function esc(s) {
     return String(s).replace(/[&<>"]/g, function (c) {
@@ -73,7 +73,8 @@
     ".elx-go:hover{background:var(--nv)}",
     ".elx-ask{text-align:center;font-size:20px;font-weight:700;color:var(--nv);margin:0 0 18px}",
     ".elx-opts{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr))}",
-    ".elx-opt{display:flex;flex-direction:column;gap:6px;text-align:left;background:var(--sf);border:2px solid transparent;border-radius:12px;padding:18px;cursor:pointer;font-family:inherit;transition:border-color .15s,background .15s}",
+    ".cst-elec-finder{position:relative;z-index:20}",
+    ".elx-opt{position:relative;z-index:21;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;display:flex;flex-direction:column;gap:6px;text-align:left;background:var(--sf);border:2px solid transparent;border-radius:12px;padding:18px;cursor:pointer;font-family:inherit;transition:border-color .15s,background .15s}",
     ".elx-opt b{color:var(--nv);font-size:17px;line-height:1.3}",
     ".elx-opt span{color:var(--mu);font-size:14px;line-height:1.4}",
     ".elx-opt:hover{border-color:var(--bd);background:#fff}",
@@ -82,7 +83,6 @@
     ".elx-more{margin-top:16px}",
     ".elx-more summary{cursor:pointer;font-weight:700;color:var(--nv)}",
     ".elx-res{margin-top:26px;border-top:1px solid var(--bd);padding-top:24px}",
-    ".elx-res[hidden]{display:none}",
     ".elx-res h3{color:var(--nv);font-size:26px;margin:0 0 6px;line-height:1.25}",
     ".elx-code{color:var(--mu);font-size:14px;margin:0 0 14px}",
     ".elx-price{background:#fff7ec;border:1px solid #ffc77f;border-radius:10px;padding:12px 16px;color:var(--nv);font-weight:700;margin:14px 0}",
@@ -163,32 +163,82 @@
     html += '<div class="elx-btns"><a class="elx-btn or" href="' + (r.course === "ewq" ? URLS.ewq : URLS.wiring) + '">' + esc(c.cta) + "</a>" +
       '<a class="elx-btn gh" href="' + (r.team ? "#team" : URLS.contact) + '">' + esc(r.cta2) + "</a></div>";
     box.innerHTML = html;
-    box.hidden = false;
   }
 
   function mountFinder(el) {
-    el.innerHTML = '<div class="elx"><div class="elx-card"><p class="elx-ask">Which sounds most like you?</p><div class="elx-opts">' +
+    if (el.getAttribute("data-elx") === "1") return;
+    el.setAttribute("data-elx", "1");
+    el.innerHTML = '<div class="elx"><div class="elx-card"><p class="elx-ask">Which sounds most like you?</p><div class="elx-opts" role="group">' +
       CHOICES.map(function (c) {
-        return '<button type="button" class="elx-opt" data-k="' + c[0] + '"><b>' + esc(c[1]) + "</b><span>" + esc(c[2]) + "</span></button>";
+        return '<div class="elx-opt" role="button" tabindex="0" data-k="' + c[0] + '"><b>' + esc(c[1]) + "</b><span>" + esc(c[2]) + "</span></div>";
       }).join("") +
-      '</div><div class="elx-res" hidden aria-live="polite"></div></div></div>';
-    var box = el.querySelector(".elx-res");
-    var btns = el.querySelectorAll(".elx-opt");
-    Array.prototype.forEach.call(btns, function (b) {
-      b.addEventListener("click", function () {
-        Array.prototype.forEach.call(btns, function (x) { x.classList.toggle("on", x === b); });
-        renderResult(box, b.getAttribute("data-k"));
-      });
-    });
+      '</div><div class="elx-res" style="display:none" aria-live="polite"></div></div></div>';
   }
+
+  /* Delegated on window, capture phase, so theme or plugin scripts can't swallow the clicks. */
+  function pick(opt) {
+    var root = opt.closest(".cst-elec-finder");
+    if (!root) return;
+    Array.prototype.forEach.call(root.querySelectorAll(".elx-opt"), function (x) {
+      x.classList.toggle("on", x === opt);
+      x.setAttribute("aria-pressed", x === opt ? "true" : "false");
+    });
+    var box = root.querySelector(".elx-res");
+    renderResult(box, opt.getAttribute("data-k"));
+    box.style.display = "block";
+    var go = function () {
+      var r = box.getBoundingClientRect();
+      var offset = window.innerWidth < 768 ? 100 : Math.round(window.innerHeight * 0.35);
+      var cur = window.pageYOffset || document.documentElement.scrollTop;
+      var y = r.top + cur - offset;
+      if (Math.abs(y - cur) > 40) {
+        try { window.scrollTo({ top: y, behavior: "smooth" }); } catch (e) { window.scrollTo(0, y); }
+      }
+      box.setAttribute("tabindex", "-1");
+      try { box.focus({ preventScroll: true }); } catch (e) {}
+    };
+    if (window.requestAnimationFrame) requestAnimationFrame(go); else setTimeout(go, 0);
+  }
+  /* Find the option under the pointer by position, not by event target. This still works if an
+     invisible theme layer sits on top of the finder or another script stops the event. */
+  function optAt(x, y) {
+    var opts = document.querySelectorAll(".cst-elec-finder .elx-opt");
+    for (var i = 0; i < opts.length; i++) {
+      var r = opts[i].getBoundingClientRect();
+      if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return opts[i];
+    }
+    return null;
+  }
+  var lastPick = 0;
+  function onPoint(e) {
+    var pt = e.changedTouches && e.changedTouches[0] ? e.changedTouches[0] : e;
+    if (pt.clientX == null) return;
+    var o = optAt(pt.clientX, pt.clientY);
+    if (!o) return;
+    var now = Date.now();
+    if (now - lastPick < 350) return;
+    lastPick = now;
+    pick(o);
+  }
+  ["click", "pointerup", "touchend"].forEach(function (ev) {
+    window.addEventListener(ev, onPoint, { capture: true, passive: true });
+    document.addEventListener(ev, onPoint, { capture: true, passive: true });
+  });
+  window.addEventListener("keydown", function (e) {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    var o = e.target && e.target.closest ? e.target.closest(".cst-elec-finder .elx-opt") : null;
+    if (o) { e.preventDefault(); pick(o); }
+  }, true);
 
   /* ---------- team calculator ---------- */
   function mountTeam(el) {
+    if (el.getAttribute("data-elx") === "1") return;
+    el.setAttribute("data-elx", "1");
     var start = el.getAttribute("data-course") === "ewq" ? "ewq" : "wiring";
     el.innerHTML = '<div class="elx"><div class="elx-card"><div class="elx-grid">' +
       select("elx-tc", "Qualification", [
-        ["wiring", "18th Edition (2382-26), £290 + VAT"],
-        ["ewq", "Experienced Worker Qualification, £1,550 + VAT"]
+        ["wiring", "18th Edition (2382-26), \u00a3290 + VAT"],
+        ["ewq", "Experienced Worker Qualification, \u00a31,550 + VAT"]
       ]) +
       '<div><label for="elx-tn">Number of people</label><input id="elx-tn" type="number" min="1" max="200" value="3"></div>' +
       '</div><div class="elx-tot"></div>' +
@@ -196,28 +246,31 @@
       '<div class="elx-btns" style="justify-content:center"><a class="elx-btn or" href="' + URLS.contact + '">Request a team quote</a></div>' +
       "</div></div>";
 
-    var sel = el.querySelector("#elx-tc");
-    var num = el.querySelector("#elx-tn");
-    var out = el.querySelector(".elx-tot");
-    sel.value = start;
-
-    function calc() {
-      var c = COURSES[sel.value];
-      var n = Math.max(1, Math.min(200, parseInt(num.value, 10) || 1));
-      var p = pct(n);
-      var each = c.list * (1 - p);
-      var saving = c.list * p * n;
-      out.innerHTML =
-        "<div><b>" + gbp(each) + "</b><span>per person + VAT</span></div>" +
-        "<div><b>" + gbp(each * n) + "</b><span>total for " + n + (n === 1 ? " person" : " people") + " + VAT</span></div>" +
-        "<div><b>" + (p ? gbp(saving) : "£0") + "</b><span>" + (p ? "team saving (" + Math.round(p * 100) + "%)" : "team rates start at 3 people") + "</span></div>";
-    }
-    sel.addEventListener("change", calc);
-    num.addEventListener("input", calc);
-    calc();
+    el.querySelector("#elx-tc").value = start;
+    calcTeam(el);
   }
 
+  function calcTeam(root) {
+    var sel = root.querySelector("select"), num = root.querySelector("input"), out = root.querySelector(".elx-tot");
+    if (!sel || !num || !out) return;
+    var c = COURSES[sel.value] || COURSES.wiring;
+    var n = Math.max(1, Math.min(200, parseInt(num.value, 10) || 1));
+    var p = pct(n);
+    var each = c.list * (1 - p);
+    out.innerHTML =
+      "<div><b>" + gbp(each) + "</b><span>per person + VAT</span></div>" +
+      "<div><b>" + gbp(each * n) + "</b><span>total for " + n + (n === 1 ? " person" : " people") + " + VAT</span></div>" +
+      "<div><b>" + (p ? gbp(c.list * p * n) : "\u00a30") + "</b><span>" + (p ? "team saving (" + Math.round(p * 100) + "%)" : "team rates start at 3 people") + "</span></div>";
+  }
+  ["input", "change", "keyup"].forEach(function (ev) {
+    window.addEventListener(ev, function (e) {
+      var root = e.target && e.target.closest ? e.target.closest(".cst-elec-team") : null;
+      if (root) calcTeam(root);
+    }, true);
+  });
+
   function init() {
+    try { console.log("[elx] ready v5"); } catch (e) {}
     injectCSS();
     Array.prototype.forEach.call(document.querySelectorAll(".cst-elec-finder"), mountFinder);
     Array.prototype.forEach.call(document.querySelectorAll(".cst-elec-team"), mountTeam);
