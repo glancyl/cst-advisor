@@ -1,5 +1,5 @@
 /*!
- * CST Training About Us page (v7)
+ * CST Training About Us page (v8: team chip arrows on desktop)
  * Styling lives in a WPCode CSS snippet (about.css), so the page looks right even if this file never loads.
  * This file only adds interactions: story tabs, team filter and search, venue map, photo lightbox,
  * timeline progress line, initials for staff without photos.
@@ -53,7 +53,11 @@
         var b = el('button', 'cab-chip', esc(d.getAttribute('data-label') || 'Team') + '<small>' + qa('.cab-p', d).length + '</small>');
         b.type = 'button'; b.setAttribute('data-i', i); b.setAttribute('aria-pressed', i === 0); chips.appendChild(b);
       });
-      top.parentNode.insertBefore(chips, top.nextSibling);
+      var nav = el('div', 'cab-chipnav');
+      var prev = el('button', 'cab-chipnav-btn cab-chipnav-prev', '‹'); prev.type = 'button'; prev.setAttribute('aria-label', 'Previous teams');
+      var next = el('button', 'cab-chipnav-btn cab-chipnav-next', '›'); next.type = 'button'; next.setAttribute('aria-label', 'More teams');
+      nav.appendChild(prev); nav.appendChild(chips); nav.appendChild(next);
+      top.parentNode.insertBefore(nav, top.nextSibling);
       var res = el('div', 'cab-results'); res.hidden = true; res.setAttribute('aria-live', 'polite');
       depts[depts.length - 1].parentNode.insertBefore(res, depts[depts.length - 1].nextSibling);
     });
@@ -122,6 +126,10 @@
     if ((t = e.target.closest('#cst-about .cab-chip'))) { showDept(r, +t.getAttribute('data-i')); return; }
     if ((t = e.target.closest('#cst-about .cab-v'))) { pickVenue(r, +t.getAttribute('data-i')); return; }
     if ((t = e.target.closest('#cst-about .cab-gi'))) { e.preventDefault(); openLb(r, +t.getAttribute('data-i')); return; }
+    if ((t = e.target.closest('#cst-about .cab-chipnav-btn'))) {
+      var row = q('.cab-chips', r); if (row) row.scrollBy({ left: (t.classList.contains('cab-chipnav-prev') ? -1 : 1) * Math.max(200, row.clientWidth * 0.7), behavior: 'smooth' });
+      return;
+    }
     if (e.target.closest('#cst-about .cab-lb-x')) { closeLb(r); return; }
     if (e.target.closest('#cst-about .cab-lb-p')) { openLb(r, gi - 1); return; }
     if (e.target.closest('#cst-about .cab-lb-n')) { openLb(r, gi + 1); return; }
@@ -141,13 +149,21 @@
     var v = e.target.closest && e.target.closest('#cst-about .cab-v');
     if (v && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); pickVenue(r, +v.getAttribute('data-i')); }
   });
+  function arrows() {
+    var r = root(), row = r && q('.cab-chips', r); if (!row) return;
+    var p = q('.cab-chipnav-prev', r), n = q('.cab-chipnav-next', r);
+    if (p) p.disabled = row.scrollLeft <= 2;
+    if (n) n.disabled = row.scrollLeft + row.clientWidth >= row.scrollWidth - 2;
+  }
+  document.addEventListener('scroll', function (e) { if (e.target && e.target.classList && e.target.classList.contains('cab-chips')) arrows(); }, true);
+  window.addEventListener('resize', arrows);
   window.addEventListener('scroll', function () {
     var r = root(), tl = r && q('.cab-tl', r); if (!tl) return;
     var b = tl.getBoundingClientRect();
     tl.style.setProperty('--fill', Math.max(0, Math.min(1, (window.innerHeight * 0.6 - b.top) / b.height)) * 100 + '%');
   }, { passive: true });
 
-  function start() { var r = root(); if (r && !r.classList.contains(DONE)) build(r); }
+  function start() { var r = root(); if (r && !r.classList.contains(DONE)) build(r); arrows(); }
   // Run after every DOMContentLoaded handler (a sitewide snippet rewrites body.innerHTML then), and again on load as a backstop.
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(start, 0); }); else setTimeout(start, 0);
   window.addEventListener('load', function () { setTimeout(start, 0); });
