@@ -1,6 +1,6 @@
 /* CST Training ILM and CMI hubs: one-tap finder, team cost calculator and card styles.
    Load on both hubs:
-   <script nitro-exclude src="https://glancyl.github.io/cst-advisor/leadership-hub.js?v=1" defer></script>
+   <script nitro-exclude src="https://glancyl.github.io/cst-advisor/leadership-hub.js?v=2" defer></script>
    Mounts: <div class="cst-lh-finder" data-group="ilm|cmi"></div>
            <div class="cst-lh-team" data-group="ilm|cmi"></div>
    Prices are current list prices, ex VAT (csttraining.co.uk, 3 Nov 2026). Monthly = price / 10.
@@ -133,15 +133,16 @@
     ".lhx-note a{color:var(--nv);font-weight:700;text-decoration:underline}",
     ".lhx-small{font-size:14px;color:var(--mu);margin-top:14px}",
     /* size rows: used in finder results AND static hub cards */
-    ".lhx-sizes{list-style:none!important;margin:14px 0 0!important;padding:0!important}",
-    ".lhx-sizes li{list-style:none!important;margin:0 0 8px!important;padding:0!important}",
+    ".lhx-sizes{list-style:none!important;margin:4px 20px 20px!important;padding:0!important;border-top:1px solid #e3e7f1}",
+    ".lhx-res .lhx-sizes{margin:16px 0 0!important}",
+    ".lhx-sizes li{list-style:none!important;margin:0!important;padding:0!important;border-bottom:1px solid #e3e7f1}",
     ".lhx-sizes li:before{display:none!important}",
-    ".lhx-sizes a{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;background:#f4f5f9;border:1px solid #dde3f0;border-radius:10px;padding:12px 14px;text-decoration:none!important;color:#1d2560!important;transition:border-color .15s,background .15s}",
-    ".lhx-sizes a:hover{border-color:#ff8c04;background:#fff7ec}",
-    ".lhx-sizes .s{font-weight:700;flex:1 1 140px}",
-    ".lhx-sizes .p{font-weight:700;color:#1d2560}",
-    ".lhx-sizes .m{font-size:13px;color:#6b7394;flex-basis:100%}",
-    ".lhx-sizes .go{color:#ff8c04;font-weight:700}",
+    ".lhx-sizes a{display:grid;grid-template-columns:1fr auto 18px;align-items:center;gap:12px;padding:12px 6px;text-decoration:none!important;color:#1d2560!important;transition:background .15s}",
+    ".lhx-sizes a:hover{background:#fff7ec}",
+    ".lhx-sizes b{display:block;font-size:16px;line-height:1.3;color:#1d2560}",
+    ".lhx-sizes small{display:block;font-size:13px;line-height:1.35;color:#6b7394;margin-top:2px}",
+    ".lhx-sizes .p{text-align:right}",
+    ".lhx-sizes .go{color:#ff8c04;font-size:22px;font-weight:700;line-height:1;text-align:right}",
     ".lhx-tot{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));margin-top:22px}",
     ".lhx-tot div{background:var(--sf);border-radius:12px;padding:16px;text-align:center}",
     ".lhx-tot b{display:block;color:var(--nv);font-size:28px;line-height:1.2}",
@@ -165,9 +166,8 @@
 
   function sizeRows(items) {
     return '<ul class="lhx-sizes">' + items.map(function (it) {
-      return '<li><a href="' + SITE + it[4] + '"><span class="s">' + esc(it[0]) + '</span><span class="p">' + gbp(it[2]) +
-        ' + VAT</span><span class="go">View</span><span class="m">' + esc(it[1]) + " · " + esc(it[3]) +
-        " · or " + gbp(it[2] / 10) + " + VAT a month for 10 months</span></a></li>";
+      return '<li><a href="' + SITE + it[4] + '" title="' + esc(it[1]) + '"><span class="s"><b>' + esc(it[0]) + "</b><small>" + esc(it[3]) +
+        '</small></span><span class="p"><b>' + gbp(it[2]) + " + VAT</b><small>or " + gbp(it[2] / 10) + ' + VAT a month</small></span><span class="go" aria-hidden="true">&rsaquo;</span></a></li>';
     }).join("") + "</ul>";
   }
 
