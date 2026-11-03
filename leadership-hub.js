@@ -120,14 +120,14 @@
     ".lhx-card{background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(29,37,96,.12);padding:28px;margin:24px auto 0;max-width:1000px}",
     ".lhx-ask{text-align:center;font-size:20px;font-weight:700;color:var(--nv);margin:0 0 18px}",
     ".lhx-opts{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))}",
-    ".lhx-opt{display:flex;flex-direction:column;gap:6px;text-align:left;background:var(--sf);border:2px solid transparent;border-radius:12px;padding:18px;cursor:pointer;font-family:inherit;transition:border-color .15s,background .15s}",
+    ".lhx-opt{user-select:none;display:flex;flex-direction:column;gap:6px;text-align:left;background:var(--sf);border:2px solid transparent;border-radius:12px;padding:18px;cursor:pointer;font-family:inherit;transition:border-color .15s,background .15s}",
     ".lhx-opt b{color:var(--nv);font-size:17px;line-height:1.3}",
     ".lhx-opt span{color:var(--mu);font-size:14px;line-height:1.4}",
     ".lhx-opt:hover{border-color:var(--bd);background:#fff}",
     ".lhx-opt.on{border-color:var(--or);background:#fff7ec}",
     ".lhx-opt:focus-visible{outline:2px solid var(--bl);outline-offset:2px}",
     ".lhx-res{margin-top:26px;border-top:1px solid var(--bd);padding-top:24px}",
-    ".lhx-res[hidden]{display:none}",
+    
     ".lhx-res h3{color:var(--nv);font-size:26px;margin:0 0 8px;line-height:1.25}",
     ".lhx-note{background:#e4edfb;border:1px solid #2e6fd6;border-radius:10px;padding:12px 16px;margin:16px 0 0;color:var(--nv)}",
     ".lhx-note a{color:var(--nv);font-weight:700;text-decoration:underline}",
@@ -189,24 +189,41 @@
       : '<div class="lhx-note">Prefer to be assessed on your own work by portfolio? <a href="' + HUBS.ilm + '">Compare ILM qualifications</a>.</div>';
     html += '<p class="lhx-small">Booking for three or more? <a href="#team">Work out the team price</a>, or call us on <a href="tel:02034884472">020 3488 4472</a>.</p>';
     box.innerHTML = html;
-    box.hidden = false;
   }
 
   function mountFinder(el) {
+    if (el.getAttribute("data-lhx") === "1") return;
+    el.setAttribute("data-lhx", "1");
     var g = el.getAttribute("data-group") === "cmi" ? "cmi" : "ilm";
-    el.innerHTML = '<div class="lhx"><div class="lhx-card"><p class="lhx-ask">Which sounds most like you?</p><div class="lhx-opts">' +
+    el.innerHTML = '<div class="lhx"><div class="lhx-card"><p class="lhx-ask">Which sounds most like you?</p><div class="lhx-opts" role="group">' +
       CHOICES[g].map(function (c) {
-        return '<button type="button" class="lhx-opt" data-k="' + c[0] + '"><b>' + esc(c[1]) + "</b><span>" + esc(c[2]) + "</span></button>";
-      }).join("") + '</div><div class="lhx-res" hidden aria-live="polite"></div></div></div>';
-    var box = el.querySelector(".lhx-res");
-    var btns = el.querySelectorAll(".lhx-opt");
-    Array.prototype.forEach.call(btns, function (b) {
-      b.addEventListener("click", function () {
-        Array.prototype.forEach.call(btns, function (x) { x.classList.toggle("on", x === b); });
-        renderResult(box, g, b.getAttribute("data-k"));
-      });
-    });
+        return '<div class="lhx-opt" role="button" tabindex="0" data-k="' + c[0] + '"><b>' + esc(c[1]) + "</b><span>" + esc(c[2]) + "</span></div>";
+      }).join("") + '</div><div class="lhx-res" style="display:none" aria-live="polite"></div></div></div>';
   }
+
+  /* One delegated handler on window, capture phase, so theme or plugin scripts
+     that stop click events further down can't block the finder. */
+  function pick(opt) {
+    var root = opt.closest(".cst-lh-finder");
+    if (!root) return;
+    var g = root.getAttribute("data-group") === "cmi" ? "cmi" : "ilm";
+    Array.prototype.forEach.call(root.querySelectorAll(".lhx-opt"), function (x) {
+      x.classList.toggle("on", x === opt);
+      x.setAttribute("aria-pressed", x === opt ? "true" : "false");
+    });
+    var box = root.querySelector(".lhx-res");
+    renderResult(box, g, opt.getAttribute("data-k"));
+    box.style.display = "block";
+  }
+  window.addEventListener("click", function (e) {
+    var opt = e.target && e.target.closest ? e.target.closest(".cst-lh-finder .lhx-opt") : null;
+    if (opt) pick(opt);
+  }, true);
+  window.addEventListener("keydown", function (e) {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    var opt = e.target && e.target.closest ? e.target.closest(".cst-lh-finder .lhx-opt") : null;
+    if (opt) { e.preventDefault(); pick(opt); }
+  }, true);
 
   /* ---------- team calculator ---------- */
   function mountTeam(el) {
