@@ -50,12 +50,12 @@
       ["Level 3 Diploma", "CMI Level 3 Diploma in Coaching & Mentoring", 1340, "3 to 6 months", "cmi-level-3-diploma-in-coaching-mentoring/"],
       ["Level 7 Diploma", "CMI Level 7 Diploma in Leadership Coaching & Mentoring", 1500, "6 to 12 months", "cmi-level-7-diploma-in-leadership-coaching-mentoring/"]] },
     pc: { h: "CMI Professional Consulting", who: "For consultants, and anyone building consultancy skills.", items: [
-      ["L5 Award", "CMI Level 5 Award in Management Consulting Practice", 320, "3 to 12 months", "cmi-level-5-award-in-management-consulting/"],
-      ["L5 Certificate", "CMI Level 5 Certificate in Management Consulting Practice", 550, "6 to 12 months", "cmi-level-5-certificate-in-management-consulting/"],
-      ["L5 Diploma", "CMI Level 5 Diploma in Management Consulting Practice", 1100, "6 to 12 months", "cmi-level-5-diploma-in-management-consulting/"],
-      ["L5 Award", "CMI Level 5 Award in Principles of Management Consulting", 320, "2 to 3 months", "cmi-level-5-award-principles-management-consulting/"],
-      ["L5 Certificate", "CMI Level 5 Certificate in Principles of Management Consulting", 550, "3 to 5 months", "cmi-level-5-certificate-principles-management-consulting/"],
-      ["L7 Diploma", "CMI Level 7 Diploma in Professional Consulting", 1100, "6 to 12 months", "cmi-level-7-diploma-in-professional-consulting/"]] },
+      ["Level 5 Award", "CMI Level 5 Award in Management Consulting Practice", 320, "3 to 12 months", "cmi-level-5-award-in-management-consulting/"],
+      ["Level 5 Certificate", "CMI Level 5 Certificate in Management Consulting Practice", 550, "6 to 12 months", "cmi-level-5-certificate-in-management-consulting/"],
+      ["Level 5 Diploma", "CMI Level 5 Diploma in Management Consulting Practice", 1100, "6 to 12 months", "cmi-level-5-diploma-in-management-consulting/"],
+      ["Level 5 Award", "CMI Level 5 Award in Principles of Management Consulting", 320, "2 to 3 months", "cmi-level-5-award-principles-management-consulting/"],
+      ["Level 5 Certificate", "CMI Level 5 Certificate in Principles of Management Consulting", 550, "3 to 5 months", "cmi-level-5-certificate-principles-management-consulting/"],
+      ["Level 7 Diploma", "CMI Level 7 Diploma in Professional Consulting", 1100, "6 to 12 months", "cmi-level-7-diploma-in-professional-consulting/"]] },
     pm: { h: "CMI Project Management", who: "For project managers and project leads.", items: [
       ["Level 3 Award", "CMI Level 3 Award in Project Management", 300, "8 to 16 weeks", "cmi-level-3-award-in-project-management/"],
       ["Level 5 Certificate", "CMI Level 5 Certificate in Project Management", 600, "3 to 5 months", "cmi-level-5-certificate-in-project-management/"]] }
@@ -119,7 +119,7 @@
   var BANDS = [{ min: 7, pct: 0.10 }, { min: 3, pct: 0.05 }];
 
   function data(g) { return g === "cmi" ? CMI : ILM; }
-  function gbp(n) { return "£" + Math.round(n).toLocaleString("en-GB"); }
+  function gbp(n) { return "\u00a3" + Math.round(n).toLocaleString("en-GB"); }
   function esc(s) {
     return String(s).replace(/[&<>"]/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
@@ -189,9 +189,9 @@
     document.head.appendChild(s);
   }
 
-  function sizeRows(items) {
+  function sizeRows(items, full) {
     return '<ul class="lhx-sizes">' + items.map(function (it) {
-      return '<li><a href="' + SITE + it[4] + '" title="' + esc(it[1]) + '"><span class="s"><b>' + esc(it[0]) + "</b><small>" + esc(it[3]) +
+      return '<li><a href="' + SITE + it[4] + '" title="' + esc(it[1]) + '"><span class="s"><b>' + esc(full ? it[1] : it[0]) + "</b><small>" + esc(it[3]) +
         '</small></span><span class="p"><b>' + gbp(it[2]) + " + VAT</b><small>or " + gbp(it[2] / 10) + ' + VAT a month</small></span><span class="go" aria-hidden="true">&rsaquo;</span></a></li>';
     }).join("") + "</ul>";
   }
@@ -200,7 +200,7 @@
   function renderResult(box, g, key) {
     var d = data(g)[key];
     var html = "<h3>We'd recommend " + esc(d.h) + "</h3><p>" + esc(d.who) + " " + esc(WHY[g][key]) + "</p>";
-    html += sizeRows(d.items);
+    html += sizeRows(d.items, g === "cmi");
     var cmp = COMPARE[g][key];
     if (cmp) {
       html += '<p class="lhx-cmp">Unsure which is the best fit for you? <a href="' + SITE + cmp[0] + '">' + esc(cmp[1]) + "</a></p>";
@@ -263,39 +263,48 @@
   }, true);
 
   /* ---------- team calculator ---------- */
+  var TEAM_ITEMS = {};
+  function teamItems(g) {
+    if (TEAM_ITEMS[g]) return TEAM_ITEMS[g];
+    var all = [], d = data(g);
+    Object.keys(d).forEach(function (k) { d[k].items.forEach(function (it) { all.push(it); }); });
+    return (TEAM_ITEMS[g] = all);
+  }
+  function calcTeam(root) {
+    var g = root.getAttribute("data-group") === "cmi" ? "cmi" : "ilm";
+    var all = teamItems(g);
+    var sel = root.querySelector("select"), num = root.querySelector("input"), out = root.querySelector(".lhx-tot");
+    if (!sel || !num || !out) return;
+    var it = all[parseInt(sel.value, 10) || 0];
+    var n = Math.max(1, Math.min(200, parseInt(num.value, 10) || 1));
+    var p = pct(n), each = it[2] * (1 - p);
+    out.innerHTML =
+      "<div><b>" + gbp(each) + "</b><span>per person + VAT</span></div>" +
+      "<div><b>" + gbp(each * n) + "</b><span>total for " + n + (n === 1 ? " person" : " people") + " + VAT</span></div>" +
+      "<div><b>" + (p ? gbp(it[2] * p * n) : "\u00a30") + "</b><span>" + (p ? "team saving (" + Math.round(p * 100) + "%)" : "team rates start at 3 people") + "</span></div>";
+  }
   function mountTeam(el) {
+    if (el.getAttribute("data-lhx") === "1") return;
+    el.setAttribute("data-lhx", "1");
     var g = el.getAttribute("data-group") === "cmi" ? "cmi" : "ilm";
-    var all = [];
-    var d = data(g);
-    Object.keys(d).forEach(function (k) {
-      d[k].items.forEach(function (it) { all.push(it); });
-    });
-    var opts = all.map(function (it, i) {
+    var opts = teamItems(g).map(function (it, i) {
       return '<option value="' + i + '">' + esc(it[1]) + " (" + gbp(it[2]) + " + VAT)</option>";
     }).join("");
     el.innerHTML = '<div class="lhx"><div class="lhx-card"><div class="lhx-grid">' +
       '<div><label for="lhx-tc-' + g + '">Qualification</label><select id="lhx-tc-' + g + '">' + opts + "</select></div>" +
-      '<div><label for="lhx-tn-' + g + '">Number of people</label><input id="lhx-tn-' + g + '" type="number" min="1" max="200" value="3"></div>' +
-      '</div><div class="lhx-tot"></div>' +
+      '<div><label for="lhx-tn-' + g + '">Number of people</label><input id="lhx-tn-' + g + '" type="number" inputmode="numeric" min="1" max="200" value="3"></div>' +
+      '</div><div class="lhx-tot" aria-live="polite"></div>' +
       '<p class="lhx-small">Prices exclude VAT. Three to six people save 5%, seven or more save 10%. Eight or more? Ask about a private cohort with one tutor for your team. Employers can pay on invoice, on the same account as the rest of your CST Training bookings.</p>' +
       '<div class="lhx-btns"><a class="lhx-btn or" href="' + SITE + 'contact/">Request a team quote</a></div></div></div>';
-    var sel = el.querySelector("select");
-    var num = el.querySelector("input");
-    var out = el.querySelector(".lhx-tot");
-    function calc() {
-      var it = all[parseInt(sel.value, 10) || 0];
-      var n = Math.max(1, Math.min(200, parseInt(num.value, 10) || 1));
-      var p = pct(n);
-      var each = it[2] * (1 - p);
-      out.innerHTML =
-        "<div><b>" + gbp(each) + "</b><span>per person + VAT</span></div>" +
-        "<div><b>" + gbp(each * n) + "</b><span>total for " + n + (n === 1 ? " person" : " people") + " + VAT</span></div>" +
-        "<div><b>" + (p ? gbp(it[2] * p * n) : "£0") + "</b><span>" + (p ? "team saving (" + Math.round(p * 100) + "%)" : "team rates start at 3 people") + "</span></div>";
-    }
-    sel.addEventListener("change", calc);
-    num.addEventListener("input", calc);
-    calc();
+    calcTeam(el);
   }
+  /* Delegated on window, capture phase, so other scripts can't swallow the events. */
+  ["input", "change", "keyup"].forEach(function (ev) {
+    window.addEventListener(ev, function (e) {
+      var root = e.target && e.target.closest ? e.target.closest(".cst-lh-team") : null;
+      if (root) calcTeam(root);
+    }, true);
+  });
 
   function init() {
     injectCSS();
