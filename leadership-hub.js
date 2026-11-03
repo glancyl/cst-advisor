@@ -50,11 +50,11 @@
       ["Level 3 Diploma", "CMI Level 3 Diploma in Coaching & Mentoring", 1340, "3 to 6 months", "cmi-level-3-diploma-in-coaching-mentoring/"],
       ["Level 7 Diploma", "CMI Level 7 Diploma in Leadership Coaching & Mentoring", 1500, "6 to 12 months", "cmi-level-7-diploma-in-leadership-coaching-mentoring/"]] },
     pc: { h: "CMI Professional Consulting", who: "For consultants, and anyone building consultancy skills.", items: [
-      ["L5 Award", "CMI Level 5 Award in Principles of Management Consulting", 320, "2 to 3 months", "cmi-level-5-award-principles-management-consulting/"],
-      ["L5 Certificate", "CMI Level 5 Certificate in Principles of Management Consulting", 550, "3 to 5 months", "cmi-level-5-certificate-principles-management-consulting/"],
       ["L5 Award", "CMI Level 5 Award in Management Consulting Practice", 320, "3 to 12 months", "cmi-level-5-award-in-management-consulting/"],
       ["L5 Certificate", "CMI Level 5 Certificate in Management Consulting Practice", 550, "6 to 12 months", "cmi-level-5-certificate-in-management-consulting/"],
       ["L5 Diploma", "CMI Level 5 Diploma in Management Consulting Practice", 1100, "6 to 12 months", "cmi-level-5-diploma-in-management-consulting/"],
+      ["L5 Award", "CMI Level 5 Award in Principles of Management Consulting", 320, "2 to 3 months", "cmi-level-5-award-principles-management-consulting/"],
+      ["L5 Certificate", "CMI Level 5 Certificate in Principles of Management Consulting", 550, "3 to 5 months", "cmi-level-5-certificate-principles-management-consulting/"],
       ["L7 Diploma", "CMI Level 7 Diploma in Professional Consulting", 1100, "6 to 12 months", "cmi-level-7-diploma-in-professional-consulting/"]] },
     pm: { h: "CMI Project Management", who: "For project managers and project leads.", items: [
       ["Level 3 Award", "CMI Level 3 Award in Project Management", 300, "8 to 16 weeks", "cmi-level-3-award-in-project-management/"],
