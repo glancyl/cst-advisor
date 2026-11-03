@@ -1,5 +1,5 @@
 /*!
- * CST Training About Us page (v8: team chip arrows on desktop)
+ * CST Training About Us page (v9: loads about.css itself; team chip arrows on desktop)
  * Styling lives in a WPCode CSS snippet (about.css), so the page looks right even if this file never loads.
  * This file only adds interactions: story tabs, team filter and search, venue map, photo lightbox,
  * timeline progress line, initials for staff without photos.
@@ -9,6 +9,16 @@
 (function () {
   "use strict";
   var DONE = 'cab-ready';
+  // Load the page styles from GitHub so the pages don't depend on a WPCode snippet
+  (function () {
+    if (document.getElementById('cab-css-link')) return;
+    var src = '', all = document.getElementsByTagName('script');
+    for (var i = 0; i < all.length; i++) if (/about\.js/.test(all[i].src || '')) { src = all[i].src; break; }
+    var base = src ? src.split('?')[0].replace(/about\.js$/, '') : 'https://glancyl.github.io/cst-advisor/';
+    var ver = (src.split('?')[1] || '').replace(/[^0-9a-z=&]/gi, '');
+    var l = document.createElement('link'); l.id = 'cab-css-link'; l.rel = 'stylesheet'; l.href = base + 'about.css' + (ver ? '?' + ver : '');
+    document.head.appendChild(l);
+  })();
   function q(s, c) { return (c || document).querySelector(s); }
   function qa(s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); }
   function el(tag, cls, html) { var n = document.createElement(tag); if (cls) n.className = cls; if (html != null) n.innerHTML = html; return n; }
