@@ -143,7 +143,8 @@
     ".lhx-opt:hover{border-color:var(--bd);background:#fff}",
     ".lhx-opt.on{border-color:var(--or);background:#fff7ec}",
     ".lhx-opt:focus-visible{outline:2px solid var(--bl);outline-offset:2px}",
-    ".lhx-res{margin-top:26px;border-top:1px solid var(--bd);padding-top:24px}",
+    ".lhx-res{margin-top:26px;border-top:1px solid var(--bd);padding-top:24px;outline:none;animation:lhxIn .35s ease}",
+    "@keyframes lhxIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}",
     
     ".lhx-res h3{color:var(--nv);font-size:26px;margin:0 0 8px;line-height:1.25}",
     ".lhx-note{background:#e4edfb;border:1px solid #2e6fd6;border-radius:10px;padding:12px 16px;margin:16px 0 0;color:var(--nv)}",
@@ -234,6 +235,18 @@
     var box = root.querySelector(".lhx-res");
     renderResult(box, g, opt.getAttribute("data-k"));
     box.style.display = "block";
+    /* On phones the result appears below all six options, out of sight, so bring it into view.
+       Offset leaves room for the sticky site header. */
+    var go = function () {
+      var r = box.getBoundingClientRect();
+      if (r.top > window.innerHeight * 0.55 || r.top < 0) {
+        var y = r.top + (window.pageYOffset || document.documentElement.scrollTop) - 100;
+        try { window.scrollTo({ top: y, behavior: "smooth" }); } catch (e) { window.scrollTo(0, y); }
+      }
+      box.setAttribute("tabindex", "-1");
+      try { box.focus({ preventScroll: true }); } catch (e) {}
+    };
+    if (window.requestAnimationFrame) requestAnimationFrame(go); else setTimeout(go, 0);
   }
   window.addEventListener("click", function (e) {
     var opt = e.target && e.target.closest ? e.target.closest(".cst-lh-finder .lhx-opt") : null;
