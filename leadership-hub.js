@@ -99,6 +99,23 @@
     }
   };
 
+  var C3 = "Compare the Award, Certificate & Diploma here.";
+  var COMPARE = {
+    ilm: {
+      l2: ["ilm-level-2-course-hub/", "Compare the Award and Certificate here."],
+      l3: ["ilm-level-3-course-hub/", C3], l4: ["ilm-level-4-course-hub/", C3], l5: ["ilm-level-5-course-hub/", C3],
+      l6: ["ilm-level-6-course-hub/", C3], l7: ["ilm-level-7-course-hub/", C3]
+    },
+    cmi: {
+      l3: ["cmi-management-and-leadership-hub/", "Compare Level 3, Level 5 and Level 7 here."],
+      l5: ["cmi-management-and-leadership-hub/", "Compare Level 3, Level 5 and Level 7 here."],
+      l7: ["cmi-management-and-leadership-hub/", "Compare Level 3, Level 5 and Level 7 here."],
+      cm: ["cmi-coaching-and-mentoring-hub/", "Compare Level 3 and Level 7 here."],
+      pc: ["cmi-professional-consulting-hub/", "Compare all the CMI consulting courses here."],
+      pm: ["cmi-project-management-hub/", "Compare Level 3 and Level 5 here."]
+    }
+  };
+
   var BANDS = [{ min: 7, pct: 0.10 }, { min: 3, pct: 0.05 }];
 
   function data(g) { return g === "cmi" ? CMI : ILM; }
@@ -131,6 +148,8 @@
     ".lhx-res h3{color:var(--nv);font-size:26px;margin:0 0 8px;line-height:1.25}",
     ".lhx-note{background:#e4edfb;border:1px solid #2e6fd6;border-radius:10px;padding:12px 16px;margin:16px 0 0;color:var(--nv)}",
     ".lhx-note a{color:var(--nv);font-weight:700;text-decoration:underline}",
+    ".lhx-cmp{margin:16px 0 0;font-size:16px;color:#3a3f55}",
+    ".lhx-cmp a{color:#ff8c04!important;font-weight:700;text-decoration:underline}",
     ".lhx-small{font-size:14px;color:var(--mu);margin-top:14px}",
     /* size rows: used in finder results AND static hub cards */
     ".lhx-sizes{list-style:none!important;margin:4px 20px 20px!important;padding:0!important;border-top:1px solid #e3e7f1}",
@@ -181,8 +200,9 @@
     var d = data(g)[key];
     var html = "<h3>We'd recommend " + esc(d.h) + "</h3><p>" + esc(d.who) + " " + esc(WHY[g][key]) + "</p>";
     html += sizeRows(d.items);
-    if (g === "ilm" && d.items.length > 1) {
-      html += '<p class="lhx-small">Not sure which size? The Award, Certificate and Diploma use the same units in different amounts, so you can start with the Award and top up later.</p>';
+    var cmp = COMPARE[g][key];
+    if (cmp) {
+      html += '<p class="lhx-cmp">Unsure which is the best fit for you? <a href="' + SITE + cmp[0] + '">' + esc(cmp[1]) + "</a></p>";
     }
     html += g === "ilm"
       ? '<div class="lhx-note">Prefer written assignments and a route to Chartered Manager? <a href="' + HUBS.cmi + '">Compare CMI qualifications</a>.</div>'
