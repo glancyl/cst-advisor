@@ -239,8 +239,12 @@
        Offset leaves room for the sticky site header. */
     var go = function () {
       var r = box.getBoundingClientRect();
-      if (r.top > window.innerHeight * 0.55 || r.top < 0) {
-        var y = r.top + (window.pageYOffset || document.documentElement.scrollTop) - 100;
+      /* Phones: result to just under the sticky header. Desktop: a gentler move that puts the
+         result about a third of the way down, so the chosen option is still visible above it. */
+      var offset = window.innerWidth < 768 ? 100 : Math.round(window.innerHeight * 0.35);
+      var cur = window.pageYOffset || document.documentElement.scrollTop;
+      var y = r.top + cur - offset;
+      if (Math.abs(y - cur) > 40) {
         try { window.scrollTo({ top: y, behavior: "smooth" }); } catch (e) { window.scrollTo(0, y); }
       }
       box.setAttribute("tabindex", "-1");
