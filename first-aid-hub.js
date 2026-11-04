@@ -1,13 +1,13 @@
 /*!
- * CST Training First Aid hub (v9: postcode search sorts dates by nearest venue; v8: venue dropdown, location on every date, fixes titles with the course name first; v7: hub booking panel; v6: hide cancelled courses, only lists published, visible, in-stock dates)
+ * CST Training First Aid hub (v10: links point to the new course pages; v9: postcode search sorts dates by nearest venue; v8: venue dropdown, location on every date, fixes titles with the course name first; v7: hub booking panel; v6: hide cancelled courses, only lists published, visible, in-stock dates)
  * Host on GitHub Pages (cst-advisor repo), load with ?v=N cache buster.
  * Load AFTER nebosh-hub.js, which supplies the shared nbx/nbi page CSS.
  * Mount point:
  *   <div class="cst-fa-finder"
- *        data-faw-url="/level-3-award-in-first-aid-at-work-3-day-course-rqf/"
- *        data-efaw-url="/emergency-first-aid-work/"
- *        data-faw-dates="/level-3-award-in-first-aid-at-work-3-day-course-rqf/#dates"
- *        data-efaw-dates="/emergency-first-aid-work/#dates"
+ *        data-faw-url="/first-aid-at-work-level-3/"
+ *        data-efaw-url="/emergency-first-aid-at-work/"
+ *        data-faw-dates="/first-aid-at-work-level-3/#dates"
+ *        data-efaw-dates="/emergency-first-aid-at-work/#dates"
  *        data-faw-price="215" data-efaw-price="95"></div>
  * Live dates:
  *   <div class="cst-fa-dates" data-category="product-category-slug" (preferred; or data-search="First Aid At Work") data-match="first aid at work"
@@ -82,14 +82,14 @@
       faw: {
         name: "First Aid at Work", length: "3 days",
         price: +(root.getAttribute("data-faw-price") || 215),
-        url: abs(root.getAttribute("data-faw-url") || "/level-3-award-in-first-aid-at-work-3-day-course-rqf/"),
-        dates: abs(root.getAttribute("data-faw-dates") || "/level-3-award-in-first-aid-at-work-3-day-course-rqf/#dates")
+        url: abs(root.getAttribute("data-faw-url") || "/first-aid-at-work-level-3/"),
+        dates: abs(root.getAttribute("data-faw-dates") || "/first-aid-at-work-level-3/#dates")
       },
       efaw: {
         name: "Emergency First Aid at Work", length: "1 day",
         price: +(root.getAttribute("data-efaw-price") || 95),
-        url: abs(root.getAttribute("data-efaw-url") || "/emergency-first-aid-work/"),
-        dates: abs(root.getAttribute("data-efaw-dates") || "/emergency-first-aid-work/#dates")
+        url: abs(root.getAttribute("data-efaw-url") || "/emergency-first-aid-at-work/"),
+        dates: abs(root.getAttribute("data-efaw-dates") || "/emergency-first-aid-at-work/#dates")
       }
     };
 
@@ -444,11 +444,11 @@
     { k: "faw", name: "First Aid at Work", days: 3, len: "3 days",
       blurb: "For construction, warehousing and higher hazard workplaces, or more than 50 people",
       cat: "level-3-award-in-first-aid-at-work-3-day-course-rqf", must: ["first aid at work"], not: ["emergency", "requal"],
-      page: "/level-3-award-in-first-aid-at-work-3-day-course-rqf/" },
+      page: "/first-aid-at-work-level-3/" },
     { k: "efaw", name: "Emergency First Aid at Work", days: 1, len: "1 day",
       blurb: "For offices, shops and other lower hazard workplaces",
       cat: "emergency-first-aid-work", must: ["emergency first aid at work"], not: ["requal"],
-      page: "/emergency-first-aid-work/" }
+      page: "/emergency-first-aid-at-work/" }
   ];
   var BMON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   var BDAY = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
