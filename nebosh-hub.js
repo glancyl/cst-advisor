@@ -1,8 +1,9 @@
 /*!
- * CST Training NEBOSH hub (v33: postcode search on live dates sorts classroom dates by distance)
+ * CST Training NEBOSH hub (v34: data-weekend-by-day for SMSTS-R style titles; v33: postcode search on live dates sorts classroom dates by distance)
  * Host on GitHub Pages, load with ?v=N cache buster.
  * Mount point: <div class="cst-nebosh-matcher"></div>
  * Live dates:  <div class="cst-nebosh-dates" data-search="NEBOSH Construction"></div>
+ *   Optional: data-weekend-by-day="1" treats Saturday or Sunday starts as Weekend when the title doesn't say so.
  *   Reads published WooCommerce products through the Store API. Product titles must follow
  *   "Course name (format) | DD-MM-YYYY | Location". Fully booked and past dates are hidden.
  * IOSH tools:  <div class="cst-iosh-tailor" data-course="ms"></div>
@@ -840,7 +841,8 @@
     var blockLabel = root.getAttribute("data-block-label"), blockNote = root.getAttribute("data-block-note");
     function fl(f) { return f.id === "block" && blockLabel ? blockLabel : f.label; }
     var dayNote = root.getAttribute("data-day-note");
-    function fn(f) { return f.id === "block" && blockNote ? blockNote : f.id === "day" && dayNote ? dayNote : f.note; }
+    var weekendNote = root.getAttribute("data-weekend-note");
+    function fn(f) { return f.id === "block" && blockNote ? blockNote : f.id === "day" && dayNote ? dayNote : f.id === "weekend" && weekendNote ? weekendNote : f.note; }
     var want = ""; try { want = (new URLSearchParams(location.search).get("dates") || "").toLowerCase(); } catch (e) {}
     var state = { fmt: want || "all", loc: "", shown: step, near: null }, items = [], dist = {};
     var pinIds = (root.getAttribute("data-pin") || "").split(/[|,]/).map(function (x) { return x.trim(); }).filter(Boolean);
@@ -958,6 +960,11 @@
       });
       items = pinned.concat((data || []).map(parseProduct).filter(function (i) { return i && i.inStock && i.date >= today; })
         .sort(function (a, b) { return a.date - b.date; }));
+      // data-weekend-by-day: titles that don't say "weekend" (e.g. "SMSTS-R | 14-11-2026 | Online") count as weekend when they start on a Saturday or Sunday
+      if (root.getAttribute("data-weekend-by-day")) {
+        var WK = FORMATS.filter(function (f) { return f.id === "weekend"; })[0];
+        items.forEach(function (i) { if (!i.pin && i.fmt.id === "block" && i.date && (i.date.getDay() === 6 || i.date.getDay() === 0)) i.fmt = WK; });
+      }
       if (!items.length) { msg("No upcoming dates are listed online right now."); return; }
       if (items.every(function (i) { return i.fmt.id !== state.fmt; }) && state.fmt !== "all") state.fmt = "all";
       shown = true; tabs(); draw();
