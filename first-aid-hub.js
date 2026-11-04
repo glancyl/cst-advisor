@@ -1,5 +1,5 @@
 /*!
- * CST Training First Aid hub (v8: venue dropdown, location on every date, fixes titles with the course name first; v7: hub booking panel; v6: hide cancelled courses, only lists published, visible, in-stock dates)
+ * CST Training First Aid hub (v9: postcode search sorts dates by nearest venue; v8: venue dropdown, location on every date, fixes titles with the course name first; v7: hub booking panel; v6: hide cancelled courses, only lists published, visible, in-stock dates)
  * Host on GitHub Pages (cst-advisor repo), load with ?v=N cache buster.
  * Load AFTER nebosh-hub.js, which supplies the shared nbx/nbi page CSS.
  * Mount point:
@@ -242,6 +242,79 @@
       low: p.low_stock_remaining || null, url: p.permalink
     };
   }
+  // ---------- Postcode search helpers (v9, same as nebosh-hub v33) ----------
+  var PLACES = {
+    "dartford": [51.4462, 0.2196], "london": [51.5074, -0.1278], "central london": [51.5074, -0.1278], "west london": [51.4975, -0.22],
+    "bexley": [51.4415, 0.1488], "chelmsford": [51.7356, 0.4685], "birmingham": [52.4862, -1.8904], "coleshill": [52.4986, -1.7069],
+    "manchester": [53.4808, -2.2426], "stockport": [53.4106, -2.1575], "liverpool": [53.4084, -2.9916], "glasgow": [55.8642, -4.2518],
+    "edinburgh": [55.9533, -3.1883], "bristol": [51.4545, -2.5879], "exeter": [50.7184, -3.5339], "bridgwater": [51.1279, -2.999],
+    "southampton": [50.9097, -1.4044], "brighton": [50.8225, -0.1372], "leeds": [53.8008, -1.5491], "newcastle": [54.9783, -1.6178],
+    "milton keynes": [52.0406, -0.7594], "cardiff": [51.4816, -3.1791], "nottingham": [52.9548, -1.1581], "leicester": [52.6369, -1.1398],
+    "sheffield": [53.3811, -1.4701], "plymouth": [50.3755, -4.1427], "norwich": [52.6309, 1.2974], "cambridge": [52.2053, 0.1218],
+    "oxford": [51.752, -1.2577], "reading": [51.4543, -0.9781], "portsmouth": [50.8198, -1.088], "swindon": [51.5558, -1.7797],
+    "ipswich": [52.0567, 1.1482], "peterborough": [52.5695, -0.2405], "coventry": [52.4068, -1.5197], "hull": [53.7676, -0.3274],
+    "york": [53.959, -1.0815], "preston": [53.7632, -2.7031], "stoke": [53.0027, -2.1794], "middlesbrough": [54.5742, -1.235],
+    "aberdeen": [57.1497, -2.0943], "belfast": [54.5973, -5.9301], "swansea": [51.6214, -3.9436], "maidstone": [51.2724, 0.529],
+    "basildon": [51.5761, 0.4887], "luton": [51.8787, -0.42], "northampton": [52.2405, -0.9027], "gloucester": [51.8642, -2.2382]
+  };
+  var NBD_TRACK = "https://script.google.com/macros/s/AKfycbwEbK2DSXtjCHWMfJbe4yabGTk8KRJI3b0Lf45wKYkFYwyx7D495YCXjUS774oG_LSe/exec";
+  var PLACE_CACHE = {};
+  function miles(a, b) {
+    var R = 3958.8, r = Math.PI / 180, dLat = (b[0] - a[0]) * r, dLon = (b[1] - a[1]) * r;
+    var x = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
+  }
+  function geocodePostcode(pc) {
+    var clean = pc.trim().replace(/\s+/g, "");
+    return fetch("https://api.postcodes.io/postcodes/" + encodeURIComponent(pc.trim())).then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d.status === 200 && d.result) return { ll: [d.result.latitude, d.result.longitude], label: d.result.postcode };
+        var out = clean.match(/^[A-Z]{1,2}[0-9][0-9A-Z]?/i); if (!out) throw new Error("not found");
+        return fetch("https://api.postcodes.io/outcodes/" + encodeURIComponent(out[0])).then(function (r) { return r.json(); })
+          .then(function (d2) { if (d2.status === 200 && d2.result) return { ll: [d2.result.latitude, d2.result.longitude], label: d2.result.outcode }; throw new Error("not found"); });
+      });
+  }
+  function placeCoords(name) {
+    var key = (name || "").toLowerCase().trim();
+    if (!key) return Promise.resolve(null);
+    if (PLACE_CACHE[key] !== undefined) return Promise.resolve(PLACE_CACHE[key]);
+    var tries = [key].concat((key.match(/\(([^)]+)\)/) || [])[1] ? [key.match(/\(([^)]+)\)/)[1].trim()] : [], key.replace(/\(.*?\)/g, "").trim(), key.split(/[,\-]/)[0].trim());
+    for (var i = 0; i < tries.length; i++) if (PLACES[tries[i]]) return Promise.resolve(PLACE_CACHE[key] = PLACES[tries[i]]);
+    try { var saved = JSON.parse(localStorage.getItem("nbdplace:" + key) || "null"); if (saved) return Promise.resolve(PLACE_CACHE[key] = saved); } catch (e) {}
+    var q = tries[1] || tries[0];
+    return fetch("https://api.postcodes.io/places?q=" + encodeURIComponent(q) + "&limit=1").then(function (r) { return r.json(); })
+      .then(function (d) {
+        var p = d && d.result && d.result[0]; var ll = p ? [p.latitude, p.longitude] : null;
+        PLACE_CACHE[key] = ll; try { if (ll) localStorage.setItem("nbdplace:" + key, JSON.stringify(ll)); } catch (e) {}
+        return ll;
+      }).catch(function () { return (PLACE_CACHE[key] = null); });
+  }
+  function miLabel(n) { n = Math.round(n); return n < 1 ? "under 1 mile" : n + (n === 1 ? " mile" : " miles"); }
+  function trackPc(pc, loc) {
+    try { var i = new Image(); i.src = NBD_TRACK + "?postcode=" + encodeURIComponent(pc) + "&page=" + encodeURIComponent(location.href) + "&region=" + encodeURIComponent("First Aid dates") + "&location=" + encodeURIComponent(loc || ""); } catch (e) {}
+  }
+
+  function injectPcCss() {
+    if (document.getElementById("fad-pc-css")) return;
+    var st = document.createElement("style"); st.id = "fad-pc-css";
+    st.textContent =
+    ".nbd-pc{display:inline-flex;align-items:center;gap:6px;background:#fff;border:2px solid #dcdfea;border-radius:30px;padding:3px 3px 3px 14px}" +
+    ".nbd-pc input{font:inherit;font-size:15px;font-weight:700;color:#1d2560;border:0!important;outline:0;background:transparent!important;width:120px;padding:6px 0!important;margin:0!important;box-shadow:none!important;text-transform:uppercase;height:auto!important}" +
+    ".nbd-pc input::placeholder{color:#8a8fb0;font-weight:400;text-transform:none}" +
+    ".nbd-pc button{font:inherit;font-weight:700;font-size:14px;border:0;border-radius:30px;background:#ff8c04!important;color:#fff!important;padding:8px 16px;cursor:pointer;white-space:nowrap}" +
+    ".nbd-pc button[disabled]{opacity:.6;cursor:wait}" +
+    ".nbd-pc:focus-within{border-color:#ff8c04}" +
+    ".nbd-near{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 12px;margin:-6px 0 16px;font-size:15px;color:#1b1f33;text-align:center}" +
+    ".nbd-near b{color:#1d2560}" +
+    ".nbd-near button{font:inherit;font-size:14px;font-weight:700;background:none!important;border:0;color:#1d2560!important;text-decoration:underline;cursor:pointer;padding:0}" +
+    ".nbd-near.err{color:#c0392b;font-weight:700}" +
+    ".nbd-dist{display:inline-block;margin-left:8px;font-size:13px;font-weight:700;color:#1d2560;background:#eef1ff;border-radius:30px;padding:2px 10px;white-space:nowrap}" +
+    ".nbd.nbd-dark .nbd-near,.nbd.nbd-dark .nbd-near b,.nbd.nbd-dark .nbd-near button{color:#fff!important}" +
+    ".nbd.nbd-dark .nbd-near.err{color:#ffb3a8!important}" +
+    "@media(max-width:760px){.nbd-pc{width:100%;max-width:360px}.nbd-pc input{flex:1;width:auto}}";
+    document.head.appendChild(st);
+  }
+
   function mountDates(root) {
     if (root._fad) return; root._fad = true;
     root.classList.add("nbd"); if (root.getAttribute("data-theme") === "dark") root.classList.add("nbd-dark");
@@ -256,7 +329,8 @@
     var course = root.getAttribute("data-course-label") || "First Aid at Work";
     var step = +(root.getAttribute("data-show") || 8);
     var want = ""; try { want = (new URLSearchParams(location.search).get("location") || "").toLowerCase(); } catch (e) {}
-    var state = { loc: "", shown: step }, items = [];
+    var state = { loc: "", shown: step, near: null }, items = [], dist = {};
+    injectPcCss();
 
     var bar = el("div", "nbd-bar"); root.appendChild(bar);
     var list = el("div", "nbd-list"); list.setAttribute("aria-live", "polite"); root.appendChild(list);
@@ -264,6 +338,43 @@
     more.addEventListener("click", function () { state.shown += step; draw(); });
     var locSel = el("select", "nbd-loc"); locSel.setAttribute("aria-label", "Choose a location");
     locSel.addEventListener("change", function () { state.loc = locSel.value; state.shown = step; draw(); });
+
+    var pcBox = el("form", "nbd-pc"); pcBox.setAttribute("role", "search"); pcBox.noValidate = true;
+    var pcIn = el("input"); pcIn.type = "text"; pcIn.placeholder = "Your postcode"; pcIn.maxLength = 8; pcIn.autocomplete = "postal-code"; pcIn.setAttribute("aria-label", "Enter your postcode to find your nearest venue");
+    var pcBtn = el("button", null, "Find nearest"); pcBtn.type = "submit";
+    pcBox.appendChild(pcIn); pcBox.appendChild(pcBtn);
+    var near = el("div", "nbd-near"); near.style.display = "none"; root.insertBefore(near, list);
+    function nearNote(node, err) {
+      near.innerHTML = ""; near.className = "nbd-near" + (err ? " err" : "");
+      if (!node) { near.style.display = "none"; return; }
+      near.style.display = "";
+      if (err) { near.textContent = node; return; }
+      near.appendChild(node);
+      var c = el("button", null, "Clear"); c.type = "button";
+      c.addEventListener("click", function () { state.near = null; pcIn.value = ""; nearNote(""); draw(); });
+      near.appendChild(c);
+    }
+    pcBox.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var pc = pcIn.value.trim();
+      if (pc.length < 2) { nearNote("Please enter a valid UK postcode.", true); return; }
+      pcBtn.disabled = true; pcBtn.textContent = "Searching...";
+      geocodePostcode(pc).then(function (g) {
+        var locs = items.map(function (i) { return i.loc; }).filter(function (v, k, a) { return v && a.indexOf(v) === k; });
+        return Promise.all(locs.map(function (l) { return placeCoords(l).then(function (ll) { dist[l] = ll ? miles(g.ll, ll) : Infinity; }); }))
+          .then(function () {
+            state.near = g; state.loc = ""; locSel.value = ""; state.shown = step;
+            var best = locs.filter(function (l) { return isFinite(dist[l]); }).sort(function (a, b) { return dist[a] - dist[b]; })[0];
+            var t = document.createElement("span");
+            if (best) { t.appendChild(document.createTextNode("Dates nearest to ")); t.appendChild(el("b", null, g.label)); t.appendChild(document.createTextNode(". Closest venue: ")); t.appendChild(el("b", null, best + ", " + miLabel(dist[best]))); }
+            else t.appendChild(document.createTextNode("Showing dates for " + g.label + "."));
+            nearNote(t); trackPc(g.label, best || "");
+            try { window.dataLayer = window.dataLayer || []; window.dataLayer.push({ event: "fa_postcode_search", fa_course: course, fa_location: best || "" }); } catch (err) {}
+            draw();
+          });
+      }).catch(function () { nearNote("Sorry, we couldn't find that postcode. Please check it and try again.", true); })
+        .then(function () { pcBtn.disabled = false; pcBtn.textContent = "Find nearest"; });
+    });
 
     function msg(t) {
       list.innerHTML = ""; var p = el("p", "nbd-msg", t + " "); var a = el("a", null, fallbackLabel); a.href = fallback;
@@ -281,17 +392,23 @@
       locs.forEach(function (l) { var op = el("option", null, l); op.value = l; locSel.appendChild(op); });
       if (want && !state.loc) { for (var i = 0; i < locs.length; i++) if (locs[i].toLowerCase().indexOf(want) > -1) { state.loc = locs[i]; break; } }
       locSel.value = state.loc; bar.appendChild(locSel);
+      if (locs.length > 1) bar.appendChild(pcBox);
     }
     function draw() {
       var rows = items.filter(function (i) { return !state.loc || i.loc === state.loc; });
       list.innerHTML = "";
       if (!rows.length) { msg("No upcoming dates for this location right now."); return; }
+      if (state.near && !state.loc) rows = rows.slice().sort(function (a, b) {
+        var da = dist[a.loc], db = dist[b.loc]; da = da == null ? Infinity : da; db = db == null ? Infinity : db;
+        return Math.round(da) - Math.round(db) || a.date - b.date;
+      });
       rows.slice(0, state.shown).forEach(function (i) {
         var r = el("div", "nbd-row");
         var dt = el("div", "nbd-date", i.date.getDate() + " " + MONTHS[i.date.getMonth()] + " " + i.date.getFullYear());
         dt.appendChild(el("span", null, DAYS[i.date.getDay()] + " start")); r.appendChild(dt);
         var w = el("div", "nbd-what"); w.appendChild(el("b", null, course));
         if (i.loc) w.appendChild(document.createTextNode(" in " + i.loc));
+        if (state.near && isFinite(dist[i.loc])) w.appendChild(el("span", "nbd-dist", miLabel(dist[i.loc]).replace(/^u/, "U") + " away"));
         if (i.low) w.appendChild(el("span", "nbd-low", "Only " + i.low + " place" + (i.low === 1 ? "" : "s") + " left"));
         r.appendChild(w);
         r.appendChild(el("div", "nbd-price", i.price != null ? money(i.price) + " + VAT" : ""));
