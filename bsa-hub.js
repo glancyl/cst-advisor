@@ -65,7 +65,7 @@
     var t = TIERS[key];
     return "<h3>We'd recommend " + esc(t.n) + "</h3><p>" + esc(t.why) + "</p>" +
       '<div class="bsx-meta"><span class="p">' + t.price + "</span><span>" + t.time + " learning time</span><span>" + t.qs + "</span><span>CITB Assured</span></div>" +
-      '<div class="bsx-btns"><a class="bsx-btn or" href="' + t.url + '">Buy ' + esc(t.n.split(": ")[1]) + '</a><a class="bsx-btn gh" href="#tiers">Compare the tiers</a></div>' +
+      '<div class="bsx-btns"><a class="bsx-btn or" href="' + t.url + '">Buy ' + esc(t.n.split(": ")[0]) + '</a><a class="bsx-btn gh" href="#tiers">Compare the tiers</a></div>' +
       '<p class="bsx-small">Training a team? <a href="#enquire">Ask about team bookings</a> or call us on <a href="tel:02034884472">020 3488 4472</a>.</p>';
   }
 
@@ -117,7 +117,7 @@
 
   function init() {
     if (!document.getElementById("bsx-css")) { var s = document.createElement("style"); s.id = "bsx-css"; s.textContent = CSS; document.head.appendChild(s); }
-    try { console.log("[bsx] ready v1"); } catch (e) {}
+    try { console.log("[bsx] ready v2"); } catch (e) {}
     Array.prototype.forEach.call(document.querySelectorAll(".cst-bsa-finder"), mount);
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
