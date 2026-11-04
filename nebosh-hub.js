@@ -1,8 +1,9 @@
 /*!
- * CST Training NEBOSH hub (v34: data-weekend-by-day for SMSTS-R style titles; v33: postcode search on live dates sorts classroom dates by distance)
+ * CST Training NEBOSH hub (v35: data-all-online keeps classroom dates off the first tab; v34: data-weekend-by-day for SMSTS-R style titles; v33: postcode search on live dates sorts classroom dates by distance)
  * Host on GitHub Pages, load with ?v=N cache buster.
  * Mount point: <div class="cst-nebosh-matcher"></div>
  * Live dates:  <div class="cst-nebosh-dates" data-search="NEBOSH Construction"></div>
+ *   Optional: data-all-online="1" lists online dates only on the first tab.
  *   Optional: data-weekend-by-day="1" treats Saturday or Sunday starts as Weekend when the title doesn't say so.
  *   Reads published WooCommerce products through the Store API. Product titles must follow
  *   "Course name (format) | DD-MM-YYYY | Location". Fully booked and past dates are hidden.
@@ -842,6 +843,8 @@
     function fl(f) { return f.id === "block" && blockLabel ? blockLabel : f.label; }
     var dayNote = root.getAttribute("data-day-note");
     var weekendNote = root.getAttribute("data-weekend-note");
+    // data-all-online: the first tab lists online dates only; classroom dates show on the Classroom tab or after a postcode search
+    var allOnline = !!root.getAttribute("data-all-online");
     function fn(f) { return f.id === "block" && blockNote ? blockNote : f.id === "day" && dayNote ? dayNote : f.id === "weekend" && weekendNote ? weekendNote : f.note; }
     var want = ""; try { want = (new URLSearchParams(location.search).get("dates") || "").toLowerCase(); } catch (e) {}
     var state = { fmt: want || "all", loc: "", shown: step, near: null }, items = [], dist = {};
@@ -903,7 +906,7 @@
 
     function tabs() {
       bar.innerHTML = "";
-      [{ id: "all", label: "All dates" }].concat(pinned.length ? [PIN] : [], FORMATS).forEach(function (f) {
+      [{ id: "all", label: allOnline ? "All online dates" : "All dates" }].concat(pinned.length ? [PIN] : [], FORMATS).forEach(function (f) {
         if (f.id !== "all" && !items.some(function (i) { return i.fmt.id === f.id; })) return;
         var b = el("button", "nbd-tab", f.id === "all" || f.id === "elearn" ? f.label : fl(f)); b.type = "button";
         b.setAttribute("aria-pressed", state.fmt === f.id ? "true" : "false");
@@ -920,7 +923,7 @@
       if (items.some(function (i) { return i.fmt.id === "class"; })) bar.appendChild(pcBox);
     }
     function draw() {
-      var rows = items.filter(function (i) { return (state.fmt === "all" || i.fmt.id === state.fmt) && (!state.loc || i.loc === state.loc); });
+      var rows = items.filter(function (i) { return (state.fmt === "all" ? !(allOnline && i.fmt.id === "class") : i.fmt.id === state.fmt) && (!state.loc || i.loc === state.loc); });
       list.innerHTML = "";
       if (!rows.length) { msg("No upcoming dates for this option right now."); return; }
       if (state.near && state.fmt === "class") rows = rows.slice().sort(function (a, b) {
