@@ -1,4 +1,4 @@
-/* CST Training · Construction NVQs hub (/nvqs/) · v4 · 6 Nov 2026
+/* CST Training · Construction NVQs hub (/nvqs/) · v5 · 6 Nov 2026
    Wires the Myself / My team toggle, the card + trade finder and the team builder on the /nvqs/ page.
    The page copy lives in the WordPress page HTML; this file only adds behaviour and loads nvq-hub.css.
    v3: every interaction uses one delegated listener on the document, because another script on the site
@@ -184,6 +184,26 @@
     if (window.jQuery) try { window.jQuery(el).val(v).change(); } catch (e) {}
   }
   window.nvqhApplyInterest = applyInterest;
+
+  /* HubSpot enquiry form, built here rather than in the page so WordPress can't alter the script.
+     If another script on the site empties the box, it's rebuilt by the check at the bottom. */
+  var HS = { portalId: "19996504", formId: "2d40610d-1042-49f1-a169-937a4e4b5b5e" }, hsBusy = false;
+  function buildForm() {
+    var box = $("nvqh-hsform"); if (!box || hsBusy || box.querySelector("form,iframe")) return;
+    hsBusy = true;
+    function create() {
+      try {
+        window.hbspt.forms.create({ portalId: HS.portalId, formId: HS.formId, target: "#nvqh-hsform",
+          onFormReady: function ($form) { window.nvqhForm = $form && $form.jquery ? $form[0] : $form; hsBusy = false; applyInterest(); } });
+      } catch (e) { hsBusy = false; }
+      setTimeout(function () { hsBusy = false; }, 8000);
+    }
+    if (window.hbspt && window.hbspt.forms) return create();
+    var s = document.querySelector('script[src*="js.hsforms.net/forms/embed/v2.js"]');
+    if (!s) { s = document.createElement("script"); s.src = "https://js.hsforms.net/forms/embed/v2.js"; s.charset = "utf-8"; document.head.appendChild(s); }
+    s.addEventListener("load", create);
+    if (window.hbspt && window.hbspt.forms) create();
+  }
   function setEnquiry(text) {
     if (text) interest = text;
     var el = $("nvqh-chosen");
@@ -274,7 +294,9 @@
     var c = $("nvqh-cards"); if (c && !c.querySelector(".nvqh-chip")) renderCards();
     var w = $("nvqh-trows"); if (w && !w.querySelector(".nvqh-trow")) drawTeam();
     if (document.body.getAttribute("data-nvqh-who") !== who) setWho(who);
+    buildForm();
   }, 1500);
+  buildForm();
 
   setWho(who);
   if (!drawn) drawTeam();
