@@ -1,4 +1,4 @@
-/* CST Training · Construction NVQs hub (/nvqs/) · v9 · 6 Nov 2026
+/* CST Training · Construction NVQs hub (/nvqs/) · v10 · 6 Nov 2026
    Palette from the live First Aid hub: blue #4c6bd8, navy #1d2560, orange #ff8c04, light #f4f5f9, pale #e9ebf5.
    Every rule is scoped to .nvqh sections, so the BoldGrid theme is untouched. */
 @import url("https://fonts.googleapis.com/css2?family=Alata&family=Asap:wght@400;600;700&display=swap");
@@ -234,3 +234,9 @@ body[data-nvqh-who=team] .nvqh [data-show=self]{display:none}
 /* v8: more room above the line under the price tiles */
 .nvqh .nvqh-fine{margin:36px 0 0!important;padding:0!important}
 .nvqh .nvqh-fine+.nvqh-fine{margin-top:8px!important}
+/* v10: form card centred and evenly padded. HubSpot draws this form in an iframe, so the box only shrinks to fit once it loads */
+.nvqh-enq .form{padding:30px 32px!important;text-align:center}
+.nvqh-enq .form h3{text-align:center}
+.nvqh-enq .form>.small{text-align:center;margin:0 0 18px!important}
+#nvqh-hsform:has(iframe),#nvqh-hsform:has(form){min-height:0!important}
+#nvqh-hsform iframe{display:block;width:100%!important;margin:0 auto}
