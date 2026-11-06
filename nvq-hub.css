@@ -1,4 +1,4 @@
-/* CST Training · Construction NVQs hub (/nvqs/) · v2 · 6 Nov 2026
+/* CST Training · Construction NVQs hub (/nvqs/) · v3 · 6 Nov 2026
    Palette from the live First Aid hub: blue #4c6bd8, navy #1d2560, orange #ff8c04, light #f4f5f9, pale #e9ebf5.
    Every rule is scoped to .nvqh sections, so the BoldGrid theme is untouched. */
 @import url("https://fonts.googleapis.com/css2?family=Alata&family=Asap:wght@400;600;700&display=swap");
@@ -179,3 +179,13 @@ body[data-nvqh-who=team] .nvqh [data-show=self]{display:none}
   .nvqh-steps,.nvqh-why,.nvqh-commits,.nvqh-pay,.nvqh-enq{grid-template-columns:1fr}
 }
 @media (prefers-reduced-motion:reduce){.nvqh *{transition:none!important}}
+
+/* v3: WordPress can add empty paragraphs and line breaks between grid items, which take up a grid cell */
+.nvqh-herogrid>p:empty,.nvqh-fams>p:empty,.nvqh-chips>p:empty,.nvqh-prices>p:empty,.nvqh-steps>p:empty,.nvqh-why>p:empty,.nvqh-commits>p:empty,.nvqh-pay>p:empty,.nvqh-enq>p:empty,.nvqh-faq>p:empty,
+.nvqh-herogrid>br,.nvqh-fams>br,.nvqh-chips>br,.nvqh-prices>br,.nvqh-steps>br,.nvqh-why>br,.nvqh-commits>br,.nvqh-pay>br,.nvqh-enq>br,.nvqh-faq>br,.nvqh-who>br,.nvqh-tog>br{display:none}
+/* v3: the theme's heading sizes outrank the hub's, so these are locked */
+.nvqh h1{font-size:clamp(1.9rem,3.6vw,2.5rem)!important;line-height:1.2!important}
+.nvqh h2{font-size:clamp(1.7rem,3.4vw,2.5rem)!important;line-height:1.2!important}
+.nvqh h3{font-size:1.15rem!important;line-height:1.3!important;margin:0 0 8px!important}
+.nvqh .nvqh-why h3,.nvqh .nvqh-commits h3{font-size:1.3rem!important}
+.nvqh h4{font-size:1.3rem!important;line-height:1.25!important}
