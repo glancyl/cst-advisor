@@ -1,4 +1,4 @@
-/* CST Training · Construction NVQs hub (/nvqs/) · v4 · 6 Nov 2026
+/* CST Training · Construction NVQs hub (/nvqs/) · v5 · 6 Nov 2026
    Palette from the live First Aid hub: blue #4c6bd8, navy #1d2560, orange #ff8c04, light #f4f5f9, pale #e9ebf5.
    Every rule is scoped to .nvqh sections, so the BoldGrid theme is untouched. */
 @import url("https://fonts.googleapis.com/css2?family=Alata&family=Asap:wght@400;600;700&display=swap");
@@ -199,4 +199,28 @@ body[data-nvqh-who=team] .nvqh [data-show=self]{display:none}
 .nvqh-btn.gh:hover{background:rgba(255,255,255,.14)}
 .nvqh-still{text-align:center;color:#fff;margin:24px 0 0}
 .nvqh-still a{color:#fff;font-weight:700}
-#nvqh-hsform{min-height:200px}
+/* v5: no white bars. WordPress wraps stray line breaks between sections in empty paragraphs */
+.nvqh+p:empty,.nvqh+p:has(>br:only-child),.nvqh+br{display:none!important}
+.nvqh.boldgrid-section{margin-top:0!important;margin-bottom:0!important}
+.nvqh .container>p:empty,.nvqh .container>br{display:none}
+
+/* v5: enquiry section and HubSpot form */
+.nvqh-enq{align-items:center}
+.nvqh-enq .form{padding:28px 30px 22px;box-shadow:0 12px 34px rgba(29,37,96,.18)}
+.nvqh-enq .form h3{font-size:1.35rem!important;margin:0 0 4px!important}
+.nvqh-enq .form>.small{margin:0 0 14px}
+#nvqh-hsform .hs-form fieldset{max-width:none!important;border:0!important;padding:0!important;margin:0!important;min-width:0}
+#nvqh-hsform .hs-form fieldset .hs-form-field{width:100%!important;float:none!important;padding:0!important;margin:0 0 14px!important}
+#nvqh-hsform .hs-form fieldset .input{margin-right:0!important}
+#nvqh-hsform label{font-family:"Asap",Arial,sans-serif!important;font-weight:700!important;font-size:.93rem!important;color:var(--navy)!important;margin-bottom:6px!important;display:block}
+#nvqh-hsform .hs-input{width:100%!important;box-sizing:border-box!important;font-family:"Asap",Arial,sans-serif!important;font-size:1rem!important;color:var(--navy)!important;background:#fff!important;border:1.5px solid #c3c8dc!important;border-radius:8px!important;padding:12px 14px!important;height:auto!important;box-shadow:none!important}
+#nvqh-hsform .hs-input:focus{border-color:var(--navy)!important;outline:none!important;box-shadow:0 0 0 3px rgba(29,37,96,.12)!important}
+#nvqh-hsform .hs-error-msgs{list-style:none;margin:6px 0 0;padding:0;font-size:.85rem;color:#C0392B}
+#nvqh-hsform .hs_submit,#nvqh-hsform .actions{margin:4px 0 0!important;padding:0!important;text-align:left!important}
+#nvqh-hsform .hs-button{width:100%!important;font-family:"Asap",Arial,sans-serif!important;font-weight:700!important;font-size:1.05rem!important;background:var(--orange)!important;border:0!important;border-radius:999px!important;color:#fff!important;padding:14px 24px!important;cursor:pointer;box-shadow:none!important}
+#nvqh-hsform .hs-button:hover{background:#e67d00!important}
+#nvqh-hsform .legal-consent-container,#nvqh-hsform .hs-richtext{font-size:.8rem!important;color:var(--muted)!important}
+#nvqh-hsform .submitted-message{font-weight:600;color:var(--navy);padding:10px 0}
+.nvqh-enq ul{list-style:none;margin:16px 0;padding:0;display:grid;gap:8px}
+.nvqh-enq li{display:flex;gap:10px;align-items:flex-start;font-weight:600;color:#fff}
+.nvqh-enq li::before{content:"";flex:0 0 20px;height:20px;margin-top:2px;border-radius:50%;background:var(--orange) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5.5 10.5l3 2.8 6-6.3' fill='none' stroke='%23fff' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/20px no-repeat}
