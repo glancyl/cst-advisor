@@ -1,4 +1,4 @@
-/* CST Training · Construction NVQs hub (/nvqs/) · v6 · 6 Nov 2026
+/* CST Training · Construction NVQs hub (/nvqs/) · v7 · 6 Nov 2026
    Palette from the live First Aid hub: blue #4c6bd8, navy #1d2560, orange #ff8c04, light #f4f5f9, pale #e9ebf5.
    Every rule is scoped to .nvqh sections, so the BoldGrid theme is untouched. */
 @import url("https://fonts.googleapis.com/css2?family=Alata&family=Asap:wght@400;600;700&display=swap");
@@ -201,7 +201,7 @@ body[data-nvqh-who=team] .nvqh [data-show=self]{display:none}
 .nvqh-still a{color:#fff;font-weight:700}
 /* v5: no white bars. WordPress wraps stray line breaks between sections in empty paragraphs */
 .nvqh+p:empty,.nvqh+p:has(>br:only-child),.nvqh+br{display:none!important}
-.nvqh.boldgrid-section{margin-top:0!important;margin-bottom:0!important}
+.nvqh.boldgrid-section{margin-top:0!important}.nvqh.boldgrid-section:not(.nvqh-hero){margin-bottom:0!important}.nvqh.nvqh-hero{margin-bottom:-50px!important}
 .nvqh .container>p:empty,.nvqh .container>br{display:none}
 
 /* v5: enquiry section and HubSpot form */
@@ -228,3 +228,6 @@ body[data-nvqh-who=team] .nvqh [data-show=self]{display:none}
 .nvqh .nvqh-terms{text-align:center;color:#fff;font-size:.95rem;max-width:760px;margin:22px auto 0}
 #nvqh-hsform{min-height:300px}
 #nvqh-hsform:has(form){min-height:0}
+/* v7: anything WordPress slips between the hub's sections is hidden, whatever it contains */
+.nvqh+p,.nvqh+br,p:has(+.nvqh),br:has(+.nvqh){display:none!important}
+@media (max-width:700px){.nvqh.nvqh-hero{margin-bottom:-30px!important}}
