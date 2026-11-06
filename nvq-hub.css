@@ -1,4 +1,4 @@
-/* CST Training · Construction NVQs hub (/nvqs/) · v5 · 6 Nov 2026
+/* CST Training · Construction NVQs hub (/nvqs/) · v6 · 6 Nov 2026
    Palette from the live First Aid hub: blue #4c6bd8, navy #1d2560, orange #ff8c04, light #f4f5f9, pale #e9ebf5.
    Every rule is scoped to .nvqh sections, so the BoldGrid theme is untouched. */
 @import url("https://fonts.googleapis.com/css2?family=Alata&family=Asap:wght@400;600;700&display=swap");
@@ -224,3 +224,7 @@ body[data-nvqh-who=team] .nvqh [data-show=self]{display:none}
 .nvqh-enq ul{list-style:none;margin:16px 0;padding:0;display:grid;gap:8px}
 .nvqh-enq li{display:flex;gap:10px;align-items:flex-start;font-weight:600;color:#fff}
 .nvqh-enq li::before{content:"";flex:0 0 20px;height:20px;margin-top:2px;border-radius:50%;background:var(--orange) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5.5 10.5l3 2.8 6-6.3' fill='none' stroke='%23fff' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/20px no-repeat}
+/* v6: Standard terms line under the cards; form box keeps its shape while HubSpot loads */
+.nvqh .nvqh-terms{text-align:center;color:#fff;font-size:.95rem;max-width:760px;margin:22px auto 0}
+#nvqh-hsform{min-height:300px}
+#nvqh-hsform:has(form){min-height:0}
