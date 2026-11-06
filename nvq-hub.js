@@ -1,6 +1,8 @@
-/* CST Training · Construction NVQs hub (/nvqs/) · v2 · 6 Nov 2026
+/* CST Training · Construction NVQs hub (/nvqs/) · v3 · 6 Nov 2026
    Wires the Myself / My team toggle, the card + trade finder and the team builder on the /nvqs/ page.
    The page copy lives in the WordPress page HTML; this file only adds behaviour and loads nvq-hub.css.
+   v3: every interaction uses one delegated listener on the document, because another script on the site
+   rewrites the page after load and drops listeners attached to individual elements.
    Catalogue: 107 NVQs from WooCommerce (5 Nov 2026). Update prices or URLs in NVQ_CAT below. */
 (function () {
   var BASE = (document.currentScript && document.currentScript.src.replace(/[^/]*$/, "")) || "https://glancyl.github.io/cst-advisor/";
@@ -140,21 +142,34 @@
     document.querySelectorAll(".nvqh-tog button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-who") === w)); });
     if (w === "team") drawTeam();
   }
-  document.querySelectorAll(".nvqh-tog button").forEach(function (b) { b.addEventListener("click", function () { setWho(b.getAttribute("data-who")); track("nvqh_toggle", { who: who }); }); });
 
   /* ---------- shared trade input ---------- */
-  function wireTrade(inp, box, onPick) {
-    function show() {
-      var q = inp.value;
-      if (noNVQ(q)) { box.innerHTML = '<div class="none">' + NO_NVQ.msg + "</div>"; return; }
-      var m = matchTrade(q);
-      box.innerHTML = m.length ? m.map(function (x, i) { return '<button type="button" role="option" data-core="' + esc(x.core) + '">' + esc(coreLabel(x.core)) + (i === 0 ? "<em>Closest match</em>" : "") + "</button>"; }).join("")
-        : q.trim().length > 2 ? '<div class="none">No close match. Try another word, or call us on <a href="tel:' + PHONE.replace(/\s/g, "") + '">' + PHONE + "</a>.</div>" : "";
-      box.querySelectorAll("button").forEach(function (b) { b.addEventListener("click", function () { inp.value = coreLabel(b.getAttribute("data-core")); box.innerHTML = ""; onPick(b.getAttribute("data-core")); track("nvqh_trade", { q: q, core: b.getAttribute("data-core") }); }); });
-    }
-    inp.addEventListener("input", show);
-    inp.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); var f = box.querySelector("button"); if (f) f.click(); } });
+  function suggest(inp) {
+    var box = $(inp.id + "-s"); if (!box) return;
+    var q = inp.value;
+    if (noNVQ(q)) { box.innerHTML = '<div class="none">' + NO_NVQ.msg + "</div>"; return; }
+    var m = matchTrade(q);
+    box.innerHTML = m.length ? m.map(function (x, i) { return '<button type="button" role="option" data-for="' + inp.id + '" data-core="' + esc(x.core) + '">' + esc(coreLabel(x.core)) + (i === 0 ? "<em>Closest match</em>" : "") + "</button>"; }).join("")
+      : q.trim().length > 2 ? '<div class="none">No close match. Try another word, or call us on <a href="tel:' + PHONE.replace(/\s/g, "") + '">' + PHONE + "</a>.</div>" : "";
   }
+  function pickTrade(inputId, core) {
+    var inp = $(inputId), box = $(inputId + "-s");
+    if (inp) inp.value = coreLabel(core); if (box) box.innerHTML = "";
+    track("nvqh_trade", { core: core });
+    if (inputId === "nvqh-q") { st.core = core; showReco(); return; }
+    var i = +inputId.replace("nvqh-tt", ""), r = team[i]; if (!r) return;
+    r.core = core; r.key = coreList(core)[0].key; drawTeam();
+  }
+  function isTradeInput(el) { return el && el.id && (el.id === "nvqh-q" || /^nvqh-tt\d+$/.test(el.id)); }
+  document.addEventListener("input", function (e) { if (isTradeInput(e.target)) suggest(e.target); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Enter" || !isTradeInput(e.target)) return;
+    e.preventDefault(); var f = $(e.target.id + "-s") && $(e.target.id + "-s").querySelector("button"); if (f) pickTrade(e.target.id, f.getAttribute("data-core"));
+  });
+  document.addEventListener("change", function (e) {
+    var m = e.target.id && e.target.id.match(/^nvqh-tl(\d+)$/); if (!m) return;
+    var r = team[+m[1]]; if (r) { r.key = e.target.value; teamSum(); }
+  });
 
   /* ---------- Enquire Now: carry the chosen NVQ into the enquiry section ---------- */
   function setEnquiry(text) {
@@ -169,21 +184,20 @@
 
   /* ---------- finder (Myself) ---------- */
   var st = { card: null, core: null };
-  var cardsEl = $("nvqh-cards");
-  if (cardsEl) {
-    cardsEl.innerHTML = CARDS.map(function (c) { return '<button type="button" role="radio" aria-checked="false" class="nvqh-chip" data-card="' + c.id + '"><i style="background:' + c.colour + '"></i>' + esc(c.label) + "</button>"; }).join("");
-    cardsEl.querySelectorAll("button").forEach(function (b) {
-      b.addEventListener("click", function () {
-        st.card = b.getAttribute("data-card");
-        cardsEl.querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-checked", String(x === b)); });
-        var c = CARDS.filter(function (x) { return x.id === st.card; })[0];
-        $("nvqh-cardnote").innerHTML = c.id === "unsure" ? "<b>No problem.</b> Tell us your job and we'll match you." : "<b>" + esc(c.label) + (c.sub ? " (" + esc(c.sub) + ")" : "") + ":</b> usually " + esc(c.note) + ".";
-        showReco(); track("nvqh_card", { card: st.card });
-        if (!st.core) $("nvqh-q").focus();
-      });
-    });
-    wireTrade($("nvqh-q"), $("nvqh-q-s"), function (core) { st.core = core; showReco(); });
+  function renderCards() {
+    var el = $("nvqh-cards"); if (!el) return;
+    el.innerHTML = CARDS.map(function (c) { return '<button type="button" role="radio" aria-checked="' + (st.card === c.id) + '" class="nvqh-chip" data-card="' + c.id + '"><i style="background:' + c.colour + '"></i>' + esc(c.label) + "</button>"; }).join("");
   }
+  function pickCard(id) {
+    st.card = id;
+    document.querySelectorAll("#nvqh-cards .nvqh-chip").forEach(function (x) { x.setAttribute("aria-checked", String(x.getAttribute("data-card") === id)); });
+    var c = CARDS.filter(function (x) { return x.id === id; })[0], note = $("nvqh-cardnote");
+    if (note) note.innerHTML = c.id === "unsure" ? "<b>No problem.</b> Tell us your job and we'll match you." : "<b>" + esc(c.label) + (c.sub ? " (" + esc(c.sub) + ")" : "") + ":</b> usually " + esc(c.note) + ".";
+    showReco(); track("nvqh_card", { card: id });
+    if (!st.core && $("nvqh-q")) $("nvqh-q").focus();
+  }
+  renderCards();
+
   function pickHTML(c, i) {
     var price = c.price ? money(c.price) + " + VAT, or 10 × " + money(c.monthly) + " + VAT" : "Price on request";
     return '<div class="nvqh-pick' + (i ? " alt" : "") + '"><div><span class="tag">' + (i ? "Also consider" : "You need") + "</span><h4>" + esc(c.h1) + '</h4><div class="meta">' +
@@ -211,12 +225,6 @@
         '<div class="nvqh-field"><label>People</label><div class="nvqh-seats"><button type="button" data-i="' + i + '" data-d="-1" aria-label="Fewer people">−</button><span>' + r.n + '</span><button type="button" data-i="' + i + '" data-d="1" aria-label="More people">+</button></div></div>' +
         (team.length > 1 ? '<button type="button" class="nvqh-x" data-x="' + i + '" aria-label="Remove this trade">×</button>' : "<span></span>") + "</div>";
     }).join("");
-    team.forEach(function (r, i) {
-      wireTrade($("nvqh-tt" + i), $("nvqh-tt" + i + "-s"), function (core) { r.core = core; r.key = coreList(core)[0].key; drawTeam(); });
-      var s = $("nvqh-tl" + i); if (s && r.core) s.addEventListener("change", function () { r.key = s.value; teamSum(); });
-    });
-    wrap.querySelectorAll(".nvqh-seats button").forEach(function (b) { b.addEventListener("click", function () { var r = team[+b.getAttribute("data-i")]; r.n = Math.max(1, Math.min(200, r.n + +b.getAttribute("data-d"))); drawTeam(); }); });
-    wrap.querySelectorAll(".nvqh-x").forEach(function (b) { b.addEventListener("click", function () { team.splice(+b.getAttribute("data-x"), 1); drawTeam(); }); });
     teamSum();
   }
   function teamSum() {
@@ -234,7 +242,25 @@
       '<a class="nvqh-btn pri" href="#enquire" data-enq="' + esc(n + " learners: " + rows.map(function (r) { return r.n + " × " + BY[r.key].h1; }).join(", ")) + '">Enquire Now</a> ' +
       '<a class="nvqh-btn out" href="mailto:' + EMAIL + "?subject=" + encodeURIComponent("NVQ team quote (" + n + " learners)") + "&body=" + body + '">Email the list</a></div>';
   }
-  var addBtn = $("nvqh-tadd"); if (addBtn) addBtn.addEventListener("click", function () { team.push({ core: null, key: null, n: 1 }); drawTeam(); var i = team.length - 1; $("nvqh-tt" + i).focus(); });
+
+  /* ---------- one click listener for everything ---------- */
+  document.addEventListener("click", function (e) {
+    var t = e.target.closest ? e.target : null; if (!t) return;
+    var b;
+    if ((b = t.closest(".nvqh-tog button[data-who]"))) { setWho(b.getAttribute("data-who")); track("nvqh_toggle", { who: who }); return; }
+    if ((b = t.closest("#nvqh-cards .nvqh-chip"))) { pickCard(b.getAttribute("data-card")); return; }
+    if ((b = t.closest(".nvqh-sugg button[data-core]"))) { pickTrade(b.getAttribute("data-for"), b.getAttribute("data-core")); return; }
+    if ((b = t.closest(".nvqh-seats button[data-i]"))) { var r = team[+b.getAttribute("data-i")]; if (r) { r.n = Math.max(1, Math.min(200, r.n + +b.getAttribute("data-d"))); drawTeam(); } return; }
+    if ((b = t.closest(".nvqh-x[data-x]"))) { team.splice(+b.getAttribute("data-x"), 1); drawTeam(); return; }
+    if ((b = t.closest("#nvqh-tadd"))) { team.push({ core: null, key: null, n: 1 }); drawTeam(); var inp = $("nvqh-tt" + (team.length - 1)); if (inp) inp.focus(); return; }
+  });
+
+  /* If the page is rewritten after load, put the card chips and team rows back. */
+  setInterval(function () {
+    var c = $("nvqh-cards"); if (c && !c.querySelector(".nvqh-chip")) renderCards();
+    var w = $("nvqh-trows"); if (w && !w.querySelector(".nvqh-trow")) drawTeam();
+    if (document.body.getAttribute("data-nvqh-who") !== who) setWho(who);
+  }, 1500);
 
   setWho(who);
   if (!drawn) drawTeam();
