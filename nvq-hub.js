@@ -1,4 +1,4 @@
-/* CST Training · Construction NVQs hub (/nvqs/) · v3 · 6 Nov 2026
+/* CST Training · Construction NVQs hub (/nvqs/) · v4 · 6 Nov 2026
    Wires the Myself / My team toggle, the card + trade finder and the team builder on the /nvqs/ page.
    The page copy lives in the WordPress page HTML; this file only adds behaviour and loads nvq-hub.css.
    v3: every interaction uses one delegated listener on the document, because another script on the site
@@ -172,10 +172,23 @@
   });
 
   /* ---------- Enquire Now: carry the chosen NVQ into the enquiry section ---------- */
+  /* The HubSpot form's hidden field which_nvq_are_you_interested_in_ gets the chosen NVQ.
+     Buttons with an empty data-enq keep whatever was chosen in the finder, or "Not sure yet". */
+  var interest = "";
+  function applyInterest() {
+    var f = window.nvqhForm, v = interest || "Not sure yet";
+    if (!f || !f.querySelector) return;
+    var el = f.querySelector('[name="which_nvq_are_you_interested_in_"]'); if (!el) return;
+    el.value = v;
+    ["input", "change"].forEach(function (t) { try { el.dispatchEvent(new Event(t, { bubbles: true })); } catch (e) {} });
+    if (window.jQuery) try { window.jQuery(el).val(v).change(); } catch (e) {}
+  }
+  window.nvqhApplyInterest = applyInterest;
   function setEnquiry(text) {
-    var el = $("nvqh-chosen"); if (el) { el.textContent = "You're asking about: " + text; el.hidden = false; }
-    var msg = document.querySelector('#enquire textarea[name="your-message"]');
-    if (msg && !msg.value) msg.value = "I'm interested in: " + text;
+    if (text) interest = text;
+    var el = $("nvqh-chosen");
+    if (el) { if (interest) { el.textContent = "You're asking about: " + interest; el.hidden = false; } else el.hidden = true; }
+    applyInterest();
   }
   document.addEventListener("click", function (e) {
     var a = e.target.closest && e.target.closest("[data-enq]"); if (!a) return;
@@ -210,6 +223,7 @@
     var r = recommend(st.card, st.core);
     box.innerHTML = (r.note ? '<p class="why">' + r.note + "</p>" : "") + r.pick.map(pickHTML).join("") +
       (st.card ? "" : '<p class="small muted">Pick the card you\'re after above to narrow this down.</p>');
+    if (r.pick[0]) interest = r.pick[0].h1;
     track("nvqh_reco", { card: st.card || "none", core: st.core, keys: r.pick.map(function (c) { return c.key; }).join(",") });
   }
 
