@@ -1,4 +1,4 @@
-/* CST Training · Construction NVQs hub (/nvqs/) · v3 · 6 Nov 2026
+/* CST Training · Construction NVQs hub (/nvqs/) · v4 · 6 Nov 2026
    Palette from the live First Aid hub: blue #4c6bd8, navy #1d2560, orange #ff8c04, light #f4f5f9, pale #e9ebf5.
    Every rule is scoped to .nvqh sections, so the BoldGrid theme is untouched. */
 @import url("https://fonts.googleapis.com/css2?family=Alata&family=Asap:wght@400;600;700&display=swap");
@@ -189,3 +189,14 @@ body[data-nvqh-who=team] .nvqh [data-show=self]{display:none}
 .nvqh h3{font-size:1.15rem!important;line-height:1.3!important;margin:0 0 8px!important}
 .nvqh .nvqh-why h3,.nvqh .nvqh-commits h3{font-size:1.3rem!important}
 .nvqh h4{font-size:1.3rem!important;line-height:1.25!important}
+/* v4: Enquire Now rows through the page, plus button styles for coloured bands */
+.nvqh-ctas{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:28px}
+.nvqh-ctas.left{justify-content:flex-start;margin:20px 0 4px}
+.nvqh-ctas>p:empty,.nvqh-ctas>br{display:none}
+.nvqh-btn.navy{background:var(--navy);border-color:var(--navy);color:#fff!important}
+.nvqh-btn.navy:hover{background:#151c4d}
+.nvqh-btn.gh{background:transparent;border-color:#fff;color:#fff!important}
+.nvqh-btn.gh:hover{background:rgba(255,255,255,.14)}
+.nvqh-still{text-align:center;color:#fff;margin:24px 0 0}
+.nvqh-still a{color:#fff;font-weight:700}
+#nvqh-hsform{min-height:200px}
