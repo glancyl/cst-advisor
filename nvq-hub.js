@@ -1,4 +1,4 @@
-/* CST Training · Construction NVQs hub (/nvqs/) · v1 · 6 Nov 2026
+/* CST Training · Construction NVQs hub (/nvqs/) · v2 · 6 Nov 2026
    Wires the Myself / My team toggle, the card + trade finder and the team builder on the /nvqs/ page.
    The page copy lives in the WordPress page HTML; this file only adds behaviour and loads nvq-hub.css.
    Catalogue: 107 NVQs from WooCommerce (5 Nov 2026). Update prices or URLs in NVQ_CAT below. */
@@ -80,7 +80,7 @@
   /* ---------- helpers ---------- */
   var BY = {}; NVQ_CAT.forEach(function (c) { BY[c.key] = c; });
   var $ = function (id) { return document.getElementById(id); };
-  var root = $("nvq-hub"); if (!root) return;
+  if (!document.querySelector(".nvqh")) return;
   function money(n) { return n == null ? "" : "£" + Math.round(n).toLocaleString("en-GB"); }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (m) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[m]; }); }
   function norm(s) { return String(s || "").toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim(); }
@@ -136,11 +136,11 @@
   /* ---------- Myself / My team ---------- */
   var who = /[?&]who=team\b/.test(location.search) || location.hash === "#team" ? "team" : "self";
   function setWho(w) {
-    who = w; root.setAttribute("data-who", w);
-    root.querySelectorAll(".nvqh-tog button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-who") === w)); });
+    who = w; document.body.setAttribute("data-nvqh-who", w);
+    document.querySelectorAll(".nvqh-tog button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-who") === w)); });
     if (w === "team") drawTeam();
   }
-  root.querySelectorAll(".nvqh-tog button").forEach(function (b) { b.addEventListener("click", function () { setWho(b.getAttribute("data-who")); track("nvqh_toggle", { who: who }); }); });
+  document.querySelectorAll(".nvqh-tog button").forEach(function (b) { b.addEventListener("click", function () { setWho(b.getAttribute("data-who")); track("nvqh_toggle", { who: who }); }); });
 
   /* ---------- shared trade input ---------- */
   function wireTrade(inp, box, onPick) {
@@ -155,6 +155,17 @@
     inp.addEventListener("input", show);
     inp.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); var f = box.querySelector("button"); if (f) f.click(); } });
   }
+
+  /* ---------- Enquire Now: carry the chosen NVQ into the enquiry section ---------- */
+  function setEnquiry(text) {
+    var el = $("nvqh-chosen"); if (el) { el.textContent = "You're asking about: " + text; el.hidden = false; }
+    var msg = document.querySelector('#enquire textarea[name="your-message"]');
+    if (msg && !msg.value) msg.value = "I'm interested in: " + text;
+  }
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest("[data-enq]"); if (!a) return;
+    setEnquiry(a.getAttribute("data-enq")); track("nvqh_enquire", { nvq: a.getAttribute("data-enq") });
+  });
 
   /* ---------- finder (Myself) ---------- */
   var st = { card: null, core: null };
@@ -174,11 +185,10 @@
     wireTrade($("nvqh-q"), $("nvqh-q-s"), function (core) { st.core = core; showReco(); });
   }
   function pickHTML(c, i) {
-    var price = c.price ? money(c.price) + " + VAT, or 10 × " + money(c.monthly) : "Call us for the price";
-    var elig = c.eurl ? '<a class="nvqh-btn pri" href="' + c.eurl + '">Check I\'m eligible</a>' : '<a class="nvqh-btn pri" href="tel:' + PHONE.replace(/\s/g, "") + '">Call to check</a>';
+    var price = c.price ? money(c.price) + " + VAT, or 10 × " + money(c.monthly) + " + VAT" : "Price on request";
     return '<div class="nvqh-pick' + (i ? " alt" : "") + '"><div><span class="tag">' + (i ? "Also consider" : "You need") + "</span><h4>" + esc(c.h1) + '</h4><div class="meta">' +
       (c.card ? "Leads to the " + esc(c.card) + ". " : "") + "Typically " + esc(c.dur) + '. <span class="cost">' + price + "</span></div></div>" +
-      '<div class="btns">' + elig + '<a class="nvqh-btn out" href="' + c.url + '">See the NVQ</a></div></div>';
+      '<div class="btns"><a class="nvqh-btn pri" href="' + c.url + '">More Info</a><a class="nvqh-btn out" href="#enquire" data-enq="' + esc(c.h1) + '">Enquire Now</a></div></div>';
   }
   function showReco() {
     var box = $("nvqh-reco"); if (!box) return;
@@ -221,8 +231,8 @@
     box.innerHTML = '<div class="nvqh-tsum"><div class="total">' + n + " learner" + (n > 1 ? "s" : "") + ", " + money(net) + " + VAT" + (priced ? "" : " plus items on request") + "</div>" +
       "<ul>" + lines.map(function (l) { return "<li>" + esc(l) + "</li>"; }).join("") + "</ul><p class=\"small\">" + rateLine + "</p>" +
       (grant ? '<div class="grant"><b>CITB grant back: up to ' + money(grant) + "</b><br><span class=\"small\">£600 per achievement at Levels 2 to 6, if you're CITB-registered and up to date with levy returns.</span></div>" : "") +
-      '<a class="nvqh-btn pri" href="mailto:' + EMAIL + "?subject=" + encodeURIComponent("NVQ team quote (" + n + " learners)") + "&body=" + body + '">Send to an adviser</a> ' +
-      '<a class="nvqh-btn out" href="tel:' + PHONE.replace(/\s/g, "") + '">Call ' + PHONE + "</a></div>";
+      '<a class="nvqh-btn pri" href="#enquire" data-enq="' + esc(n + " learners: " + rows.map(function (r) { return r.n + " × " + BY[r.key].h1; }).join(", ")) + '">Enquire Now</a> ' +
+      '<a class="nvqh-btn out" href="mailto:' + EMAIL + "?subject=" + encodeURIComponent("NVQ team quote (" + n + " learners)") + "&body=" + body + '">Email the list</a></div>';
   }
   var addBtn = $("nvqh-tadd"); if (addBtn) addBtn.addEventListener("click", function () { team.push({ core: null, key: null, n: 1 }); drawTeam(); var i = team.length - 1; $("nvqh-tt" + i).focus(); });
 
