@@ -1,5 +1,5 @@
 /*!
- * CST Training About Us page (v9: loads about.css itself; team chip arrows on desktop)
+ * CST Training About Us page (v11: tour stays embedded, page no longer jumps to it on load; v9: loads about.css itself; team chip arrows on desktop)
  * Styling lives in a WPCode CSS snippet (about.css), so the page looks right even if this file never loads.
  * This file only adds interactions: story tabs, team filter and search, venue map, photo lightbox,
  * timeline progress line, initials for staff without photos.
@@ -136,6 +136,13 @@
     if ((t = e.target.closest('#cst-about .cab-chip'))) { showDept(r, +t.getAttribute('data-i')); return; }
     if ((t = e.target.closest('#cst-about .cab-v'))) { pickVenue(r, +t.getAttribute('data-i')); return; }
     if ((t = e.target.closest('#cst-about .cab-gi'))) { e.preventDefault(); openLb(r, +t.getAttribute('data-i')); return; }
+    if ((t = e.target.closest('#cst-about .cab-tour-start'))) {
+      e.preventDefault();
+      var fr = el('iframe'); fr.src = t.getAttribute('href'); fr.title = 'Virtual tour of River House, CST Training headquarters in Bexley';
+      fr.setAttribute('allow', 'fullscreen; accelerometer; gyroscope'); fr.setAttribute('allowfullscreen', '');
+      t.parentNode.replaceChild(fr, t);
+      return;
+    }
     if ((t = e.target.closest('#cst-about .cab-chipnav-btn'))) {
       var row = q('.cab-chips', r); if (row) row.scrollBy({ left: (t.classList.contains('cab-chipnav-prev') ? -1 : 1) * Math.max(200, row.clientWidth * 0.7), behavior: 'smooth' });
       return;
@@ -172,6 +179,17 @@
     var b = tl.getBoundingClientRect();
     tl.style.setProperty('--fill', Math.max(0, Math.min(1, (window.innerHeight * 0.6 - b.top) / b.height)) * 100 + '%');
   }, { passive: true });
+
+  // Scroll guard: embedded widgets (such as the virtual tour) can pull the page down as they load.
+  // Until the visitor scrolls, clicks, taps or presses a key, keep the page where it started.
+  (function () {
+    var touched = false, y0 = window.pageYOffset, until = Date.now() + 8000;
+    ['wheel', 'touchstart', 'keydown', 'mousedown'].forEach(function (ev) { window.addEventListener(ev, function () { touched = true; }, { passive: true, capture: true }); });
+    window.addEventListener('scroll', function () {
+      if (touched || Date.now() > until || location.hash) return;
+      if (Math.abs(window.pageYOffset - y0) > 50) window.scrollTo(0, y0);
+    }, { passive: true });
+  })();
 
   function start() { var r = root(); if (r && !r.classList.contains(DONE)) build(r); arrows(); }
   // Run after every DOMContentLoaded handler (a sitewide snippet rewrites body.innerHTML then), and again on load as a backstop.
