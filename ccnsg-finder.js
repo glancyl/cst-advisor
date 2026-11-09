@@ -73,143 +73,105 @@
     });
   }
 
-  function init() {
-    var root = document.getElementById('cst-postcode-finder-ccnsg');
-    if (!root) return;
+  var ROOT_ID = 'cst-postcode-finder-ccnsg';
+  var H4 = 'margin:0 0 4px;font-size:15px;text-transform:uppercase;letter-spacing:0.04em;color:#6b7099;font-weight:700;';
 
-    root.innerHTML = '';
+  // Builds the finder. Other scripts on the site can rebuild page content, which wipes
+  // listeners attached to elements, so every lookup below goes through the live DOM
+  // and all events are handled at document level.
+  function render(root) {
+    root.setAttribute('data-ccnsg-ready', '1');
     root.style.cssText = 'position:relative;z-index:50;max-width:640px;margin:32px auto;padding:26px 24px;background:#ffffff;border-radius:14px;font-family:Inter,Arial,sans-serif;color:#1c2560;text-align:center;';
+    root.innerHTML =
+      '<h3 style="font-family:Montserrat,Arial,sans-serif;font-size:22px;font-weight:bold;margin:0 0 6px;color:#1c2560;">Find your nearest CCNSG course</h3>' +
+      '<p style="margin:0 0 18px;font-size:15px;color:#4a4f6b;">Enter your postcode to see the closest CCNSG venues</p>' +
+      '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">' +
+        '<input data-ccnsg="pc" type="text" placeholder="e.g. DA1 5FS" maxlength="8" autocomplete="postal-code" style="flex:1 1 220px;max-width:260px;padding:13px 16px;font-size:16px;border:2px solid #d7d9e6;border-radius:8px;outline:none;text-transform:uppercase;color:#1c2560;background:#fff;">' +
+        '<button data-ccnsg="go" type="button" style="background:#1C2560;color:#fff;border:none;padding:13px 26px;font-size:16px;font-weight:600;border-radius:8px;cursor:pointer;">Find Courses</button>' +
+      '</div>' +
+      '<div data-ccnsg="msg" style="margin-top:14px;font-size:14px;min-height:20px;color:#4a4f6b;"></div>' +
+      '<div data-ccnsg="results" style="display:none;margin-top:22px;text-align:left;border:1px solid #e3e5f0;border-radius:12px;padding:22px 26px;background:#f7f8fc;">' +
+        '<h4 style="' + H4 + '">Course Dates</h4>' +
+        '<a href="' + DATES_URL + '" target="_blank" rel="noopener" style="display:inline-block;font-size:19px;font-weight:700;color:#1C2560;text-decoration:none;border-bottom:2px solid #FF8A00;margin-bottom:16px;">All CCNSG Dates</a>' +
+        '<h4 style="margin-top:16px;' + H4 + '">Nearest Venues</h4>' +
+        '<div data-ccnsg="grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;"></div>' +
+        '<p style="margin:16px 0 0;font-size:14px;color:#4a4f6b;">Booking for a group? <a href="https://www.csttraining.co.uk/contact/" style="color:#1C2560;font-weight:600;">Ask us about running CCNSG at your site</a>.</p>' +
+      '</div>';
+  }
 
-    var heading = document.createElement('h3');
-    heading.textContent = 'Find your nearest CCNSG course';
-    heading.style.cssText = 'font-family:Montserrat,Arial,sans-serif;font-size:22px;font-weight:bold;margin:0 0 6px;color:#1c2560;';
-    root.appendChild(heading);
+  function part(root, name) { return root.querySelector('[data-ccnsg="' + name + '"]'); }
 
-    var subtext = document.createElement('p');
-    subtext.textContent = 'Enter your postcode to see the closest CCNSG venues';
-    subtext.style.cssText = 'margin:0 0 18px;font-size:15px;color:#4a4f6b;';
-    root.appendChild(subtext);
+  function setMessage(root, text, isError) {
+    var msg = part(root, 'msg'); if (!msg) return;
+    msg.textContent = text || '';
+    msg.style.color = isError ? '#c0392b' : '#4a4f6b';
+    msg.style.fontWeight = isError ? '600' : 'normal';
+  }
 
-    var inputRow = document.createElement('div');
-    inputRow.style.cssText = 'display:flex;gap:10px;justify-content:center;flex-wrap:wrap;';
+  function escapeHtml(t) { return String(t).replace(/[&<>"]/g, function(c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
-    var input = document.createElement('input');
-    input.type = 'text';
-    input.placeholder = 'e.g. DA1 5FS';
-    input.maxLength = 8;
-    input.autocomplete = 'postal-code';
-    input.style.cssText = 'flex:1 1 220px;max-width:260px;padding:13px 16px;font-size:16px;border:2px solid #d7d9e6;border-radius:8px;outline:none;text-transform:uppercase;';
+  function handleSearch(root) {
+    if (root.getAttribute('data-ccnsg-busy') === '1') return;
+    var input = part(root, 'pc');
+    var postcode = input ? input.value : '';
+    if (!postcode || postcode.trim().length < 2) { setMessage(root, 'Please enter a valid UK postcode.', true); return; }
+    root.setAttribute('data-ccnsg-busy', '1');
+    setMessage(root, 'Searching...', false);
+    part(root, 'results').style.display = 'none';
 
-    var btn = document.createElement('button');
-    btn.type = 'button';
-    btn.textContent = 'Find Courses';
-    btn.style.cssText = 'background:#1C2560;color:#fff;border:none;padding:13px 26px;font-size:16px;font-weight:600;border-radius:8px;cursor:pointer;';
+    geocode(postcode).then(function(loc) {
+      var live = document.getElementById(ROOT_ID) || root;
+      var ranked = LOCATIONS.map(function(l) {
+        return { loc: l, dist: haversineMiles(loc.lat, loc.lon, l.lat, l.lon) };
+      }).sort(function(a, b) { return a.dist - b.dist; }).slice(0, 4);
 
-    inputRow.appendChild(input);
-    inputRow.appendChild(btn);
-    root.appendChild(inputRow);
+      trackSearch(loc.postcode, ranked[0].loc.region, ranked[0].loc.name);
 
-    var msg = document.createElement('div');
-    msg.style.cssText = 'margin-top:14px;font-size:14px;min-height:20px;';
-    root.appendChild(msg);
-
-    var results = document.createElement('div');
-    results.style.cssText = 'display:none;margin-top:22px;text-align:left;border:1px solid #e3e5f0;border-radius:12px;padding:22px 26px;background:#f7f8fc;';
-    root.appendChild(results);
-
-    var regionHeading = document.createElement('h4');
-    regionHeading.textContent = 'Course Dates';
-    regionHeading.style.cssText = 'margin:0 0 4px;font-size:15px;text-transform:uppercase;letter-spacing:0.04em;color:#6b7099;font-weight:700;';
-    results.appendChild(regionHeading);
-
-    var regionLink = document.createElement('a');
-    regionLink.target = '_blank';
-    regionLink.rel = 'noopener';
-    regionLink.textContent = 'Loading...';
-    regionLink.style.cssText = 'display:inline-block;font-size:19px;font-weight:700;color:#1C2560;text-decoration:none;border-bottom:2px solid #FF8A00;margin-bottom:16px;';
-    results.appendChild(regionLink);
-
-    var gridHeading = document.createElement('h4');
-    gridHeading.textContent = 'Nearest Venues';
-    gridHeading.style.cssText = 'margin:16px 0 4px;font-size:15px;text-transform:uppercase;letter-spacing:0.04em;color:#6b7099;font-weight:700;';
-    results.appendChild(gridHeading);
-
-    var grid = document.createElement('div');
-    grid.style.cssText = 'display:grid;grid-template-columns:repeat(2,1fr);gap:10px;';
-    results.appendChild(grid);
-
-    var groupNote = document.createElement('p');
-    groupNote.style.cssText = 'display:none;margin:16px 0 0;font-size:14px;color:#4a4f6b;';
-    groupNote.innerHTML = 'Booking for a group? <a href="https://www.csttraining.co.uk/contact/" style="color:#1C2560;font-weight:600;">Ask us about running CCNSG at your site</a>.';
-    results.appendChild(groupNote);
-
-    function setMessage(text, isError) {
-      msg.textContent = text || '';
-      msg.style.color = isError ? '#c0392b' : '#4a4f6b';
-      msg.style.fontWeight = isError ? '600' : 'normal';
-    }
-
-    function handleSearch() {
-      var postcode = input.value;
-      if (!postcode || postcode.trim().length < 2) {
-        setMessage('Please enter a valid UK postcode.', true);
-        return;
-      }
-      setMessage('Searching...', false);
-      results.style.display = 'none';
-      btn.disabled = true;
-
-      geocode(postcode).then(function(loc) {
-        var ranked = LOCATIONS.map(function(l) {
-          return { loc: l, dist: haversineMiles(loc.lat, loc.lon, l.lat, l.lon) };
-        }).sort(function(a, b) { return a.dist - b.dist; });
-
-        var nearest4 = ranked.slice(0, 4);
-        var topRegion = nearest4[0].loc.region;
-
-        regionLink.textContent = 'All CCNSG Dates';
-        regionLink.href = DATES_URL;
-
-        trackSearch(loc.postcode, topRegion, nearest4[0].loc.name);
-
-        grid.innerHTML = '';
-        nearest4.forEach(function(item) {
-          var a = document.createElement('a');
-          a.href = item.loc.url;
-          a.target = '_blank';
-          a.rel = 'noopener';
-          a.style.cssText = 'display:flex;justify-content:space-between;align-items:center;background:#fff;border:1px solid #e3e5f0;border-radius:8px;padding:12px 14px;text-decoration:none;color:#1C2560;font-weight:600;font-size:15px;';
-          var nameSpan = document.createElement('span');
-          nameSpan.textContent = item.loc.name;
-          var distSpan = document.createElement('span');
-          distSpan.textContent = (loc.approx ? 'approx. ' + Math.round(item.dist) : item.dist.toFixed(1)) + ' mi';
-          distSpan.style.cssText = 'font-weight:400;font-size:12px;color:#8a8fb0;white-space:nowrap;margin-left:8px;';
-          a.appendChild(nameSpan);
-          a.appendChild(distSpan);
-          grid.appendChild(a);
-        });
-
-        groupNote.style.display = 'block';
-        setMessage('', false);
-        results.style.display = 'block';
-      }).catch(function(err) {
-        if (window.console) console.error('CCNSG finder:', err);
-        setMessage("Sorry, we couldn't find that postcode. Please check it and try again.", true);
-      }).finally(function() {
-        btn.disabled = false;
-      });
-    }
-
-    btn.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); handleSearch(); });
-    input.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') { e.preventDefault(); handleSearch(); }
+      part(live, 'grid').innerHTML = ranked.map(function(item) {
+        var miles = loc.approx ? 'approx. ' + Math.round(item.dist) : item.dist.toFixed(1);
+        return '<a href="' + item.loc.url + '" target="_blank" rel="noopener" style="display:flex;justify-content:space-between;align-items:center;background:#fff;border:1px solid #e3e5f0;border-radius:8px;padding:12px 14px;text-decoration:none;color:#1C2560;font-weight:600;font-size:15px;">' +
+          '<span>' + escapeHtml(item.loc.name) + '</span><span style="font-weight:400;font-size:12px;color:#8a8fb0;white-space:nowrap;margin-left:8px;">' + miles + ' mi</span></a>';
+      }).join('');
+      setMessage(live, '', false);
+      part(live, 'results').style.display = 'block';
+    }).catch(function(err) {
+      if (window.console) console.error('CCNSG finder:', err);
+      setMessage(document.getElementById(ROOT_ID) || root, "Sorry, we couldn't find that postcode. Please check it and try again.", true);
+    }).then(function() {
+      root.removeAttribute('data-ccnsg-busy');
+      var live = document.getElementById(ROOT_ID); if (live) live.removeAttribute('data-ccnsg-busy');
     });
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
+  function rootOf(el) { return el && el.closest ? el.closest('#' + ROOT_ID) : null; }
+
+  document.addEventListener('click', function(e) {
+    var btn = e.target && e.target.closest ? e.target.closest('[data-ccnsg="go"]') : null;
+    if (!btn) return;
+    e.preventDefault();
+    handleSearch(rootOf(btn));
+  }, true);
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key !== 'Enter') return;
+    var input = e.target && e.target.closest ? e.target.closest('[data-ccnsg="pc"]') : null;
+    if (!input) return;
+    e.preventDefault();
+    handleSearch(rootOf(input));
+  }, true);
+
+  function init() {
+    var root = document.getElementById(ROOT_ID);
+    if (root && !part(root, 'go')) render(root);
   }
+
+  init();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  window.addEventListener('load', init);
+  // Re-render if another script empties or replaces the finder.
+  if (window.MutationObserver) {
+    new MutationObserver(function() { init(); }).observe(document.documentElement, { childList: true, subtree: true });
+  }
+  if (window.console) console.log('CCNSG finder v4 loaded');
 
 })();
