@@ -51,7 +51,7 @@
     if (!root) return;
 
     root.innerHTML = '';
-    root.style.cssText = 'max-width:640px;margin:32px auto;font-family:Inter,Arial,sans-serif;color:#1c2560;text-align:center;';
+    root.style.cssText = 'position:relative;z-index:50;max-width:640px;margin:32px auto;padding:26px 24px;background:#ffffff;border-radius:14px;font-family:Inter,Arial,sans-serif;color:#1c2560;text-align:center;';
 
     var heading = document.createElement('h3');
     heading.textContent = 'Find your nearest CCNSG course';
@@ -118,7 +118,7 @@
 
     function setMessage(text, isError) {
       msg.textContent = text || '';
-      msg.style.color = isError ? '#c0392b' : '';
+      msg.style.color = isError ? '#c0392b' : '#4a4f6b';
       msg.style.fontWeight = isError ? '600' : 'normal';
     }
 
@@ -165,16 +165,17 @@
         groupNote.style.display = 'block';
         setMessage('', false);
         results.style.display = 'block';
-      }).catch(function() {
+      }).catch(function(err) {
+        if (window.console) console.error('CCNSG finder:', err);
         setMessage("Sorry, we couldn't find that postcode. Please check it and try again.", true);
       }).finally(function() {
         btn.disabled = false;
       });
     }
 
-    btn.addEventListener('click', handleSearch);
+    btn.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); handleSearch(); });
     input.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') handleSearch();
+      if (e.key === 'Enter') { e.preventDefault(); handleSearch(); }
     });
   }
 
