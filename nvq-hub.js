@@ -235,7 +235,7 @@
     var price = c.price ? money(c.price) + " + VAT, or 10 × " + money(c.monthly) + " + VAT" : "Price on request";
     return '<div class="nvqh-pick' + (i ? " alt" : "") + '"><div><span class="tag">' + (i ? "Also consider" : "You need") + "</span><h4>" + esc(c.h1) + '</h4><div class="meta">' +
       (c.card ? "Leads to the " + esc(c.card) + ". " : "") + "Typically " + esc(c.dur) + '. <span class="cost">' + price + "</span></div></div>" +
-      '<div class="btns"><a class="nvqh-btn pri" href="' + c.url + '">More Info</a><a class="nvqh-btn out" href="#enquire" data-enq="' + esc(c.h1) + '">Enquire Now</a></div></div>';
+      '<div class="btns"><a class="nvqh-btn pri" href="' + c.url + '">More Info</a><a class="nvqh-btn out" href="' + c.url + '#enquire" data-enq="' + esc(c.h1) + '">Enquire Now</a></div></div>';
   }
   function showReco() {
     var box = $("nvqh-reco"); if (!box) return;
