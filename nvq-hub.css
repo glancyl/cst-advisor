@@ -240,3 +240,15 @@ body[data-nvqh-who=team] .nvqh [data-show=self]{display:none}
 .nvqh-enq .form>.small{text-align:center;margin:0 0 18px!important}
 #nvqh-hsform:has(iframe),#nvqh-hsform:has(form){min-height:0!important}
 #nvqh-hsform iframe{display:block;width:100%!important;margin:0 auto}
+
+/* Contact Form 7 inside the enquiry card */
+.nvqh-cf7,.nvqh-cf7 form,.nvqh-cf7 .row,.nvqh-cf7 [class*="col-"],.nvqh-cf7 p,.nvqh-cf7 .wpcf7-form-control-wrap{display:block!important;width:100%!important;max-width:100%!important;float:none!important;margin:0!important;padding:0!important;box-sizing:border-box}
+.nvqh-cf7 form{display:grid!important;gap:12px}
+.nvqh-cf7 br{display:none}
+.nvqh-cf7 input[type="text"],.nvqh-cf7 input[type="email"],.nvqh-cf7 input[type="tel"],.nvqh-cf7 textarea,.nvqh-cf7 select{display:block!important;width:100%!important;max-width:100%!important;box-sizing:border-box;font:inherit;font-size:1rem;color:var(--navy);background:#f6f8fc;border:1px solid #c9cfe6!important;border-radius:10px!important;padding:12px 14px!important;margin:0!important;height:auto!important}
+.nvqh-cf7 input:focus,.nvqh-cf7 textarea:focus{outline:none;border-color:var(--blue)!important;box-shadow:0 0 0 3px rgba(76,107,216,.2)}
+.nvqh-cf7 input[type="submit"],.nvqh-cf7 button[type="submit"]{display:block!important;width:100%!important;margin:6px 0 0!important;background:var(--orange)!important;border:2px solid var(--orange)!important;color:#fff!important;font:inherit;font-weight:700;font-size:1rem;border-radius:999px!important;padding:12px 24px!important;cursor:pointer;height:auto!important}
+.nvqh-cf7 input[type="submit"]:hover{background:#e67d00!important;border-color:#e67d00!important}
+.nvqh-cf7 .wpcf7-spinner{display:none}
+.nvqh-cf7 .wpcf7-not-valid-tip{font-size:.85rem;margin-top:4px}
+.nvqh-cf7 .wpcf7-response-output{margin:8px 0 0!important;border-radius:10px;font-size:.9rem;padding:10px 12px!important}
