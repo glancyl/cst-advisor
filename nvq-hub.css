@@ -252,3 +252,7 @@ body[data-nvqh-who=team] .nvqh [data-show=self]{display:none}
 .nvqh-cf7 .wpcf7-spinner{display:none}
 .nvqh-cf7 .wpcf7-not-valid-tip{font-size:.85rem;margin-top:4px}
 .nvqh-cf7 .wpcf7-response-output{margin:8px 0 0!important;border-radius:10px;font-size:.9rem;padding:10px 12px!important}
+
+/* Mobile: centre the hero buttons; more space above the FAQ "Still got a question?" line */
+@media (max-width:700px){.nvqh-ctas.left{justify-content:center!important}}
+.nvqh-still{margin-top:44px!important}
