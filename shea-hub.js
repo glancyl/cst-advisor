@@ -1,4 +1,4 @@
-/* CST Training · EUSR SHEA hub (/eusr-shea-courses/) · v1 · 11 Nov 2026
+/* CST Training · EUSR SHEA hub and course pages · v3 · 11 Nov 2026
    Loads the shared hub styles (nvq-hub.css) plus a few SHEA extras, and runs the course finder.
    Page copy lives in the WordPress page. Prices and URLs: update SHEA_COURSES below.
    Every interaction uses one delegated listener on the document, because another script on the
@@ -28,17 +28,39 @@
     "#sheah-reco .note{font-size:.92rem;margin:12px 0 0;color:var(--body)}",
     "@media (max-width:1000px){.sheah-cards{grid-template-columns:repeat(2,1fr)}.sheah-finder{grid-template-columns:repeat(2,1fr)}}",
     "@media (max-width:700px){.sheah-cards,.sheah-finder{grid-template-columns:1fr}}",
-    ".sheah-cards>br,.sheah-finder>br{display:none}"
+    ".sheah-cards>br,.sheah-finder>br{display:none}",
+    ".sheah-facts{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}",
+    ".sheah-facts div{background:#fff;border-radius:12px;padding:18px 16px;text-align:center;border-bottom:4px solid var(--orange)}",
+    ".sheah-facts b{display:block;font-size:1.5rem;color:var(--navy)}",
+    ".sheah-facts span{font-size:.9rem;color:var(--muted)}",
+    ".sheah-two{display:grid;grid-template-columns:1fr 1fr;gap:20px}",
+    ".sheah-two>div{background:var(--light);border:1px solid var(--line);border-top:4px solid var(--orange);border-radius:var(--r);padding:24px 26px}",
+    ".sheah-two ul,.sheah-two ol{margin:10px 0 0;padding-left:20px}",
+    ".sheah-two li{margin:0 0 6px}",
+    ".sheah-dates{max-width:900px;margin:0 auto;display:grid;gap:10px}",
+    ".sheah-month{font-weight:700;color:var(--navy);font-size:1.1rem;margin:14px 0 2px}",
+    ".sheah-date{background:#fff;border:1px solid var(--line);border-left:5px solid var(--orange);border-radius:10px;padding:14px 18px;display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px 20px;align-items:center}",
+    ".sheah-date h4{margin:0;font-size:1.1rem;color:var(--navy)}",
+    ".sheah-date .meta{font-size:.9rem;color:var(--muted);margin:2px 0 0}",
+    ".sheah-date .amt{font-size:1.35rem;font-weight:700;color:var(--navy);white-space:nowrap}",
+    ".sheah-date .amt small{font-size:.8rem;font-weight:600}",
+    ".sheah-date .btns{display:flex;gap:8px}",
+    ".sheah-date.full{opacity:.6;border-left-color:var(--muted)}",
+    ".sheah-more{justify-self:center;margin-top:8px}",
+    ".sheah-dates .nvqh-note{text-align:center}",
+    "@media (max-width:1000px){.sheah-facts{grid-template-columns:repeat(2,1fr)}}",
+    "@media (max-width:700px){.sheah-two{grid-template-columns:1fr}.sheah-date{grid-template-columns:1fr}.sheah-date .btns{flex-wrap:wrap}}",
+    ".sheah-facts>br,.sheah-two>br{display:none}"
   ].join("\n");
   if (!document.getElementById("sheah-css")) { var s = document.createElement("style"); s.id = "sheah-css"; s.textContent = CSS; document.head.appendChild(s); }
 
   /* Single source for the finder. Keep in line with the master product record. */
   var SITE = "https://www.csttraining.co.uk";
   var C = {
-    gas:   { name: "SHEA Gas", url: "/product-category/eusr-shea-gas-course/", price: 175, len: "1 day, live online", reg: "Registration lasts 5 years" },
-    water: { name: "SHEA Water", url: "/product-category/eusr-shea-water-course/", price: 175, len: "1 day, live online", reg: "Registration lasts 3 years" },
-    power: { name: "SHEA Power", url: "/product-category/shea-power-course/", price: 175, len: "1 day, live online", reg: "Registration lasts 3 years" },
-    ccp:   { name: "SHEA Cross-Country Pipelines", url: "/product-category/shea-cross-country-pipelines/", price: 160, len: "1 day, live online", reg: "Registration lasts 3 years" },
+    gas:   { name: "SHEA Gas", url: "/eusr-shea-gas-course/", price: 175, len: "1 day, live online", reg: "Registration lasts 5 years" },
+    water: { name: "SHEA Water", url: "/eusr-shea-water-course/", price: 175, len: "1 day, live online", reg: "Registration lasts 3 years" },
+    power: { name: "SHEA Power", url: "/shea-power-course/", price: 175, len: "1 day, live online", reg: "Registration lasts 3 years" },
+    ccp:   { name: "SHEA Cross-Country Pipelines", url: "/shea-cross-country-pipelines/", price: 160, len: "1 day, live online", reg: "Registration lasts 3 years" },
     nwh:   { name: "National Water Hygiene", url: "/eusr-national-water-hygiene/", price: 139, len: "Half a day, live online", reg: "Registration lasts 3 years" },
     renew: { name: "SHEA Renewal", url: null, price: 129, len: "Half a day, live online", reg: "Renews for 5 years (Gas) or 3 years" }
   };
@@ -97,10 +119,62 @@
     var a = e.target.closest && e.target.closest("[data-sheah-cb]"); if (!a) return;
     track("sheah_callback", { course: a.getAttribute("data-sheah-cb") });
   });
-  function init() { render(); }
+  /* ---------- live course dates from WooCommerce (Store API) ----------
+     <div class="sheah-dates" id="sheah-dates" data-cat="1108" data-time="08:30 to 17:00"
+          data-fallback="/eusr-shea-gas-dates/"></div>  */
+  var MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  var DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  var SHOW = 6;
+  function datesFail(box) {
+    var fb = box.getAttribute("data-fallback") || "/contact/";
+    box.innerHTML = '<p class="nvqh-note">We couldn\'t load the dates just now. <a href="' + esc(fb) + '">See all course dates</a> or call 020 3488 4472.</p>';
+  }
+  function loadDates() {
+    var box = document.getElementById("sheah-dates"); if (!box || box._sheah) return;
+    box._sheah = true;
+    var cat = box.getAttribute("data-cat"), time = box.getAttribute("data-time") || "";
+    box.innerHTML = '<p class="nvqh-note">Loading dates…</p>';
+    fetch("/wp-json/wc/store/v1/products?category=" + encodeURIComponent(cat) + "&per_page=100", { credentials: "same-origin" })
+      .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+      .then(function (list) {
+        var today = new Date(); today.setHours(0, 0, 0, 0);
+        var rows = (list || []).map(function (p) {
+          var m = String(p.name || "").match(/(\d{2})-(\d{2})-(\d{4})/); if (!m) return null;
+          var d = new Date(+m[3], +m[2] - 1, +m[1]);
+          var pr = p.prices || {}, mu = Math.pow(10, pr.currency_minor_unit || 0);
+          return { d: d, id: p.id, url: p.permalink, price: (+pr.price || 0) / mu, stock: p.is_in_stock !== false, low: p.low_stock_remaining };
+        }).filter(function (r) { return r && r.d >= today; }).sort(function (a, b) { return a.d - b.d; });
+        if (!rows.length) { box.innerHTML = '<p class="nvqh-note">No dates are listed right now. Call 020 3488 4472 and we\'ll find you one.</p>'; return; }
+        var html = "", last = "";
+        rows.forEach(function (r, i) {
+          var mk = MONTHS[r.d.getMonth()] + " " + r.d.getFullYear(), hide = i >= SHOW ? ' data-more="1" hidden' : "";
+          if (mk !== last) { html += '<p class="sheah-month"' + hide + ">" + mk + "</p>"; last = mk; }
+          var seats = !r.stock ? "Fully booked" : (r.low && r.low <= 4 ? "Only " + r.low + " seats left" : "");
+          html += '<div class="sheah-date' + (r.stock ? "" : " full") + '"' + hide + "><div><h4>" + DAYS[r.d.getDay()] + " " + r.d.getDate() + " " + mk + "</h4>" +
+            '<p class="meta">Live online' + (time ? " · " + esc(time) : "") + (seats ? " · <strong>" + seats + "</strong>" : "") + "</p></div>" +
+            '<div class="amt">' + money(r.price) + " <small>+ VAT</small></div>" +
+            '<div class="btns">' + (r.stock ? '<a class="nvqh-btn pri" href="' + esc(r.url) + "?add-to-cart=" + r.id + '" data-sheah-book="' + r.id + '">Book Now</a>' : "") +
+            '<a class="nvqh-btn out" href="' + esc(r.url) + '">More Info</a></div></div>';
+        });
+        if (rows.length > SHOW) html += '<button type="button" class="nvqh-btn out sheah-more" data-sheah-more="1">Show more dates</button>';
+        box.innerHTML = html;
+      })
+      .catch(function () { box._sheah = false; datesFail(box); box._sheah = true; });
+  }
+  document.addEventListener("click", function (e) {
+    var m = e.target.closest && e.target.closest("[data-sheah-more]"); if (m) {
+      var box = document.getElementById("sheah-dates");
+      Array.prototype.forEach.call(box.querySelectorAll("[data-more]"), function (el) { el.hidden = false; });
+      m.remove(); return;
+    }
+    var b = e.target.closest && e.target.closest("[data-sheah-book]"); if (b) track("sheah_book", { product: b.getAttribute("data-sheah-book") });
+  });
+
+  function init() { render(); loadDates(); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
   if (window.MutationObserver) new MutationObserver(function () {
     var box = document.getElementById("sheah-reco"); if (box && !box.firstChild) render();
+    var db = document.getElementById("sheah-dates"); if (db && !db.firstChild) { db._sheah = false; loadDates(); }
     if (!document.getElementById("sheah-css")) { var s2 = document.createElement("style"); s2.id = "sheah-css"; s2.textContent = CSS; document.head.appendChild(s2); }
   }).observe(document.documentElement, { childList: true, subtree: true });
 })();
