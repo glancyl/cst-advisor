@@ -1,4 +1,4 @@
-/* CST Training · EUSR SHEA hub and course pages · v3 · 11 Nov 2026
+/* CST Training · EUSR SHEA hub and course pages · v5 · 11 Nov 2026
    Loads the shared hub styles (nvq-hub.css) plus a few SHEA extras, and runs the course finder.
    Page copy lives in the WordPress page. Prices and URLs: update SHEA_COURSES below.
    Every interaction uses one delegated listener on the document, because another script on the
@@ -125,17 +125,34 @@
   var MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
   var DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
   var SHOW = 6;
-  function datesFail(box) {
-    var fb = box.getAttribute("data-fallback") || "/contact/";
-    box.innerHTML = '<p class="nvqh-note">We couldn\'t load the dates just now. <a href="' + esc(fb) + '">See all course dates</a> or call 020 3488 4472.</p>';
+  /* The site rewrites document.body after load (the review-count snippet), which swaps the dates
+     box for a copy. So the result is cached and always written to whichever box is in the page now. */
+  var datesHTML = null, datesBusy = false;
+  function datesBox() { return document.getElementById("sheah-dates"); }
+  function paintDates() {
+    var box = datesBox(); if (!box || datesHTML === null) return;
+    if (box.getAttribute("data-state") !== "done") { box.innerHTML = datesHTML; box.setAttribute("data-state", "done"); }
   }
   function loadDates() {
-    var box = document.getElementById("sheah-dates"); if (!box || box._sheah) return;
-    box._sheah = true;
-    var cat = box.getAttribute("data-cat"), time = box.getAttribute("data-time") || "";
-    box.innerHTML = '<p class="nvqh-note">Loading dates…</p>';
-    fetch("/wp-json/wc/store/v1/products?category=" + encodeURIComponent(cat) + "&per_page=100", { credentials: "same-origin" })
-      .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+    var box = datesBox(); if (!box) return;
+    if (datesHTML !== null) { paintDates(); return; }
+    if (datesBusy) return;
+    datesBusy = true;
+    var cat = box.getAttribute("data-cat"), time = box.getAttribute("data-time") || "", fb = box.getAttribute("data-fallback") || "/contact/";
+    var KEY = "sheah-dates-" + cat, TTL = 10 * 60 * 1000, cached = null;
+    try { cached = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) {}
+    var fresh = cached && Date.now() - cached.t < TTL;
+    if (!fresh) box.innerHTML = '<p class="nvqh-note">Loading dates…</p>';
+    var req = fresh ? Promise.resolve(cached.list) :
+      fetch("/wp-json/wc/store/v1/products?category=" + encodeURIComponent(cat) + "&stock_status=instock&per_page=100" +
+        "&_fields=id,name,permalink,prices,is_in_stock,low_stock_remaining", { credentials: "same-origin" })
+        .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+        .then(function (list) {
+          var slim = (list || []).map(function (p) { return { id: p.id, name: p.name, permalink: p.permalink, prices: p.prices, is_in_stock: p.is_in_stock, low_stock_remaining: p.low_stock_remaining }; });
+          try { localStorage.setItem(KEY, JSON.stringify({ t: Date.now(), list: slim })); } catch (e) {}
+          return slim;
+        });
+    req
       .then(function (list) {
         var today = new Date(); today.setHours(0, 0, 0, 0);
         var rows = (list || []).map(function (p) {
@@ -143,27 +160,30 @@
           var d = new Date(+m[3], +m[2] - 1, +m[1]);
           var pr = p.prices || {}, mu = Math.pow(10, pr.currency_minor_unit || 0);
           return { d: d, id: p.id, url: p.permalink, price: (+pr.price || 0) / mu, stock: p.is_in_stock !== false, low: p.low_stock_remaining };
-        }).filter(function (r) { return r && r.d >= today; }).sort(function (a, b) { return a.d - b.d; });
-        if (!rows.length) { box.innerHTML = '<p class="nvqh-note">No dates are listed right now. Call 020 3488 4472 and we\'ll find you one.</p>'; return; }
+        }).filter(function (r) { return r && r.stock && r.d >= today; }).sort(function (a, b) { return a.d - b.d; });
+        if (!rows.length) { datesHTML = '<p class="nvqh-note">No dates are listed right now. Call 020 3488 4472 and we\'ll find you one.</p>'; return; }
         var html = "", last = "";
         rows.forEach(function (r, i) {
           var mk = MONTHS[r.d.getMonth()] + " " + r.d.getFullYear(), hide = i >= SHOW ? ' data-more="1" hidden' : "";
           if (mk !== last) { html += '<p class="sheah-month"' + hide + ">" + mk + "</p>"; last = mk; }
-          var seats = !r.stock ? "Fully booked" : (r.low && r.low <= 4 ? "Only " + r.low + " seats left" : "");
-          html += '<div class="sheah-date' + (r.stock ? "" : " full") + '"' + hide + "><div><h4>" + DAYS[r.d.getDay()] + " " + r.d.getDate() + " " + mk + "</h4>" +
+          var seats = r.low && r.low <= 4 ? "Only " + r.low + " seats left" : "";
+          html += '<div class="sheah-date"' + hide + "><div><h4>" + DAYS[r.d.getDay()] + " " + r.d.getDate() + " " + mk + "</h4>" +
             '<p class="meta">Live online' + (time ? " · " + esc(time) : "") + (seats ? " · <strong>" + seats + "</strong>" : "") + "</p></div>" +
             '<div class="amt">' + money(r.price) + " <small>+ VAT</small></div>" +
-            '<div class="btns">' + (r.stock ? '<a class="nvqh-btn pri" href="' + esc(r.url) + "?add-to-cart=" + r.id + '" data-sheah-book="' + r.id + '">Book Now</a>' : "") +
+            '<div class="btns"><a class="nvqh-btn pri" href="' + esc(r.url) + "?add-to-cart=" + r.id + '" data-sheah-book="' + r.id + '">Book Now</a>' +
             '<a class="nvqh-btn out" href="' + esc(r.url) + '">More Info</a></div></div>';
         });
         if (rows.length > SHOW) html += '<button type="button" class="nvqh-btn out sheah-more" data-sheah-more="1">Show more dates</button>';
-        box.innerHTML = html;
+        datesHTML = html;
       })
-      .catch(function () { box._sheah = false; datesFail(box); box._sheah = true; });
+      .catch(function () {
+        datesHTML = '<p class="nvqh-note">We couldn\'t load the dates just now. <a href="' + esc(fb) + '">See all course dates</a> or call 020 3488 4472.</p>';
+      })
+      .then(function () { datesBusy = false; paintDates(); });
   }
   document.addEventListener("click", function (e) {
     var m = e.target.closest && e.target.closest("[data-sheah-more]"); if (m) {
-      var box = document.getElementById("sheah-dates");
+      var box = datesBox();
       Array.prototype.forEach.call(box.querySelectorAll("[data-more]"), function (el) { el.hidden = false; });
       m.remove(); return;
     }
@@ -174,7 +194,7 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
   if (window.MutationObserver) new MutationObserver(function () {
     var box = document.getElementById("sheah-reco"); if (box && !box.firstChild) render();
-    var db = document.getElementById("sheah-dates"); if (db && !db.firstChild) { db._sheah = false; loadDates(); }
+    var db = datesBox(); if (db && db.getAttribute("data-state") !== "done") loadDates();
     if (!document.getElementById("sheah-css")) { var s2 = document.createElement("style"); s2.id = "sheah-css"; s2.textContent = CSS; document.head.appendChild(s2); }
   }).observe(document.documentElement, { childList: true, subtree: true });
 })();
