@@ -176,6 +176,12 @@
      Buttons with an empty data-enq keep whatever was chosen in the finder, or "Not sure yet". */
   var interest = "";
   function applyInterest() {
+    /* Contact Form 7: put the selection into the form's message box */
+    var cf = document.querySelector(".nvqh-cf7 textarea");
+    if (cf && interest) {
+      cf.value = interest;
+      ["input", "change"].forEach(function (t) { try { cf.dispatchEvent(new Event(t, { bubbles: true })); } catch (e) {} });
+    }
     var f = window.nvqhForm, v = interest || "Not sure yet";
     if (!f || !f.querySelector) return;
     var el = f.querySelector('[name="which_nvq_are_you_interested_in_"]'); if (!el) return;
@@ -273,8 +279,7 @@
     box.innerHTML = '<div class="nvqh-tsum"><div class="total">' + n + " learner" + (n > 1 ? "s" : "") + ", " + money(net) + " + VAT" + (priced ? "" : " plus items on request") + "</div>" +
       "<ul>" + lines.map(function (l) { return "<li>" + esc(l) + "</li>"; }).join("") + "</ul><p class=\"small\">" + rateLine + "</p>" +
       (grant ? '<div class="grant"><b>CITB grant back: up to ' + money(grant) + "</b><br><span class=\"small\">£600 per achievement at Levels 2 to 6, if you're CITB-registered and up to date with levy returns.</span></div>" : "") +
-      '<a class="nvqh-btn pri" href="#enquire" data-enq="' + esc(n + " learners: " + rows.map(function (r) { return r.n + " × " + BY[r.key].h1; }).join(", ")) + '">Enquire Now</a> ' +
-      '<a class="nvqh-btn out" href="mailto:' + EMAIL + "?subject=" + encodeURIComponent("NVQ team quote (" + n + " learners)") + "&body=" + body + '">Email the list</a></div>';
+      '<a class="nvqh-btn pri" href="mailto:' + EMAIL + "?subject=" + encodeURIComponent("NVQ team quote (" + n + " learners)") + "&body=" + body + '">Get a Team Quote</a></div><p class="nvqh-fine" style="margin-top:10px">Opens your email with your selection filled in. Or email us at <a href="mailto:' + EMAIL + '">' + EMAIL + '</a></p>';
   }
 
   /* ---------- one click listener for everything ---------- */
