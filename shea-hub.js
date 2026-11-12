@@ -1,4 +1,4 @@
-/* CST Training · EUSR SHEA hub and course pages · v5 · 11 Nov 2026
+/* CST Training · EUSR SHEA hub and course pages · v7 · 11 Nov 2026
    Loads the shared hub styles (nvq-hub.css) plus a few SHEA extras, and runs the course finder.
    Page copy lives in the WordPress page. Prices and URLs: update SHEA_COURSES below.
    Every interaction uses one delegated listener on the document, because another script on the
@@ -47,6 +47,9 @@
     ".sheah-date .btns{display:flex;gap:8px}",
     ".sheah-date.full{opacity:.6;border-left-color:var(--muted)}",
     ".sheah-more{justify-self:center;margin-top:8px}",
+    ".sheah-filter{display:flex;align-items:center;gap:12px;justify-content:flex-end;flex-wrap:wrap}",
+    ".sheah-filter label{font-weight:700;color:var(--navy);margin:0}",
+    ".sheah-filter select{width:auto;min-width:200px;max-width:100%}",
     ".sheah-dates .nvqh-note{text-align:center}",
     "@media (max-width:1000px){.sheah-facts{grid-template-columns:repeat(2,1fr)}}",
     "@media (max-width:700px){.sheah-two{grid-template-columns:1fr}.sheah-date{grid-template-columns:1fr}.sheah-date .btns{flex-wrap:wrap}}",
@@ -108,12 +111,23 @@
       job === "skilled" ? "For site access in a skilled role you'll also need the EUSR CSCS card for your trade, a separate application to EUSR, which needs a Level 2 qualification as well as your SHEA." :
       "Supervisors and managers need the EUSR CSCS card that matches their role, a separate application to EUSR, as well as a valid SHEA.");
     if (n >= 8) notes.push("With eight or more we can run the course just for your team, on a date that suits your rota.");
-    else if (n >= 3) notes.push("Your team rate is applied automatically when you book.");
+    else if (n >= 3) notes.push("Ask us for your team rate when you book.");
     box.innerHTML = html + notes.map(function (t) { return '<p class="note">' + esc(t) + "</p>"; }).join("");
     track("sheah_finder", { sector: sector, situation: sit, job: job, people: n });
   }
 
-  document.addEventListener("change", function (e) { if (e.target && e.target.id && e.target.id.indexOf("sheah-") === 0) render(); });
+  function filterDates(m) {
+    var box = datesBox(); if (!box) return;
+    Array.prototype.forEach.call(box.querySelectorAll(".sheah-month,.sheah-date"), function (el) {
+      el.hidden = m ? el.getAttribute("data-m") !== m : el.hasAttribute("data-more");
+    });
+    var more = box.querySelector("[data-sheah-more]"); if (more) more.hidden = !!m;
+  }
+  document.addEventListener("change", function (e) {
+    if (!e.target || !e.target.id) return;
+    if (e.target.id === "sheah-month-filter") { filterDates(e.target.value); track("sheah_month_filter", { month: e.target.value }); return; }
+    if (e.target.id.indexOf("sheah-") === 0) render();
+  });
   document.addEventListener("input", function (e) { if (e.target && e.target.id === "sheah-n") render(); });
   document.addEventListener("click", function (e) {
     var a = e.target.closest && e.target.closest("[data-sheah-cb]"); if (!a) return;
@@ -162,19 +176,22 @@
           return { d: d, id: p.id, url: p.permalink, price: (+pr.price || 0) / mu, stock: p.is_in_stock !== false, low: p.low_stock_remaining };
         }).filter(function (r) { return r && r.stock && r.d >= today; }).sort(function (a, b) { return a.d - b.d; });
         if (!rows.length) { datesHTML = '<p class="nvqh-note">No dates are listed right now. Call 020 3488 4472 and we\'ll find you one.</p>'; return; }
-        var html = "", last = "";
+        var html = "", last = "", months = [];
         rows.forEach(function (r, i) {
           var mk = MONTHS[r.d.getMonth()] + " " + r.d.getFullYear(), hide = i >= SHOW ? ' data-more="1" hidden' : "";
-          if (mk !== last) { html += '<p class="sheah-month"' + hide + ">" + mk + "</p>"; last = mk; }
+          var mattr = ' data-m="' + mk + '"';
+          if (mk !== last) { html += '<p class="sheah-month"' + mattr + hide + ">" + mk + "</p>"; last = mk; months.push(mk); }
           var seats = r.low && r.low <= 4 ? "Only " + r.low + " seats left" : "";
-          html += '<div class="sheah-date"' + hide + "><div><h4>" + DAYS[r.d.getDay()] + " " + r.d.getDate() + " " + mk + "</h4>" +
+          html += '<div class="sheah-date"' + mattr + hide + "><div><h4>" + DAYS[r.d.getDay()] + " " + r.d.getDate() + " " + mk + "</h4>" +
             '<p class="meta">Live online' + (time ? " · " + esc(time) : "") + (seats ? " · <strong>" + seats + "</strong>" : "") + "</p></div>" +
             '<div class="amt">' + money(r.price) + " <small>+ VAT</small></div>" +
             '<div class="btns"><a class="nvqh-btn pri" href="' + esc(r.url) + "?add-to-cart=" + r.id + '" data-sheah-book="' + r.id + '">Book Now</a>' +
             '<a class="nvqh-btn out" href="' + esc(r.url) + '">More Info</a></div></div>';
         });
         if (rows.length > SHOW) html += '<button type="button" class="nvqh-btn out sheah-more" data-sheah-more="1">Show more dates</button>';
-        datesHTML = html;
+        var filter = months.length > 1 ? '<div class="sheah-filter"><label for="sheah-month-filter">Filter by month</label><select id="sheah-month-filter"><option value="">All months</option>' +
+          months.map(function (m) { return '<option value="' + m + '">' + m + "</option>"; }).join("") + "</select></div>" : "";
+        datesHTML = filter + html;
       })
       .catch(function () {
         datesHTML = '<p class="nvqh-note">We couldn\'t load the dates just now. <a href="' + esc(fb) + '">See all course dates</a> or call 020 3488 4472.</p>';
@@ -184,7 +201,7 @@
   document.addEventListener("click", function (e) {
     var m = e.target.closest && e.target.closest("[data-sheah-more]"); if (m) {
       var box = datesBox();
-      Array.prototype.forEach.call(box.querySelectorAll("[data-more]"), function (el) { el.hidden = false; });
+      Array.prototype.forEach.call(box.querySelectorAll("[data-more]"), function (el) { el.hidden = false; el.removeAttribute("data-more"); });
       m.remove(); return;
     }
     var b = e.target.closest && e.target.closest("[data-sheah-book]"); if (b) track("sheah_book", { product: b.getAttribute("data-sheah-book") });
