@@ -103,10 +103,10 @@
       if (sit === "add") notes.push("Already hold SHEA for another sector? EUSR has a shorter route if your original registration is under two years old. Ask us whether it applies to you.");
     }
     if (sector === "water") html += pick("nwh", C.nwh.url, "Working on clean water sites? You'll also need", n, true);
-    notes.push(job === "apprentice" ? "For site access as an apprentice you'll also need the EUSR CSCS Apprentice card, a separate application to EUSR, which is free." :
-      job === "labourer" ? "For site access as a labourer you'll also need the EUSR CSCS Utilities Labourer card, a separate application to EUSR (£15 + VAT)." :
-      job === "skilled" ? "For site access in a skilled role you'll also need the EUSR CSCS card for your trade (£20 + VAT), which needs a Level 2 qualification as well as your SHEA." :
-      "Supervisors and managers need the EUSR CSCS card that matches their role (£20 + VAT) as well as a valid SHEA.");
+    notes.push(job === "apprentice" ? "For site access as an apprentice you'll also need the EUSR CSCS Apprentice card, a separate application to EUSR." :
+      job === "labourer" ? "For site access as a labourer you'll also need the EUSR CSCS Utilities Labourer card, a separate application to EUSR." :
+      job === "skilled" ? "For site access in a skilled role you'll also need the EUSR CSCS card for your trade, a separate application to EUSR, which needs a Level 2 qualification as well as your SHEA." :
+      "Supervisors and managers need the EUSR CSCS card that matches their role, a separate application to EUSR, as well as a valid SHEA.");
     if (n >= 8) notes.push("With eight or more we can run the course just for your team, on a date that suits your rota.");
     else if (n >= 3) notes.push("Your team rate is applied automatically when you book.");
     box.innerHTML = html + notes.map(function (t) { return '<p class="note">' + esc(t) + "</p>"; }).join("");
