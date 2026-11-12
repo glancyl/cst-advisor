@@ -1,4 +1,4 @@
-/* CST Training · EUSR SHEA hub and course pages · v7 · 11 Nov 2026
+/* CST Training · EUSR SHEA hub and course pages · v8 · 11 Nov 2026
    Loads the shared hub styles (nvq-hub.css) plus a few SHEA extras, and runs the course finder.
    Page copy lives in the WordPress page. Prices and URLs: update SHEA_COURSES below.
    Every interaction uses one delegated listener on the document, because another script on the
@@ -47,6 +47,7 @@
     ".sheah-date .btns{display:flex;gap:8px}",
     ".sheah-date.full{opacity:.6;border-left-color:var(--muted)}",
     ".sheah-more{justify-self:center;margin-top:8px}",
+    ".sheah-dates [hidden]{display:none!important}",
     ".sheah-filter{display:flex;align-items:center;gap:12px;justify-content:flex-end;flex-wrap:wrap}",
     ".sheah-filter label{font-weight:700;color:var(--navy);margin:0}",
     ".sheah-filter select{width:auto;min-width:200px;max-width:100%}",
