@@ -1,4 +1,4 @@
-/* CST Training · EUSR SHEA hub and course pages · v9 · 11 Nov 2026
+/* CST Training · EUSR SHEA hub and course pages · v10 · 11 Nov 2026
    Loads the shared hub styles (nvq-hub.css) plus a few SHEA extras, and runs the course finder.
    Page copy lives in the WordPress page. Prices and URLs: update SHEA_COURSES below.
    Every interaction uses one delegated listener on the document, because another script on the
@@ -48,6 +48,22 @@
     ".sheah-date.full{opacity:.6;border-left-color:var(--muted)}",
     ".sheah-more{justify-self:center;margin-top:8px}",
     ".sheah-dates [hidden]{display:none!important}",
+    ".tt-groups{display:grid;grid-template-columns:1fr 1fr;gap:22px}",
+    ".tt-group{background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:0 8px 24px rgba(29,37,96,.08)}",
+    ".tt-ghead{background:var(--navy);padding:16px 22px;border-bottom:4px solid var(--orange)}",
+    ".nvqh .tt-ghead h3{color:#fff;margin:0;font-size:1.25rem}",
+    ".tt-ghead p{color:#c3c9e6;margin:4px 0 0;font-size:.9rem}",
+    ".tt-rows{display:flex;flex-direction:column}",
+    "a.tt-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;padding:13px 22px;border-top:1px solid var(--line);text-decoration:none!important;color:var(--body);transition:background .15s}",
+    "a.tt-row:first-child{border-top:0}",
+    "a.tt-row:hover{background:var(--light)}",
+    ".tt-name{font-weight:700;color:var(--navy);font-size:1rem}",
+    "a.tt-row:hover .tt-name{color:var(--orange)}",
+    ".tt-meta{grid-column:1;font-size:.88rem;color:var(--muted)}",
+    ".tt-pills{grid-column:2;grid-row:1 / span 2;align-self:center;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}",
+    ".tt-pill{font-size:.72rem;font-weight:700;color:var(--navy);background:var(--light);border:1px solid var(--line);border-radius:20px;padding:3px 9px;white-space:nowrap}",
+    "@media (max-width:900px){.tt-groups{grid-template-columns:1fr}}",
+    "@media (max-width:500px){a.tt-row{grid-template-columns:1fr}.tt-pills{grid-column:1;grid-row:auto;justify-content:flex-start;margin-top:6px}}",
     ".sheah-quote{background:#fff;border-radius:var(--r);padding:32px 36px;box-shadow:0 12px 30px rgba(29,37,96,.2)}",
     ".sheah-quote .hs-form fieldset{max-width:100%!important}",
     ".sheah-quote .hs-form .hs-form-field{margin-bottom:14px}",
