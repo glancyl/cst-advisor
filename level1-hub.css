@@ -1,135 +1,142 @@
 /* CST Training · Level 1 Health & Safety page · v1
-   Hosted on GitHub Pages (cst-advisor repo). Loads level1-hub.css from the same folder,
-   then wires up the route checker and the "Level 1 or HSA?" tabs.
-   All page wording lives in the page HTML apart from the checker results below. */
-(function () {
-  "use strict";
+   Loaded by level1-hub.js. Everything is scoped to .l1hub or .l1-* so it can't leak into the theme. */
 
-  var BOOK = "https://www.csttraining.co.uk/product/level-1-health-safety-construction-environment/";
-  var HSA = "https://www.csttraining.co.uk/hsa-courses/";
-  var NVQ = "https://www.csttraining.co.uk/nvqs/";
+.l1hub, .l1-hero-sub, .l1-hero-btns {
+  --l1-navy: #1d2560;
+  --l1-orange: #ff8c04;
+  --l1-surface: #f4f6fa;
+  --l1-border: #dde3f0;
+  --l1-body: #3d4665;
+  --l1-muted: #6b7394;
+}
 
-  /* ---------- CSS (BoldGrid strips <style>, so it loads from here) ---------- */
-  var me = document.currentScript;
-  var base = me && me.src ? me.src.split("?")[0].replace(/[^/]+$/, "") : "https://glancyl.github.io/cst-advisor/";
-  var ver = me && me.src && me.src.indexOf("?") > -1 ? "?" + me.src.split("?")[1] : "";
-  var link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.href = base + "level1-hub.css" + ver;
-  document.head.appendChild(link);
+/* Hero additions */
+.l1-hero-sub { font-size: 18px; line-height: 1.5; margin: 12px 0 18px; color: #1d1d1d; max-width: 640px; }
+.l1-hero-btns { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 8px; }
+.l1-hero-btns .btn { margin: 0 !important; }
 
-  function ready(fn) {
-    if (document.readyState !== "loading") fn();
-    else document.addEventListener("DOMContentLoaded", fn);
-  }
+/* Sections */
+.l1hub { color: var(--l1-body); font-size: 16px; line-height: 1.6; }
+.l1hub .l1-sec { padding: 3em 0; }
+.l1hub .l1-tint { background: var(--l1-surface); }
+.l1hub .l1-navy { background: var(--l1-navy); color: #fff; }
+.l1hub .l1-navy h2, .l1hub .l1-navy p, .l1hub .l1-navy li { color: #fff; }
+.l1hub .l1-h2 { font-family: Asap, sans-serif; font-weight: 700; font-size: 30px; line-height: 1.25; color: var(--l1-navy); margin: 0 0 .5em; }
+.l1hub .l1-navy .l1-h2 { color: #fff; }
+.l1hub h3 { font-family: Asap, sans-serif; font-weight: 700; color: var(--l1-navy); font-size: 19px; line-height: 1.3; margin: 0 0 .4em; }
+.l1hub .l1-center { text-align: center; }
+.l1hub .l1-lede { font-size: 18px; max-width: 720px; margin: 0 auto 1.6em; }
+.l1hub .l1-source, .l1hub .l1-source-inline { font-size: 13px; color: var(--l1-muted); }
+.l1hub .l1-source { text-align: center; margin-top: 1em; }
+.l1hub .l1-small { font-size: 14px; text-align: center; margin: 10px 0 0; }
+.l1hub a:not(.btn) { color: var(--l1-navy); text-decoration: underline; text-underline-offset: 2px; }
+.l1hub .l1-navy a:not(.btn) { color: #fff; }
 
-  function btn(href, text, cls) {
-    return '<a class="btn btn-rounded ' + (cls || "btn-color-1") + '" href="' + href + '">' + text + "</a>";
-  }
+/* At a glance */
+.l1-glance { display: grid; grid-template-columns: 2fr 1fr; gap: 28px; align-items: start; }
+.l1-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 0; }
+.l1-facts > div { background: var(--l1-surface); border: 1px solid var(--l1-border); border-left: 4px solid var(--l1-orange); border-radius: 8px; padding: 14px 16px; }
+.l1-facts dt { font-family: Asap, sans-serif; font-weight: 700; color: var(--l1-navy); font-size: 15px; margin: 0 0 4px; }
+.l1-facts dd { margin: 0; font-size: 15px; }
+.l1-glance-side { background: var(--l1-navy); color: #fff; border-radius: 8px; border-bottom-right-radius: 40px; padding: 22px 22px 10px; }
+.l1-glance-side h3 { color: #fff; }
+.l1-glance-side p { font-size: 15px; margin: 0 0 14px; color: #fff; }
+.l1-glance-side strong { color: var(--l1-orange); }
+.l1-glance-side a { color: #fff !important; }
 
-  /* ---------- Route checker ---------- */
-  function result(a) {
-    var team = a.who === "team";
-    var teamLine = team
-      ? "<p>Booking three or more? Ask us for a team quote and we'll get everyone booked in, each with their own login.</p>"
-      : a.who === "staff"
-      ? "<p>Booking for staff? Add each learner's name and email at checkout and their login goes straight to them.</p>"
-      : "";
-    var testLine = "<p>You'll also need a pass in the CITB Health, Safety and Environment test (Operatives), taken in the last two years, before applying to CSCS.</p>";
+/* Route checker */
+.l1-checker { max-width: 860px; margin: 0 auto; background: #fff; border: 1px solid var(--l1-border); border-radius: 10px; padding: 24px; box-shadow: 0 2px 10px rgba(29, 37, 96, .06); }
+.l1-q { margin-bottom: 20px; }
+.l1-q-label { font-family: Asap, sans-serif; font-weight: 700; color: var(--l1-navy); margin: 0 0 8px; }
+.l1-opts { display: flex; flex-wrap: wrap; gap: 8px; }
+.l1-opts button { font: inherit; font-size: 15px; text-align: left; background: var(--l1-surface); color: var(--l1-navy); border: 2px solid var(--l1-border); border-radius: 8px; padding: 10px 14px; cursor: pointer; flex: 1 1 200px; transition: border-color .15s, background .15s; }
+.l1-opts button:hover { border-color: var(--l1-navy); }
+.l1-opts button:focus-visible { outline: 3px solid var(--l1-orange); outline-offset: 2px; }
+.l1-opts button[aria-pressed="true"] { background: var(--l1-navy); border-color: var(--l1-navy); color: #fff; }
+.l1-q.l1-hidden { display: none; }
+.l1-answer { border-top: 1px solid var(--l1-border); padding-top: 18px; }
+.l1-answer-wait { color: var(--l1-muted); margin: 0; }
+.l1-result { border-radius: 8px; padding: 18px 20px; background: #f0faf4; border: 1px solid #a8d8bc; }
+.l1-result.l1-result-alt { background: #fff7ec; border-color: #ffc77f; }
+.l1-result h3 { margin-top: 0; }
+.l1-result p { margin: 0 0 10px; }
+.l1-result .l1-result-btns { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.l1-result .btn { margin: 0 !important; }
 
-    if (a.job === "trade") {
-      return {
-        alt: true,
-        h: "You need a different card",
-        body: "<p>CSCS says the green Labourer card is for unskilled work only, and skilled workers holding one will be refused site access. Your route is the NVQ for your trade, which leads to a Blue Skilled Worker card.</p><p>If you're labouring while you train, the Level 1 covers you in the meantime.</p>",
-        btns: btn(NVQ, "See construction NVQs") + btn("#contact", "Ask us about your route", "btn-color-2")
-      };
-    }
-    if (a.job === "super") {
-      return {
-        alt: true,
-        h: "Supervisors and managers need a different card",
-        body: "<p>Supervisory and management roles usually need the Gold Supervisor or Black Manager card, through an NVQ and the right CITB test. The Level 1 is for labouring roles only.</p><p>Get in touch and we'll set out the right route for you.</p>",
-        btns: btn("#contact", "Ask us about your route") + btn(NVQ, "See construction NVQs", "btn-color-2")
-      };
-    }
-    if (!a.how || !a.who) return null;
+/* Steps */
+.l1-steps { list-style: none; margin: 0 0 1.4em; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; counter-reset: none; }
+.l1-steps li { background: var(--l1-navy); color: #fff; border-radius: 10px; padding: 22px 18px 16px; position: relative; margin: 0; }
+.l1-steps li h3 { color: #fff; font-size: 18px; }
+.l1-steps li p { color: #fff; font-size: 15px; margin: 0 0 10px; }
+.l1-steps .l1-step-n { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: var(--l1-orange); color: #fff; font-family: Asap, sans-serif; font-weight: 700; font-size: 18px; margin-bottom: 10px; }
+.l1-steps .l1-who { font-size: 13px !important; opacity: .85; border-top: 1px solid rgba(255, 255, 255, .25); padding-top: 8px; margin: 0 !important; }
+.l1-note { background: #e4edfb; border: 1px solid #2e6fd6; border-radius: 8px; padding: 14px 18px; font-size: 15px; }
 
-    if (a.how === "tutor") {
-      return {
-        alt: true,
-        h: "The CITB HSA may suit you better",
-        body: "<p>If you'd rather spend a day with a tutor, our CITB Health and Safety Awareness course is the other route to the same green card. It counts for five years and can only be used once.</p><p>The Level 1 starts today and counts for life, so you'll never need to repeat it.</p>" + testLine + teamLine,
-        btns: btn(HSA, "See HSA dates") + btn(team ? "#contact" : BOOK, team ? "Request a team quote" : "Book the Level 1 instead", "btn-color-2")
-      };
-    }
-    return {
-      alt: false,
-      h: "The Level 1 is the right course",
-      body: "<p>The Level 1 Award, together with the CITB test, is what CSCS asks for on a first green Labourer card. It counts for life, so you won't need to retake it when the card is renewed.</p>" + testLine + teamLine,
-      btns: team
-        ? btn("#contact", "Request a team quote") + btn(BOOK, "Or book online now", "btn-color-2")
-        : btn(BOOK, "Book Now £150 + VAT")
-    };
-  }
+/* Tabs */
+.l1-tabs { margin-top: 2em; }
+.l1-tablist { display: flex; flex-wrap: wrap; gap: 6px; border-bottom: 2px solid var(--l1-border); }
+.l1-tablist button { font: inherit; font-family: Asap, sans-serif; font-weight: 700; font-size: 16px; background: none; border: 0; border-bottom: 3px solid transparent; margin-bottom: -2px; padding: 10px 16px; color: var(--l1-muted); cursor: pointer; }
+.l1-tablist button[aria-selected="true"] { color: var(--l1-navy); border-bottom-color: var(--l1-orange); }
+.l1-tablist button:focus-visible { outline: 3px solid var(--l1-orange); outline-offset: 2px; }
+.l1-panel { padding: 22px 0 0; }
+.l1-js .l1-panel[hidden] { display: none; }
+.l1-table-wrap { overflow-x: auto; margin: 0 0 1em; }
+.l1-table { width: 100%; border-collapse: collapse; min-width: 520px; font-size: 15px; }
+.l1-table th, .l1-table td { border: 1px solid var(--l1-border); padding: 10px 12px; text-align: left; vertical-align: top; }
+.l1-table thead th { background: var(--l1-navy); color: #fff; }
+.l1-table tbody td:first-child { font-weight: 700; color: var(--l1-navy); background: var(--l1-surface); }
 
-  function initChecker(root) {
-    var answers = {};
-    var out = root.querySelector("[data-l1-answer]");
-    var qHow = root.querySelector('[data-q="how"]');
-    var qWho = root.querySelector('[data-q="who"]');
+/* Ticks */
+.l1-ticks { list-style: none; padding: 0; margin: 0 0 1em; }
+.l1-ticks li { position: relative; padding-left: 30px; margin-bottom: 8px; }
+.l1-ticks li::before { content: ""; position: absolute; left: 4px; top: 6px; width: 8px; height: 14px; border: solid var(--l1-orange); border-width: 0 3px 3px 0; transform: rotate(45deg); }
 
-    root.querySelectorAll(".l1-opts button").forEach(function (b) {
-      b.setAttribute("aria-pressed", "false");
-      b.addEventListener("click", function () {
-        var q = b.closest("[data-q]");
-        var key = q.getAttribute("data-q");
-        q.querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-pressed", "false"); });
-        b.setAttribute("aria-pressed", "true");
-        answers[key] = b.getAttribute("data-v");
+.l1-video { border-radius: 10px; overflow: hidden; }
 
-        var labouring = answers.job === "labour";
-        [qHow, qWho].forEach(function (el) { if (el) el.classList.toggle("l1-hidden", answers.job && !labouring); });
+/* Timeline */
+.l1-timeline { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 1.5em 0 2em; counter-reset: l1tl; }
+.l1-tl-item { border: 1px solid var(--l1-border); border-radius: 8px; padding: 18px; background: #fff; counter-increment: l1tl; }
+.l1-tl-item h3::before { content: counter(l1tl); display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: var(--l1-navy); color: #fff; font-size: 14px; margin-right: 8px; }
+.l1-tl-item p { margin: 0; font-size: 15px; }
+.l1-kit { background: #fff7ec; border: 1px solid #ffc77f; border-radius: 10px; padding: 20px 24px; max-width: 860px; margin: 0 auto; }
+.l1-kit p { margin: 0; font-size: 15px; }
 
-        var r = result(answers);
-        if (!r) {
-          out.innerHTML = '<p class="l1-answer-wait">Answer the remaining questions to see your result.</p>';
-          return;
-        }
-        out.innerHTML = '<div class="l1-result' + (r.alt ? " l1-result-alt" : "") + '"><h3>' + r.h + "</h3>" + r.body + '<div class="l1-result-btns">' + r.btns + "</div></div>";
-        if (window.dataLayer) window.dataLayer.push({ event: "l1_checker_result", l1_result: r.h, l1_job: answers.job, l1_how: answers.how || "", l1_who: answers.who || "" });
-      });
-    });
-  }
+/* Employers */
+.l1-ticks-light li::before { border-color: var(--l1-orange); }
+.l1-team-card { background: #fff; border-radius: 10px; border-bottom-right-radius: 40px; padding: 24px; margin-top: 10px; }
+.l1-navy .l1-team-card p, .l1-navy .l1-team-card h3 { color: var(--l1-body); }
+.l1-navy .l1-team-card h3 { color: var(--l1-navy); }
+.l1-navy .l1-team-card a:not(.btn) { color: var(--l1-navy); }
 
-  /* ---------- Tabs ---------- */
-  function initTabs(root) {
-    var tabs = root.querySelectorAll("[data-tab]");
-    var panels = root.querySelectorAll("[data-panel]");
-    function show(key) {
-      tabs.forEach(function (t) {
-        var on = t.getAttribute("data-tab") === key;
-        t.setAttribute("aria-selected", on ? "true" : "false");
-        t.tabIndex = on ? 0 : -1;
-      });
-      panels.forEach(function (p) { p.hidden = p.getAttribute("data-panel") !== key; });
-    }
-    tabs.forEach(function (t, i) {
-      t.addEventListener("click", function () { show(t.getAttribute("data-tab")); });
-      t.addEventListener("keydown", function (e) {
-        var n = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
-        if (!n) return;
-        var next = tabs[(i + n + tabs.length) % tabs.length];
-        next.focus();
-        show(next.getAttribute("data-tab"));
-      });
-    });
-    show(tabs[0].getAttribute("data-tab"));
-  }
+/* Why cards */
+.l1-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: 1.5em; }
+.l1-card { background: var(--l1-surface); border: 1px solid var(--l1-border); border-top: 4px solid var(--l1-orange); border-radius: 8px; padding: 20px; }
+.l1-card p { margin: 0; font-size: 15px; }
 
-  ready(function () {
-    document.documentElement.classList.add("l1-js");
-    document.querySelectorAll("[data-l1-checker]").forEach(initChecker);
-    document.querySelectorAll("[data-l1-tabs]").forEach(initTabs);
-  });
-})();
+/* FAQs */
+.l1-faq { max-width: 860px; margin: 1.5em auto 0; }
+.l1-faq details { background: #fff; border: 1px solid var(--l1-border); border-radius: 8px; margin-bottom: 10px; }
+.l1-faq summary { cursor: pointer; list-style: none; padding: 16px 48px 16px 18px; font-family: Asap, sans-serif; font-weight: 700; color: var(--l1-navy); position: relative; }
+.l1-faq summary::-webkit-details-marker { display: none; }
+.l1-faq summary::after { content: "+"; position: absolute; right: 18px; top: 50%; transform: translateY(-50%); font-size: 24px; color: var(--l1-orange); }
+.l1-faq details[open] summary::after { content: "\2212"; }
+.l1-faq summary:focus-visible { outline: 3px solid var(--l1-orange); outline-offset: 2px; }
+.l1-faq-a { padding: 0 18px 14px; }
+.l1-faq-a p { margin: 0; }
+
+.l1-cta { padding-bottom: 2em !important; }
+
+/* Responsive */
+@media (max-width: 991px) {
+  .l1-glance { grid-template-columns: 1fr; }
+  .l1-steps, .l1-cards { grid-template-columns: 1fr 1fr; }
+  .l1-timeline { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 600px) {
+  .l1hub .l1-sec { padding: 2.2em 0; }
+  .l1hub .l1-h2 { font-size: 25px; }
+  .l1-facts, .l1-steps, .l1-cards, .l1-timeline { grid-template-columns: 1fr; }
+  .l1-checker { padding: 18px; }
+  .l1-opts button { flex-basis: 100%; }
+  .l1-hero-btns .btn { flex: 1 1 100%; text-align: center; }
+}
