@@ -60,12 +60,12 @@
     if (!a.how || !a.who) return null;
     if (a.how === "tutor") return {
       alt: true, h: "The CITB HSA may suit you better",
-      body: "<p>Prefer a day with a tutor? Our CITB Health and Safety Awareness course is the other route to the same green card. It counts for five years and can only be used once, whereas the Level 1 counts for life.</p>" + testLine + teamLine,
+      body: "<p>Prefer a day with a tutor? Our CITB Health and Safety Awareness course is the other route to the same green card. It lasts five years, so you'd retake it when you renew your card. The Level 1 doesn't expire.</p>" + testLine + teamLine,
       btns: btn(HSA, "See HSA dates") + btn(team ? "#contact" : BOOK, team ? "Request a team quote" : "Book the Level 1 instead", "l1-btn-ghost")
     };
     return {
       alt: false, h: "The Level 1 is the right course",
-      body: "<p>With the CITB test, the Level 1 is what CSCS asks for on a first green Labourer card. It counts for life, so you won't need to retake it when the card is renewed.</p>" + testLine + teamLine,
+      body: "<p>With the CITB test, the Level 1 is what CSCS asks for on a first green Labourer card. It doesn't expire, so you won't need to retake it when you renew your card.</p>" + testLine + teamLine,
       btns: team ? btn("#contact", "Request a team quote") + btn(BOOK, "Or book online now", "l1-btn-ghost") : btn(BOOK, "Book Now £150 + VAT")
     };
   }
