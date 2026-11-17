@@ -274,25 +274,36 @@
     box.appendChild(form); box.appendChild(th);
     var pre = window.__mhhCourse; if (pre && COURSES.indexOf(pre) > -1) fK.value = pre;
     var n = parseInt(val("mhh-n"), 10); if (n > 1) fH.value = String(n);
-    form.addEventListener("submit", function (ev) {
-      ev.preventDefault();
-      var name = fN.value.trim(), email = fE.value.trim(), ph = fP.value.trim();
-      function err(t, x) { st.className = "mhh-status full err"; st.textContent = t; if (x) x.focus(); }
-      if (!name) return err("Add your name.", fN);
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return err("Enter a valid email address.", fE);
-      if (!ph) return err("Add a phone number so we can call you back.", fP);
-      var parts = name.split(/\s+/), first = parts.shift(), last = parts.join(" ") || "-", people = String(Math.max(1, parseInt(fH.value, 10) || 1));
-      var msg = "Mental health call back request\n\nCompany: " + (fC.value.trim() || "-") + "\nCourse: " + fK.value + "\nPeople: " + people + (fQ.value.trim() ? "\n\nNotes:\n" + fQ.value.trim() : "");
-      var fields = [{ name: "firstname", value: first }, { name: "lastname", value: last }, { name: "email", value: email }, { name: "phone", value: ph },
-        { name: "message", value: msg }, { name: "enquiry_qualification", value: fK.value }, { name: "enquiry_learners", value: people },
-        { name: "enquiry_options_selected", value: "Mental health hub call back" }];
-      var ctx = { pageUri: location.href, pageName: document.title }, m = document.cookie.match(/(?:^|; )hubspotutk=([^;]*)/); if (m) ctx.hutk = decodeURIComponent(m[1]);
-      sb.disabled = true; sb.textContent = "Sending"; st.className = "mhh-status full"; st.textContent = "";
-      fetch(HS_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fields: fields, context: ctx }) })
-        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-        .then(function () { track("mhh_enquiry", { course: fK.value, people: +people }); form.style.display = "none"; th.style.display = "block"; })
-        .catch(function () { sb.disabled = false; sb.textContent = "Request a Call Back"; err("That didn't send. Please try again, or call 020 3488 4472."); });
-    });
+  }
+  /* Submit is handled by one listener on the document (below), because another script on the site
+     can re-render the page, which drops listeners attached to the form itself. */
+  function submitForm(form) {
+    var box = form.parentNode, g = function (id) { return document.getElementById(id); };
+    var fN = g("mhhf-your-name"), fC = g("mhhf-company-optional"), fE = g("mhhf-email"), fP = g("mhhf-phone"),
+        fK = g("mhhf-course"), fH = g("mhhf-how-many-people"), fQ = g("mhhf-anything-else-optional");
+    var sb = form.querySelector("button[type=submit]"), st = form.querySelector(".mhh-status"), th = box.querySelector(".mhh-thanks");
+    if (!fN || !fE || !fP || !sb || sb.disabled) return;
+    var name = fN.value.trim(), email = fE.value.trim(), ph = fP.value.trim();
+    function err(t, x) { st.className = "mhh-status full err"; st.textContent = t; if (x) x.focus(); }
+    if (!name) return err("Add your name.", fN);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return err("Enter a valid email address.", fE);
+    if (!ph) return err("Add a phone number so we can call you back.", fP);
+    var parts = name.split(/\s+/), first = parts.shift(), last = parts.join(" ") || "-", people = String(Math.max(1, parseInt(fH.value, 10) || 1));
+    var msg = "Mental health call back request\n\nCompany: " + (fC.value.trim() || "-") + "\nCourse: " + fK.value + "\nPeople: " + people + (fQ.value.trim() ? "\n\nNotes:\n" + fQ.value.trim() : "");
+    var fields = [{ name: "firstname", value: first }, { name: "lastname", value: last }, { name: "email", value: email }, { name: "phone", value: ph },
+      { name: "message", value: msg }, { name: "enquiry_qualification", value: fK.value }, { name: "enquiry_learners", value: people },
+      { name: "enquiry_options_selected", value: "Mental health hub call back" }];
+    var ctx = { pageUri: location.href, pageName: document.title }, m = document.cookie.match(/(?:^|; )hubspotutk=([^;]*)/); if (m) ctx.hutk = decodeURIComponent(m[1]);
+    sb.disabled = true; sb.textContent = "Sending"; st.className = "mhh-status full"; st.textContent = "";
+    fetch(HS_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fields: fields, context: ctx }) })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function () {
+        track("mhh_enquiry", { course: fK.value, people: +people });
+        var f = document.querySelector("#mhh-form form"), t = document.querySelector("#mhh-form .mhh-thanks");
+        if (f) f.style.display = "none";
+        if (t) { t.style.display = "block"; t.scrollIntoView({ behavior: "smooth", block: "center" }); }
+      })
+      .catch(function () { sb.disabled = false; sb.textContent = "Request a Call Back"; err("That didn't send. Please try again, or call 020 3488 4472."); });
   }
   function preselect(course) {
     window.__mhhCourse = course;
@@ -301,6 +312,10 @@
   }
 
   /* ---------- delegated listeners ---------- */
+  document.addEventListener("submit", function (e) {
+    var f = e.target && e.target.closest && e.target.closest(".mhh-form"); if (!f) return;
+    e.preventDefault(); submitForm(f);
+  }, true);
   document.addEventListener("change", function (e) { if (e.target && e.target.id && e.target.id.indexOf("mhh-") === 0) render(); });
   document.addEventListener("input", function (e) { if (e.target && e.target.id === "mhh-n") render(); });
   document.addEventListener("click", function (e) {
