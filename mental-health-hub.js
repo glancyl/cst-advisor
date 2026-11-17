@@ -89,12 +89,17 @@
     ".mhh-dates .nvqh-note{text-align:center}",
     /* Topic cards on a white section */
     ".mhh-learn{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}",
-    ".mhh-learn>div{background:var(--light);border:1px solid var(--line);border-top:5px solid var(--orange);border-radius:var(--r);padding:20px 22px}",
-    ".nvqh .mhh-learn h3{color:var(--navy)!important;font-size:1.1rem!important;margin:0 0 6px!important}",
-    ".mhh-learn p{margin:0;color:var(--body)}",
+    ".mhh-learn>div{background:linear-gradient(135deg,#4c6bd8 0%,#3a55bf 100%);border-top:5px solid var(--orange);border-radius:var(--r);padding:22px 22px 20px;box-shadow:0 10px 24px rgba(29,37,96,.18)}",
+    ".nvqh .mhh-learn h3{color:#fff!important;font-size:1.12rem!important;margin:0 0 6px!important}",
+    ".mhh-learn p{margin:0;color:#e6eafb}",
     ".mhh-learn>br,.mhh-learn>p:empty{display:none}",
     "@media (max-width:900px){.mhh-learn{grid-template-columns:1fr 1fr}}@media (max-width:600px){.mhh-learn{grid-template-columns:1fr}}",
     "@media (min-width:1001px){.nvqh-steps.mhh-4{grid-template-columns:repeat(4,1fr)}}",
+    /* Navy step cards */
+    ".nvqh-steps.mhh-dark li{background:var(--navy);border:0;border-top:5px solid var(--orange);box-shadow:0 10px 24px rgba(29,37,96,.2)}",
+    ".nvqh-steps.mhh-dark li::before{background:var(--orange);color:#fff}",
+    ".nvqh .nvqh-steps.mhh-dark h3{color:var(--orange)!important}",
+    ".nvqh-steps.mhh-dark p{color:#dfe3f5}",
     /* Call back form (posts to the generic HubSpot enquiry form) */
     ".mhh-form{display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:left;margin-top:14px}",
     ".mhh-form .full{grid-column:1/-1}",
