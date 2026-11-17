@@ -52,9 +52,10 @@
     ".mhh-tabs>*{min-width:0}",
     ".mhh-tablist{display:flex;flex-direction:column;gap:8px}",
     ".mhh-tablist button{text-align:left;font:inherit;background:#fff;border:1.5px solid var(--line);border-left:5px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;color:var(--navy);font-weight:700}",
-    ".mhh-tablist button span{display:block;font-weight:400;font-size:.85rem;color:var(--muted);margin-top:2px}",
+    ".mhh-tablist button::after{content:attr(data-sub);display:block;font-weight:400;font-size:.85rem;color:var(--muted);margin-top:2px}",
+    ".mhh-tablist button span{display:none}",
     ".mhh-tablist button[aria-selected=true]{border-color:var(--navy);border-left-color:var(--orange);background:var(--navy);color:#fff}",
-    ".mhh-tablist button[aria-selected=true] span{color:#c9cde0}",
+    ".mhh-tablist button[aria-selected=true]::after{color:#c9cde0}",
     ".mhh-pane{display:none;background:#fff;border:1px solid var(--line);border-top:5px solid var(--orange);border-radius:var(--r);padding:26px 28px}",
     ".mhh-pane.on{display:block}",
     ".mhh-pane .tw{overflow-x:auto;margin:12px 0}",
@@ -86,6 +87,21 @@
     ".mhh-more{justify-self:center;margin-top:8px}",
     ".mhh-dates [hidden]{display:none!important}",
     ".mhh-dates .nvqh-note{text-align:center}",
+    /* Call back form (posts to the generic HubSpot enquiry form) */
+    ".mhh-form{display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:left;margin-top:14px}",
+    ".mhh-form .full{grid-column:1/-1}",
+    ".mhh-form label{display:block;font-weight:700;color:var(--navy);font-size:.88rem;margin:0 0 4px}",
+    ".mhh-form input,.mhh-form select,.mhh-form textarea{width:100%;max-width:100%;font:inherit;color:var(--navy);border:1.5px solid #c3c8dc;border-radius:8px;padding:10px 12px;background:#fff;height:auto;box-sizing:border-box}",
+    ".mhh-form textarea{min-height:80px;resize:vertical}",
+    ".mhh-form input:focus,.mhh-form select:focus,.mhh-form textarea:focus{border-color:var(--navy);outline:none;box-shadow:0 0 0 3px rgba(29,37,96,.12)}",
+    ".mhh-form .send{text-align:center}",
+    ".mhh-form .send .nvqh-btn{border:0;cursor:pointer;min-width:220px}",
+    ".mhh-form .send .nvqh-btn[disabled]{opacity:.6;cursor:default}",
+    ".mhh-status{margin:0;font-size:.9rem;text-align:center;min-height:1em}",
+    ".mhh-status.err{color:#b42318;font-weight:600}",
+    ".mhh-form .legal{font-size:.78rem;color:var(--muted);margin:0;text-align:center}",
+    ".mhh-thanks{display:none;background:#ECFDF3;border:1px solid #A6F4C5;border-radius:10px;padding:16px 18px;margin-top:14px;text-align:left;color:#05603A}",
+    "@media (max-width:700px){.mhh-form{grid-template-columns:1fr}}",
     /* WordPress stray paragraphs and breaks inside grids */
     ".mhh-cards>br,.mhh-cards>p:empty,.mhh-finder>br,.mhh-finder>p:empty,.mhh-tabs>br,.mhh-tabs>p:empty,.mhh-tablist>br,.mhh-tablist>p:empty,.mhh-team>br,.mhh-team>p:empty{display:none}",
     "@media (max-width:1000px){.mhh-cards{grid-template-columns:1fr 1fr}.mhh-tabs{grid-template-columns:1fr}.mhh-tablist{flex-direction:row;flex-wrap:wrap}.mhh-tablist button{flex:1 1 200px}}",
@@ -231,6 +247,59 @@
       .then(function () { datesBusy = false; paintDates(); });
   }
 
+  /* ---------- call back form ----------
+     Built here so WordPress can't alter it. Posts to the generic HubSpot enquiry form
+     (the one the ILM, CMI and NEBOSH pages use), with the course in enquiry_qualification. */
+  var HS_URL = "https://api.hsforms.com/submissions/v3/integration/submit/19996504/82962984-45f3-49f7-af62-fc7da9f14b2f";
+  var COURSES = ["Level 2 First Aid for Mental Health", "Team course: First Aid for Mental Health", "Level 2 Mental Health Awareness", "Level 1 Mental Health and Wellbeing", "Not sure yet"];
+  function mk(tag, cls, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt) e.textContent = txt; return e; }
+  function buildForm() {
+    var box = document.getElementById("mhh-form"); if (!box || box.querySelector("form")) return;
+    box.innerHTML = "";
+    var form = mk("form", "mhh-form"); form.noValidate = true;
+    function fld(lbl, type, full, opts) {
+      var w = mk("div", full ? "full" : null), id = "mhhf-" + lbl.toLowerCase().replace(/[^a-z]+/g, "-").replace(/-$/, ""), l = mk("label", null, lbl), i;
+      if (type === "select") { i = mk("select"); opts.forEach(function (o) { var p = mk("option", null, o); p.value = o; i.appendChild(p); }); }
+      else if (type === "textarea") i = mk("textarea"); else { i = mk("input"); i.type = type; }
+      i.id = id; l.setAttribute("for", id); w.appendChild(l); w.appendChild(i); form.appendChild(w); return i;
+    }
+    var fN = fld("Your name", "text"), fC = fld("Company (optional)", "text"), fE = fld("Email", "email"), fP = fld("Phone", "tel");
+    var fK = fld("Course", "select", false, COURSES), fH = fld("How many people?", "number"); fH.min = "1"; fH.value = "1";
+    var fQ = fld("Anything else? (optional)", "textarea", true);
+    fN.autocomplete = "name"; fE.autocomplete = "email"; fP.autocomplete = "tel"; fC.autocomplete = "organization";
+    var bw = mk("div", "full send"), sb = mk("button", "nvqh-btn pri", "Request a Call Back"); sb.type = "submit"; bw.appendChild(sb); form.appendChild(bw);
+    var st = mk("p", "mhh-status full"); st.setAttribute("role", "status"); form.appendChild(st);
+    form.appendChild(mk("p", "legal full", "We'll only use your details to reply to this enquiry."));
+    var th = mk("div", "mhh-thanks"); th.appendChild(mk("b", null, "Thanks, we've got your request. ")); th.appendChild(document.createTextNode("We'll call you the same working day. If it's urgent, call 020 3488 4472."));
+    box.appendChild(form); box.appendChild(th);
+    var pre = window.__mhhCourse; if (pre && COURSES.indexOf(pre) > -1) fK.value = pre;
+    var n = parseInt(val("mhh-n"), 10); if (n > 1) fH.value = String(n);
+    form.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      var name = fN.value.trim(), email = fE.value.trim(), ph = fP.value.trim();
+      function err(t, x) { st.className = "mhh-status full err"; st.textContent = t; if (x) x.focus(); }
+      if (!name) return err("Add your name.", fN);
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return err("Enter a valid email address.", fE);
+      if (!ph) return err("Add a phone number so we can call you back.", fP);
+      var parts = name.split(/\s+/), first = parts.shift(), last = parts.join(" ") || "-", people = String(Math.max(1, parseInt(fH.value, 10) || 1));
+      var msg = "Mental health call back request\n\nCompany: " + (fC.value.trim() || "-") + "\nCourse: " + fK.value + "\nPeople: " + people + (fQ.value.trim() ? "\n\nNotes:\n" + fQ.value.trim() : "");
+      var fields = [{ name: "firstname", value: first }, { name: "lastname", value: last }, { name: "email", value: email }, { name: "phone", value: ph },
+        { name: "message", value: msg }, { name: "enquiry_qualification", value: fK.value }, { name: "enquiry_learners", value: people },
+        { name: "enquiry_options_selected", value: "Mental health hub call back" }];
+      var ctx = { pageUri: location.href, pageName: document.title }, m = document.cookie.match(/(?:^|; )hubspotutk=([^;]*)/); if (m) ctx.hutk = decodeURIComponent(m[1]);
+      sb.disabled = true; sb.textContent = "Sending"; st.className = "mhh-status full"; st.textContent = "";
+      fetch(HS_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fields: fields, context: ctx }) })
+        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(function () { track("mhh_enquiry", { course: fK.value, people: +people }); form.style.display = "none"; th.style.display = "block"; })
+        .catch(function () { sb.disabled = false; sb.textContent = "Request a Call Back"; err("That didn't send. Please try again, or call 020 3488 4472."); });
+    });
+  }
+  function preselect(course) {
+    window.__mhhCourse = course;
+    var sel = document.getElementById("mhhf-course"); if (sel && COURSES.indexOf(course) > -1) sel.value = course;
+    var hp = document.getElementById("mhhf-how-many-people"), n = parseInt(val("mhh-n"), 10); if (hp && n > 1) hp.value = String(n);
+  }
+
   /* ---------- delegated listeners ---------- */
   document.addEventListener("change", function (e) { if (e.target && e.target.id && e.target.id.indexOf("mhh-") === 0) render(); });
   document.addEventListener("input", function (e) { if (e.target && e.target.id === "mhh-n") render(); });
@@ -241,15 +310,41 @@
       Array.prototype.forEach.call(datesBox().querySelectorAll("[data-more]"), function (el) { el.hidden = false; el.removeAttribute("data-more"); });
       more.remove(); datesHTML = datesBox().innerHTML; return;
     }
-    var cb = e.target.closest("[data-mhh-cb]"); if (cb) { track("mhh_callback", { course: cb.getAttribute("data-mhh-cb") }); return; }
+    var cb = e.target.closest("[data-mhh-cb]"); if (cb) { preselect(cb.getAttribute("data-mhh-cb")); track("mhh_callback", { course: cb.getAttribute("data-mhh-cb") }); return; }
     var b = e.target.closest("[data-mhh-book]"); if (b) track("mhh_book", { product: b.getAttribute("data-mhh-book") });
   });
 
-  function init() { injectCss(); render(); loadDates(); faqSchema(); }
+  /* ---------- no white bar between the last section and the site footer ----------
+     The theme pads the page wrapper and leaves empty paragraphs after the content. This only runs
+     on this page, so it walks up from the last hub section to <body>, removes bottom spacing on
+     each wrapper and hides empty elements that follow it. */
+  function isEmpty(el) { return !el.querySelector("img,iframe,form,input,video,svg") && !el.textContent.replace(/\s|\u00a0/g, ""); }
+  function closeFooterGap() {
+    var all = document.querySelectorAll("section.nvqh"); if (!all.length) return;
+    var el = all[all.length - 1];
+    while (el && el !== document.body) {
+      el.style.setProperty("margin-bottom", "0", "important");
+      if (el.tagName !== "SECTION") el.style.setProperty("padding-bottom", "0", "important");
+      var sib = el.nextElementSibling;
+      while (sib) {
+        if (/^(P|BR|DIV)$/.test(sib.tagName) && isEmpty(sib) && !sib.id) sib.style.setProperty("display", "none", "important");
+        else if (/footer/i.test(sib.tagName + " " + sib.className + " " + sib.id)) { sib.style.setProperty("margin-top", "0", "important"); break; }
+        else break;
+        sib = sib.nextElementSibling;
+      }
+      el = el.parentElement;
+    }
+  }
+  var gapTimer = null;
+  function gapSoon() { clearTimeout(gapTimer); gapTimer = setTimeout(closeFooterGap, 150); }
+
+  function init() { injectCss(); render(); loadDates(); faqSchema(); buildForm(); closeFooterGap(); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
   if (window.MutationObserver) new MutationObserver(function () {
     var box = document.getElementById("mhh-reco"); if (box && !box.firstChild) render();
     var db = datesBox(); if (db && db.getAttribute("data-state") !== "done") loadDates();
     injectCss();
+    buildForm();
+    gapSoon();
   }).observe(document.documentElement, { childList: true, subtree: true });
 })();
