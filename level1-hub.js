@@ -1,9 +1,11 @@
-/* CST Training · Level 1 Health & Safety page · v2
+/* CST Training · Level 1 Health & Safety page · v5
    Loads level1-hub.css from the same folder, then runs the card checker and the route tabs.
    Works by position (1st question, 2nd button...) as well as by data attributes, so it still
    works if the WordPress editor strips attributes or wraps buttons in <p> tags. */
 (function () {
   "use strict";
+  if (window.__l1hub) return;
+  window.__l1hub = true;
 
   var BOOK = "https://www.csttraining.co.uk/product/level-1-health-safety-construction-environment/";
   var HSA = "https://www.csttraining.co.uk/hsa-courses/";
@@ -88,12 +90,15 @@
       if (window.dataLayer) window.dataLayer.push({ event: "l1_checker_result", l1_result: r.h });
     }
 
-    root.addEventListener("click", function (e) {
+    document.addEventListener("click", function (e) {
+      if (!e.target.closest || !root.contains(e.target)) return;
       var reset = e.target.closest(".l1-reset");
       if (reset) {
         answers = {};
         each(root.querySelectorAll(".l1-opts button"), function (b) { b.classList.remove("l1-on"); b.setAttribute("aria-pressed", "false"); });
         each(qs, function (q) { q.classList.remove("l1-done", "l1-hidden"); });
+        e.preventDefault();
+        e.stopPropagation();
         render();
         qs[0].scrollIntoView({ behavior: "smooth", block: "center" });
         return;
@@ -101,6 +106,7 @@
       var b = e.target.closest(".l1-opts button");
       if (!b || !root.contains(b)) return;
       e.preventDefault();
+      e.stopPropagation();
       var q = b.closest(".l1-q");
       var qi = Array.prototype.indexOf.call(qs, q);
       var key = q.getAttribute("data-q") || KEYS[qi];
@@ -112,7 +118,7 @@
       q.classList.add("l1-done");
       answers[key] = b.getAttribute("data-v") || (VALUES[key] || [])[bi];
       render();
-    });
+    }, true);
 
     each(root.querySelectorAll(".l1-opts button"), function (b) { b.setAttribute("aria-pressed", "false"); b.type = "button"; });
   }
@@ -132,12 +138,13 @@
         p.style.setProperty("display", i === j ? "block" : "none", "important");
       });
     }
-    root.addEventListener("click", function (e) {
-      var t = e.target.closest(".l1-tablist button");
+    document.addEventListener("click", function (e) {
+      var t = e.target.closest ? e.target.closest(".l1-tablist button") : null;
       if (!t || !root.contains(t)) return;
       e.preventDefault();
+      e.stopPropagation();
       show(Array.prototype.indexOf.call(tabs, t));
-    });
+    }, true);
     root.addEventListener("keydown", function (e) {
       var t = e.target.closest(".l1-tablist button");
       if (!t) return;
