@@ -1,4 +1,4 @@
-/* CST Training · Mental Health hub (/mental-health-courses/) · v1 · 17 Nov 2026
+/* CST Training · Mental Health hub (/mental-health-courses/) · v2 · 17 Nov 2026
    Loads the shared hub styles (nvq-hub.css) plus the mental health extras, runs the course
    finder, the "Which course" tabs and the live First Aid for Mental Health dates.
    Page copy lives in the WordPress page. Prices and URLs: update MH_COURSES below (and the
@@ -98,9 +98,9 @@
   var SITE = "https://www.csttraining.co.uk";
   var TEAM_PRICE = 1400, TEAM_MAX = 12;
   var C = {
-    famh: { name: "Level 2 First Aid for Mental Health", url: "/first-aid-for-mental-health/", price: 172, len: "2 days, live online", exam: "Two Highfield exams" },
-    aw:   { name: "Level 2 Mental Health Awareness", url: "/mental-health-awareness-course/", price: 130, len: "1 day, live online", exam: "One Highfield exam" },
-    l1:   { name: "Level 1 Mental Health and Wellbeing", url: "/mental-health-wellbeing-level-1/", price: 99, len: "1 day, live online", exam: "One Highfield exam" }
+    famh: { name: "Level 2 First Aid for Mental Health", url: "/level-2-first-aid-mental-health/", price: 172, len: "2 days, live online", exam: "Two Highfield exams" },
+    aw:   { name: "Level 2 Mental Health Awareness", url: "/level-2-mental-health-intro/", price: 130, len: "1 day, live online", exam: "One Highfield exam" },
+    l1:   { name: "Level 1 Mental Health and Wellbeing", url: "/level-1-mental-wellbeing/", price: 99, len: "1 day, live online", exam: "One Highfield exam" }
   };
   var WHY = {
     famh: "First Aid for Mental Health is for the people colleagues will turn to. They learn to spot the signs, start the conversation, check for risk and point the person to the right help.",
@@ -116,7 +116,7 @@
     var c = C[key], cost = n > 1 ? n + " people: " + money(c.price * n) + " + VAT" : money(c.price) + " + VAT";
     return '<div class="nvqh-pick' + (alt ? " alt" : "") + '"><div><p class="tag">' + esc(tag) + "</p><h4>" + esc(c.name) + "</h4>" +
       '<p class="meta">' + esc(c.len) + ". " + esc(c.exam) + '. <span class="cost">' + esc(cost) + "</span></p></div>" +
-      '<div class="btns"><a class="nvqh-btn pri" href="' + SITE + c.url + '">View Dates</a>' +
+      '<div class="btns"><a class="nvqh-btn pri" href="' + SITE + c.url + '">View Course</a>' +
       '<a class="nvqh-btn out" href="#enquire" data-mhh-cb="' + esc(c.name) + '">Request a Call Back</a></div></div>';
   }
   function teamPick(n) {
@@ -172,7 +172,7 @@
 
   /* ---------- live course dates from WooCommerce (Store API) ----------
      <div class="mhh-dates" id="mhh-dates" data-cat="1472" data-time="08:30 to 17:00, two days"
-          data-fallback="/first-aid-for-mental-health/"></div>  */
+          data-fallback="/level-2-first-aid-mental-health/"></div>  */
   var MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
   var DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
   var SHOW = 4;
