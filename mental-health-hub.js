@@ -1,365 +1,210 @@
-/* CST Training · Mental Health hub (/mental-health-courses/) · v2 · 17 Nov 2026
-   Loads the shared hub styles (nvq-hub.css) plus the mental health extras, runs the course
-   finder, the "Which course" tabs and the live First Aid for Mental Health dates.
-   Page copy lives in the WordPress page. Prices and URLs: update MH_COURSES below (and the
-   price lines on the course cards in the page) whenever the master product record changes.
-   Every interaction uses one delegated listener on the document, because another script on the
-   site rewrites the page after load and drops listeners attached to individual elements. */
-(function () {
-  if (window.__mhhub) return;
-  window.__mhhub = true;
+<!-- CST Training · Level 1 Mental Health and Wellbeing · /level-1-mental-wellbeing/ · v1 · 17 Nov 2026
+     Paste into the page's Text tab, replacing everything currently there. -->
 
-  var BASE = (document.currentScript && document.currentScript.src.replace(/[^/]*$/, "")) || "https://glancyl.github.io/cst-advisor/";
-  var VER = (document.currentScript && (document.currentScript.src.match(/\?v=\w+/) || [""])[0]) || "";
-  if (!document.querySelector("link[data-nvqh]")) {
-    var l = document.createElement("link"); l.rel = "stylesheet"; l.href = BASE + "nvq-hub.css" + VER; l.setAttribute("data-nvqh", "1"); document.head.appendChild(l);
-  }
+<section class="nvqh nvqh-hero boldgrid-section">
+<div class="container">
+<div class="nvqh-herogrid">
+<div>
+<p class="small" style="color:#dfe5fb;font-weight:700;letter-spacing:.06em;margin:0 0 10px;"><a href="/mental-health-courses/" style="color:#dfe5fb;">MENTAL HEALTH COURSES</a> · LEVEL 1</p>
+<h1>Level 1 Mental Health and Wellbeing</h1>
+<p class="lede">A one-day introduction to mental health: what it is, how to look after your own, how to support family and friends, and where to find help.</p>
+<ul>
+<li>Highfield regulated qualification, no previous knowledge needed</li>
+<li>Taught live online on Google Meet by a CST Training tutor</li>
+</ul>
+<div class="nvqh-ctas left"><a class="nvqh-btn pri" href="#dates">See Dates and Book</a><a class="nvqh-btn gh" href="#enquire" data-mhh-cb="Level 1 Mental Health and Wellbeing">Request a Call Back</a></div>
+</div>
+<div class="mhh-side">
+<h3>At a glance</h3>
+<dl>
+<dt>Price</dt>
+<dd><b>£99</b> + VAT a person</dd>
+<dt>Length</dt>
+<dd>1 day, 08:30 to 17:00, live online</dd>
+<dt>Assessment</dt>
+<dd>One multiple-choice exam, set and marked by Highfield</dd>
+<dt>Certificate</dt>
+<dd>Highfield Level 1 Award</dd>
+</dl>
+</div>
+</div>
+</div>
+</section>
 
-  var CSS = [
-    /* First section after the hero sits under its curved edge */
-    ".nvqh.mhh-after{padding-top:96px!important}",
-    "@media (max-width:700px){.nvqh.mhh-after{padding-top:70px!important}}",
-    /* Hero side panel */
-    ".mhh-side{background:#fff;color:var(--body);border-radius:var(--r);padding:22px 22px 18px;box-shadow:0 12px 30px rgba(29,37,96,.25);border-top:5px solid var(--orange)}",
-    ".nvqh .mhh-side h3{color:var(--navy);margin:0 0 10px!important}",
-    ".mhh-side dl{margin:0;display:grid;gap:10px}",
-    ".mhh-side dt{font-weight:700;color:var(--navy);font-size:.95rem}",
-    ".mhh-side dd{margin:2px 0 0;font-size:.92rem}",
-    ".mhh-side dd b{color:var(--navy);font-size:1.15rem}",
-    /* Finder */
-    ".nvqh-hero h1{margin:0 0 14px!important}",
-    ".mhh-finder{display:grid;grid-template-columns:1.2fr 1.2fr .8fr;gap:16px;margin-bottom:6px}",
-    ".mhh-finder select{width:100%;max-width:100%}",
-    ".mhh-finder input[type=number]{font:inherit;color:var(--navy);border:1.5px solid #c3c8dc;border-radius:8px;padding:12px 14px;background:#fff;width:100%;height:auto}",
-    ".mhh-finder input[type=number]:focus{border-color:var(--navy);outline:none;box-shadow:0 0 0 3px rgba(29,37,96,.12)}",
-    "#mhh-reco .note{font-size:.93rem;margin:0;color:var(--body);background:var(--light);border-radius:8px;padding:12px 14px}",
-    "#mhh-reco .nvqh-pick p{margin:0}",
-    /* Course cards, as the SHEA hub */
-    ".mhh-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}",
-    ".mhh-card{background:var(--navy);border-radius:18px;padding:26px 24px;display:flex;flex-direction:column;gap:6px;box-shadow:0 12px 30px rgba(29,37,96,.18)}",
-    ".mhh-card .tag{display:inline-block;align-self:flex-start;background:var(--orange);color:#fff;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin:0 0 6px;padding:5px 12px;border-radius:20px}",
-    ".nvqh .mhh-card h3{font-size:1.4rem!important;margin:0!important;color:var(--orange)}",
-    ".mhh-card .amt{font-size:2rem;font-weight:700;color:#fff;margin:6px 0 0}",
-    ".mhh-card .amt small{font-size:.9rem;font-weight:600;color:#c3c9e6}",
-    ".mhh-card .for{color:#fff;font-weight:600;margin:0}",
-    ".mhh-card ul{list-style:none;margin:10px 0 18px;padding:14px 0 0;flex:1 1 auto;border-top:1px solid rgba(255,255,255,.18)}",
-    ".mhh-card li{position:relative;padding-left:22px;margin:0 0 8px;font-size:.95rem;color:#e6e9f7}",
-    ".mhh-card li::before{content:'\\2713';position:absolute;left:0;color:var(--orange);font-weight:700}",
-    ".mhh-card .links{display:flex;flex-wrap:wrap;gap:8px}",
-    ".mhh-card.featured{outline:3px solid var(--orange);outline-offset:-3px}",
-    /* Which course tabs */
-    ".mhh-tabs{display:grid;grid-template-columns:260px minmax(0,1fr);gap:22px;align-items:start}",
-    ".mhh-tabs>*{min-width:0}",
-    ".mhh-tablist{display:flex;flex-direction:column;gap:8px}",
-    ".mhh-tablist button{text-align:left;font:inherit;background:#fff;border:1.5px solid var(--line);border-left:5px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;color:var(--navy);font-weight:700}",
-    ".mhh-tablist button::after{content:attr(data-sub);display:block;font-weight:400;font-size:.85rem;color:var(--muted);margin-top:2px}",
-    ".mhh-tablist button span{display:none}",
-    ".mhh-tablist button[aria-selected=true]{border-color:var(--navy);border-left-color:var(--orange);background:var(--navy);color:#fff}",
-    ".mhh-tablist button[aria-selected=true]::after{color:#c9cde0}",
-    ".mhh-pane{display:none;background:#fff;border:1px solid var(--line);border-top:5px solid var(--orange);border-radius:var(--r);padding:26px 28px}",
-    ".mhh-pane.on{display:block}",
-    ".mhh-pane .tw{overflow-x:auto;margin:12px 0}",
-    ".mhh-pane table{width:100%;border-collapse:collapse;font-size:.95rem;min-width:560px}",
-    ".mhh-pane th{background:var(--navy);color:#fff;text-align:left;padding:10px 12px}",
-    ".mhh-pane td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}",
-    ".mhh-pane tr:nth-child(even) td{background:var(--light)}",
-    ".mhh-means{background:#FFF7EC;border:1px solid #FFC77F;border-radius:10px;padding:14px 16px;margin-top:14px}",
-    ".nvqh .mhh-means h4{font-size:1rem!important;color:#9a5300;margin:0 0 4px!important}",
-    ".mhh-means p{margin:0}",
-    /* Team ladder on orange */
-    ".mhh-team{display:grid;grid-template-columns:1.2fr 1fr;gap:28px;align-items:center}",
-    ".nvqh .mhh-team h2{color:#fff;margin:0 0 12px!important}",
-    ".mhh-team p{color:#fff}",
-    ".mhh-offer{background:#fff;border-radius:var(--r);padding:24px 26px;color:var(--body);box-shadow:0 12px 30px rgba(29,37,96,.2)}",
-    ".mhh-offer .amt{font-size:2.2rem;font-weight:700;color:var(--navy);margin:4px 0 0}",
-    ".mhh-offer .amt small{font-size:.9rem;font-weight:600}",
-    ".mhh-offer ul{margin:10px 0 16px;padding-left:20px}",
-    ".mhh-offer li{margin:0 0 6px}",
-    /* Live dates, as the SHEA hub */
-    ".mhh-dates{max-width:900px;margin:0 auto;display:grid;gap:10px}",
-    ".mhh-month{font-weight:700;color:var(--navy);font-size:1.1rem;margin:14px 0 2px}",
-    ".mhh-date{background:#fff;border:1px solid var(--line);border-left:5px solid var(--orange);border-radius:10px;padding:14px 18px;display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px 20px;align-items:center}",
-    ".nvqh .mhh-date h4{margin:0!important;font-size:1.1rem!important;color:var(--navy)}",
-    ".mhh-date .meta{font-size:.9rem;color:var(--muted);margin:2px 0 0}",
-    ".mhh-date .amt{font-size:1.35rem;font-weight:700;color:var(--navy);white-space:nowrap}",
-    ".mhh-date .amt small{font-size:.8rem;font-weight:600}",
-    ".mhh-date .btns{display:flex;gap:8px}",
-    ".mhh-more{justify-self:center;margin-top:8px}",
-    ".mhh-dates [hidden]{display:none!important}",
-    ".mhh-dates .nvqh-note{text-align:center}",
-    /* Call back form (posts to the generic HubSpot enquiry form) */
-    ".mhh-form{display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:left;margin-top:14px}",
-    ".mhh-form .full{grid-column:1/-1}",
-    ".mhh-form label{display:block;font-weight:700;color:var(--navy);font-size:.88rem;margin:0 0 4px}",
-    ".mhh-form input,.mhh-form select,.mhh-form textarea{width:100%;max-width:100%;font:inherit;color:var(--navy);border:1.5px solid #c3c8dc;border-radius:8px;padding:10px 12px;background:#fff;height:auto;box-sizing:border-box}",
-    ".mhh-form textarea{min-height:80px;resize:vertical}",
-    ".mhh-form input:focus,.mhh-form select:focus,.mhh-form textarea:focus{border-color:var(--navy);outline:none;box-shadow:0 0 0 3px rgba(29,37,96,.12)}",
-    ".mhh-form .send{text-align:center}",
-    ".mhh-form .send .nvqh-btn{border:0;cursor:pointer;min-width:220px}",
-    ".mhh-form .send .nvqh-btn[disabled]{opacity:.6;cursor:default}",
-    ".mhh-status{margin:0;font-size:.9rem;text-align:center;min-height:1em}",
-    ".mhh-status.err{color:#b42318;font-weight:600}",
-    ".mhh-form .legal{font-size:.78rem;color:var(--muted);margin:0;text-align:center}",
-    ".mhh-thanks{display:none;background:#ECFDF3;border:1px solid #A6F4C5;border-radius:10px;padding:16px 18px;margin-top:14px;text-align:left;color:#05603A}",
-    "@media (max-width:700px){.mhh-form{grid-template-columns:1fr}}",
-    /* WordPress stray paragraphs and breaks inside grids */
-    ".mhh-cards>br,.mhh-cards>p:empty,.mhh-finder>br,.mhh-finder>p:empty,.mhh-tabs>br,.mhh-tabs>p:empty,.mhh-tablist>br,.mhh-tablist>p:empty,.mhh-team>br,.mhh-team>p:empty{display:none}",
-    "@media (max-width:1000px){.mhh-cards{grid-template-columns:1fr 1fr}.mhh-tabs{grid-template-columns:1fr}.mhh-tablist{flex-direction:row;flex-wrap:wrap}.mhh-tablist button{flex:1 1 200px}}",
-    "@media (max-width:700px){.mhh-cards,.mhh-finder,.mhh-team{grid-template-columns:1fr}.mhh-pane{padding:20px 18px}.mhh-date{grid-template-columns:1fr}.mhh-date .btns{flex-wrap:wrap}}"
-  ].join("\n");
-  function injectCss() { if (!document.getElementById("mhh-css")) { var s = document.createElement("style"); s.id = "mhh-css"; s.textContent = CSS; document.head.appendChild(s); } }
-  injectCss();
+<section class="nvqh nvqh-light mhh-after boldgrid-section" id="dates">
+<div class="container">
+<div class="head">
+<h2>Course dates</h2>
+<p>One day, live online. The price includes tuition, Highfield registration, the exam and your certificate.</p>
+</div>
+<div class="mhh-dates" id="mhh-dates" data-search="Mental Health and Wellbeing" data-match="Level 1 Introduction to Mental Health and Wellbeing" data-days="1" data-time="08:30 to 17:00" data-fallback="/contact/"></div>
+</div>
+</section>
 
-  /* Single source for the finder. Keep in line with the master product record. */
-  var SITE = "https://www.csttraining.co.uk";
-  var TEAM_PRICE = 1400, TEAM_MAX = 12;
-  var C = {
-    famh: { name: "Level 2 First Aid for Mental Health", url: "/level-2-first-aid-mental-health/", price: 172, len: "2 days, live online", exam: "Two Highfield exams" },
-    aw:   { name: "Level 2 Mental Health Awareness", url: "/level-2-mental-health-intro/", price: 130, len: "1 day, live online", exam: "One Highfield exam" },
-    l1:   { name: "Level 1 Mental Health and Wellbeing", url: "/level-1-mental-wellbeing/", price: 99, len: "1 day, live online", exam: "One Highfield exam" }
-  };
-  var WHY = {
-    famh: "First Aid for Mental Health is for the people colleagues will turn to. They learn to spot the signs, start the conversation, check for risk and point the person to the right help.",
-    aw: "Mental Health Awareness gives everyone the same understanding of mental health and how to look after their own. It's the first unit of First Aid for Mental Health, so people can build on it later.",
-    l1: "Mental Health and Wellbeing is the gentlest introduction: what mental health is, looking after your own, supporting family and friends, and where to find help."
-  };
-  function money(n) { return "£" + n.toLocaleString("en-GB", { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 }); }
-  function esc(t) { return String(t).replace(/[&<>"]/g, function (m) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[m]; }); }
-  function track(ev, d) { try { (window.dataLayer = window.dataLayer || []).push(Object.assign({ event: ev }, d || {})); } catch (e) {} }
-  function val(id) { var el = document.getElementById(id); return el ? el.value : ""; }
+<section class="nvqh nvqh-white boldgrid-section" id="learn">
+<div class="container">
+<div class="head">
+<h2>What you'll learn</h2>
+<p>Highfield Level 1 Award in an Introduction to Mental Health and Wellbeing (RQF), qualification number 603/6330/7.</p>
+</div>
+<div class="mhh-learn">
+<div><h3>Mental health and mental ill health</h3><p>What each one means, and how they affect people day to day.</p></div>
+<div><h3>Looking after yourself</h3><p>Practical ways to take care of your own mental health and wellbeing.</p></div>
+<div><h3>Supporting others</h3><p>How to support family and friends with their mental health and wellbeing.</p></div>
+<div><h3>Where to find help</h3><p>Sources of support for mental health and wellbeing, and how to reach them.</p></div>
+<div><h3>Seven hours of guided learning</h3><p>Taught live in one day, with discussion and practice questions before the exam.</p></div>
+<div><h3>A next step if you want one</h3><p>Leads on to Level 2 Mental Health Awareness or First Aid for Mental Health.</p></div>
+</div>
+</div>
+</section>
 
-  function pick(key, tag, n, alt) {
-    var c = C[key], cost = n > 1 ? n + " people: " + money(c.price * n) + " + VAT" : money(c.price) + " + VAT";
-    return '<div class="nvqh-pick' + (alt ? " alt" : "") + '"><div><p class="tag">' + esc(tag) + "</p><h4>" + esc(c.name) + "</h4>" +
-      '<p class="meta">' + esc(c.len) + ". " + esc(c.exam) + '. <span class="cost">' + esc(cost) + "</span></p></div>" +
-      '<div class="btns"><a class="nvqh-btn pri" href="' + SITE + c.url + '">View Course</a>' +
-      '<a class="nvqh-btn out" href="#enquire" data-mhh-cb="' + esc(c.name) + '">Request a Call Back</a></div></div>';
-  }
-  function teamPick(n) {
-    var courses = Math.ceil(n / TEAM_MAX);
-    return '<div class="nvqh-pick"><div><p class="tag">Better value for your team</p><h4>A First Aid for Mental Health course of your own</h4>' +
-      '<p class="meta">Up to ' + TEAM_MAX + " people, live online on dates that suit your rota. " +
-      '<span class="cost">' + (courses > 1 ? courses + " courses: " + money(TEAM_PRICE * courses) : money(TEAM_PRICE)) + " + VAT</span></p></div>" +
-      '<div class="btns"><a class="nvqh-btn pri" href="#enquire" data-mhh-cb="Team course: First Aid for Mental Health">Request a Team Course</a></div></div>';
-  }
+<section class="nvqh nvqh-pale boldgrid-section" id="which">
+<div class="container">
+<div class="head">
+<h2>Is this the right course for you?</h2>
+<p>Level 1 is an introduction. Choose the tab that sounds most like you.</p>
+</div>
+<div class="mhh-tabs">
+<div class="mhh-tablist" role="tablist">
+<button type="button" role="tab" data-mhh-tab="you" aria-selected="true" data-sub="Personal wellbeing">It's for me</button>
+<button type="button" role="tab" data-mhh-tab="supporter" aria-selected="false" data-sub="Supporting colleagues">I'll support others at work</button>
+<button type="button" role="tab" data-mhh-tab="manager" aria-selected="false" data-sub="Training a team">I'm booking for a team</button>
+<button type="button" role="tab" data-mhh-tab="starters" aria-selected="false" data-sub="People new to work">For new starters</button>
+</div>
+<div>
+<div class="mhh-pane on" data-mhh-pane="you" role="tabpanel">
+<h3>Level 1 is a good fit</h3>
+<p>A gentle introduction to mental health and looking after yourself, taught live in one day, with a Highfield certificate at the end.</p>
+<div class="mhh-means"><h4>What that means for you</h4><p>No previous knowledge is needed, and nobody is asked to share their own experiences.</p></div>
+</div>
+<div class="mhh-pane" data-mhh-pane="supporter" role="tabpanel">
+<h3>First Aid for Mental Health is the course for you</h3>
+<p>If colleagues will turn to you for support, you need the skills to spot the signs, start the conversation and check for risk. That's what First Aid for Mental Health teaches, over two days.</p>
+<div class="mhh-means"><h4>What that means for you</h4><p><a href="/level-2-first-aid-mental-health/">See First Aid for Mental Health</a>, from £172 + VAT.</p></div>
+</div>
+<div class="mhh-pane" data-mhh-pane="manager" role="tabpanel">
+<h3>Level 2 Awareness is usually the better fit</h3>
+<p>For a workplace team, Level 2 Mental Health Awareness covers mental health at work and how stigma affects people, and it counts as the first unit of First Aid for Mental Health.</p>
+<div class="mhh-means"><h4>What that means for you</h4><p><a href="/level-2-mental-health-intro/">See Mental Health Awareness</a>, or <a href="/mental-health-courses/">compare all three courses</a>.</p></div>
+</div>
+<div class="mhh-pane" data-mhh-pane="starters" role="tabpanel">
+<h3>A good first course</h3>
+<p>Level 1 suits people new to work, apprentices and anyone who wants a grounding in mental health before moving on to a workplace qualification.</p>
+<div class="mhh-means"><h4>What that means for you</h4><p>Training five or more? Ask us about a course just for your group, live online on dates that suit you.</p></div>
+</div>
+</div>
+</div>
+</div>
+</section>
 
-  function render() {
-    var box = document.getElementById("mhh-reco"); if (!box) return;
-    var who = val("mhh-who"), need = val("mhh-need"), n = Math.max(1, parseInt(val("mhh-n"), 10) || 1);
-    if (!who || !need) { box.innerHTML = '<p class="nvqh-note">Answer the questions above and we\'ll show you the right course and the price.</p>'; return; }
-    var key = "famh";
-    if (need === "aware") key = "aw";
-    else if (need === "self") key = who === "staff" ? "l1" : "aw";
-    var html = "", notes = [];
-    if (key === "famh" && n >= 9) {
-      html += teamPick(n);
-      html += pick("famh", "Or book seats on our public dates", n, true);
-    } else {
-      html += pick(key, "We'd recommend", n);
-    }
-    notes.push(WHY[key]);
-    if (key === "aw" && who === "supporter") notes.push("Want this person to support colleagues? First Aid for Mental Health includes everything on the awareness course, plus the first aider skills.");
-    if (need === "client") notes.push("If a client, tender or policy names a specific certificate, send it to us before you book and we'll tell you honestly whether this one meets it.");
-    if (key === "famh" && n >= 5 && n < 9) notes.push("From nine people, a course of your own for up to " + TEAM_MAX + " (" + money(TEAM_PRICE) + " + VAT) costs about the same or less than public seats.");
-    if (key !== "famh" && n >= 5) notes.push("Training five or more? Ask us about team rates or a course just for your team.");
-    box.innerHTML = html + notes.map(function (t) { return '<p class="note">' + esc(t) + "</p>"; }).join("");
-    track("mhh_finder", { who: who, need: need, people: n, course: key });
-  }
+<section class="nvqh nvqh-white boldgrid-section" id="day">
+<div class="container">
+<div class="head">
+<h2>Your day</h2>
+<p>A day of live teaching and discussion on Google Meet, ending with a short multiple-choice exam.</p>
+</div>
+<ol class="nvqh-steps mhh-4">
+<li><h3>Morning</h3><p>What mental health and mental ill health mean.</p></li>
+<li><h3>Midday</h3><p>Looking after your own mental health and wellbeing.</p></li>
+<li><h3>Afternoon</h3><p>Supporting others, where to find help, and practice questions.</p></li>
+<li><h3>End of day</h3><p>The Highfield exam. Your certificate follows once results are confirmed.</p></li>
+</ol>
+<div class="nvqh-ctas"><a class="nvqh-btn pri" href="#dates">Book Now</a><a class="nvqh-btn out" href="#enquire" data-mhh-cb="Level 1 Mental Health and Wellbeing">Request a Call Back</a></div>
+</div>
+</section>
 
-  /* ---------- Which course tabs ---------- */
-  function showTab(btn) {
-    var key = btn.getAttribute("data-mhh-tab");
-    Array.prototype.forEach.call(document.querySelectorAll("[data-mhh-tab]"), function (b) { b.setAttribute("aria-selected", b === btn ? "true" : "false"); });
-    Array.prototype.forEach.call(document.querySelectorAll("[data-mhh-pane]"), function (p) { p.classList.toggle("on", p.getAttribute("data-mhh-pane") === key); });
-    track("mhh_tab", { tab: key });
-  }
+<section class="nvqh nvqh-orange boldgrid-section" id="teams">
+<div class="container">
+<div class="mhh-team">
+<div>
+<h2>Training a group? It can be your own course</h2>
+<p>A course just for your team or new starters, live online on dates that suit you. Everyone trains together, with the same Highfield qualification at the end.</p>
+<div class="nvqh-ctas left"><a class="nvqh-btn navy" href="#enquire" data-mhh-cb="Level 1 Mental Health and Wellbeing">Ask for a Group Price</a></div>
+</div>
+<div class="mhh-offer">
+<h3>Level 1, just for your group</h3>
+<ul>
+<li>Up to 12 people, live online on Google Meet</li>
+<li>Tuition, Highfield registration, exams and certificates</li>
+<li>Dates that fit around your rota</li>
+</ul>
+<p class="small muted" style="margin:0;">Tell us how many people and we'll send you a price.</p>
+</div>
+</div>
+</div>
+</section>
 
-  /* ---------- FAQ structured data, built from the FAQ section ---------- */
-  function faqSchema() {
-    if (document.getElementById("mhh-faq-ld")) return;
-    var items = document.querySelectorAll("#mhh-faq details"); if (!items.length) return;
-    var data = { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: [] };
-    Array.prototype.forEach.call(items, function (d) {
-      var q = d.querySelector("summary"), a = d.querySelector("p"); if (!q || !a) return;
-      data.mainEntity.push({ "@type": "Question", name: q.textContent.trim(), acceptedAnswer: { "@type": "Answer", text: a.textContent.trim() } });
-    });
-    var s = document.createElement("script"); s.type = "application/ld+json"; s.id = "mhh-faq-ld"; s.textContent = JSON.stringify(data); document.head.appendChild(s);
-  }
+<section class="nvqh nvqh-navy boldgrid-section" id="why">
+<div class="container">
+<div class="head">
+<h2>Why train with CST Training</h2>
+</div>
+<div class="nvqh-why">
+<div><h3>Highfield approved centre</h3><p>Your course leads to a regulated Highfield qualification, with the exam set and marked by Highfield.</p></div>
+<div><h3>120,000+ learners trained</h3><p>Across health and safety, construction and professional qualifications, from one training provider.</p></div>
+<div><h3>10,000+ five-star reviews</h3><p>Rated Excellent on Trustpilot, and we reply to every negative review.</p></div>
+<div><h3>Taught live, not on video</h3><p>A CST Training tutor teaches the whole day in real time, so you can ask questions as you go.</p></div>
+<div><h3>No hidden costs</h3><p>Tuition, Highfield registration, the exam and your certificate are all in the price. No booking fees.</p></div>
+<div><h3>Honest advice</h3><p>If another course suits you better, we'll tell you before you book.</p></div>
+</div>
+<div class="nvqh-ctas"><a class="nvqh-btn pri" href="#dates">Book Now</a><a class="nvqh-btn gh" href="#enquire" data-mhh-cb="Level 1 Mental Health and Wellbeing">Request a Call Back</a></div>
+</div>
+</section>
 
-  /* ---------- live course dates from WooCommerce (Store API) ----------
-     <div class="mhh-dates" id="mhh-dates" data-cat="1472" data-time="08:30 to 17:00, two days"
-          data-fallback="/level-2-first-aid-mental-health/"></div>  */
-  var MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-  var DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-  var SHOW = 4;
-  var datesHTML = null, datesBusy = false;
-  function datesBox() { return document.getElementById("mhh-dates"); }
-  function paintDates() {
-    var box = datesBox(); if (!box || datesHTML === null) return;
-    if (box.getAttribute("data-state") !== "done") { box.innerHTML = datesHTML; box.setAttribute("data-state", "done"); }
-  }
-  function loadDates() {
-    var box = datesBox(); if (!box) return;
-    if (datesHTML !== null) { paintDates(); return; }
-    if (datesBusy) return;
-    datesBusy = true;
-    var cat = box.getAttribute("data-cat"), time = box.getAttribute("data-time") || "", fb = box.getAttribute("data-fallback") || "/contact/";
-    var KEY = "mhh-dates-" + cat, TTL = 10 * 60 * 1000, cached = null;
-    try { cached = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) {}
-    var fresh = cached && Date.now() - cached.t < TTL;
-    if (!fresh) box.innerHTML = '<p class="nvqh-note">Loading dates…</p>';
-    var req = fresh ? Promise.resolve(cached.list) :
-      fetch("/wp-json/wc/store/v1/products?category=" + encodeURIComponent(cat) + "&stock_status=instock&per_page=100" +
-        "&_fields=id,name,permalink,prices,is_in_stock,low_stock_remaining", { credentials: "same-origin" })
-        .then(function (r) { if (!r.ok) throw 0; return r.json(); })
-        .then(function (list) {
-          var slim = (list || []).map(function (p) { return { id: p.id, name: p.name, permalink: p.permalink, prices: p.prices, is_in_stock: p.is_in_stock, low_stock_remaining: p.low_stock_remaining }; });
-          try { localStorage.setItem(KEY, JSON.stringify({ t: Date.now(), list: slim })); } catch (e) {}
-          return slim;
-        });
-    req
-      .then(function (list) {
-        var today = new Date(); today.setHours(0, 0, 0, 0);
-        var rows = (list || []).map(function (p) {
-          var m = String(p.name || "").match(/(\d{2})[-\/](\d{2})[-\/](\d{4})/); if (!m) return null;
-          if (/bespoke|up to 12|employees/i.test(p.name || "")) return null;
-          var d = new Date(+m[3], +m[2] - 1, +m[1]);
-          var pr = p.prices || {}, mu = Math.pow(10, pr.currency_minor_unit || 0);
-          return { d: d, id: p.id, url: p.permalink, price: (+pr.price || 0) / mu, stock: p.is_in_stock !== false, low: p.low_stock_remaining };
-        }).filter(function (r) { return r && r.stock && r.d >= today; }).sort(function (a, b) { return a.d - b.d; });
-        if (!rows.length) { datesHTML = '<p class="nvqh-note">No dates are listed right now. Call 020 3488 4472 and we\'ll find you one.</p>'; return; }
-        var html = "", last = "";
-        rows.forEach(function (r, i) {
-          var mk = MONTHS[r.d.getMonth()] + " " + r.d.getFullYear(), hide = i >= SHOW ? ' data-more="1" hidden' : "";
-          if (mk !== last) { html += '<p class="mhh-month"' + hide + ">" + mk + "</p>"; last = mk; }
-          var seats = r.low && r.low <= 4 ? "Only " + r.low + " seats left" : "";
-          html += '<div class="mhh-date"' + hide + "><div><h4>Starts " + DAYS[r.d.getDay()] + " " + r.d.getDate() + " " + mk + "</h4>" +
-            '<p class="meta">Live online on Google Meet' + (time ? " · " + esc(time) : "") + (seats ? " · <strong>" + seats + "</strong>" : "") + "</p></div>" +
-            '<div class="amt">' + money(r.price) + " <small>+ VAT</small></div>" +
-            '<div class="btns"><a class="nvqh-btn pri" href="' + esc(r.url) + "?add-to-cart=" + r.id + '" data-mhh-book="' + r.id + '">Book Now</a></div></div>';
-        });
-        if (rows.length > SHOW) html += '<button type="button" class="nvqh-btn out mhh-more" data-mhh-more="1">Show more dates</button>';
-        datesHTML = html;
-      })
-      .catch(function () {
-        datesHTML = '<p class="nvqh-note">We couldn\'t load the dates just now. <a href="' + esc(fb) + '">See all course dates</a> or call 020 3488 4472.</p>';
-      })
-      .then(function () { datesBusy = false; paintDates(); });
-  }
+<section class="nvqh nvqh-blue boldgrid-section" id="standard">
+<div class="container">
+<div class="head">
+<h2>The CST Training Standard</h2>
+<p>Your course is delivered to The CST Training Standard, with three commitments we put in writing.</p>
+</div>
+<div class="nvqh-commits">
+<div><h3>Quality Commitment</h3><p>If you don't pass first time, you can re-attend and be reassessed, free, until you do.</p><p class="terms">Attend the full day and sit the exam on the course. Re-attendance within 12 months.</p></div>
+<div><h3>Day-one guarantee</h3><p>Not happy with your course? Tell us before the exam starts and we'll refund you in full.</p><p class="terms">Applies to the course day itself.</p></div>
+<div><h3>Every Tutor, Every Course</h3><p>Every course is taught by a CST Training tutor who meets our published Tutor and Assessor Standard.</p><p class="terms">If a tutor falls short, our quality team reviews it within five working days. If the standard wasn't met, you re-attend with another tutor, free.</p></div>
+</div>
+<p class="nvqh-terms">Free date transfer up to five working days before your course. If we move a course, moving with us is always free.</p>
+<div class="nvqh-ctas"><a class="nvqh-btn pri" href="#dates">Book Now</a><a class="nvqh-btn gh" href="#enquire" data-mhh-cb="Level 1 Mental Health and Wellbeing">Request a Call Back</a></div>
+</div>
+</section>
 
-  /* ---------- call back form ----------
-     Built here so WordPress can't alter it. Posts to the generic HubSpot enquiry form
-     (the one the ILM, CMI and NEBOSH pages use), with the course in enquiry_qualification. */
-  var HS_URL = "https://api.hsforms.com/submissions/v3/integration/submit/19996504/82962984-45f3-49f7-af62-fc7da9f14b2f";
-  var COURSES = ["Level 2 First Aid for Mental Health", "Team course: First Aid for Mental Health", "Level 2 Mental Health Awareness", "Level 1 Mental Health and Wellbeing", "Not sure yet"];
-  function mk(tag, cls, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt) e.textContent = txt; return e; }
-  function buildForm() {
-    var box = document.getElementById("mhh-form"); if (!box || box.querySelector("form")) return;
-    box.innerHTML = "";
-    var form = mk("form", "mhh-form"); form.noValidate = true;
-    function fld(lbl, type, full, opts) {
-      var w = mk("div", full ? "full" : null), id = "mhhf-" + lbl.toLowerCase().replace(/[^a-z]+/g, "-").replace(/-$/, ""), l = mk("label", null, lbl), i;
-      if (type === "select") { i = mk("select"); opts.forEach(function (o) { var p = mk("option", null, o); p.value = o; i.appendChild(p); }); }
-      else if (type === "textarea") i = mk("textarea"); else { i = mk("input"); i.type = type; }
-      i.id = id; l.setAttribute("for", id); w.appendChild(l); w.appendChild(i); form.appendChild(w); return i;
-    }
-    var fN = fld("Your name", "text"), fC = fld("Company (optional)", "text"), fE = fld("Email", "email"), fP = fld("Phone", "tel");
-    var fK = fld("Course", "select", false, COURSES), fH = fld("How many people?", "number"); fH.min = "1"; fH.value = "1";
-    var fQ = fld("Anything else? (optional)", "textarea", true);
-    fN.autocomplete = "name"; fE.autocomplete = "email"; fP.autocomplete = "tel"; fC.autocomplete = "organization";
-    var bw = mk("div", "full send"), sb = mk("button", "nvqh-btn pri", "Request a Call Back"); sb.type = "submit"; bw.appendChild(sb); form.appendChild(bw);
-    var st = mk("p", "mhh-status full"); st.setAttribute("role", "status"); form.appendChild(st);
-    form.appendChild(mk("p", "legal full", "We'll only use your details to reply to this enquiry."));
-    var th = mk("div", "mhh-thanks"); th.appendChild(mk("b", null, "Thanks, we've got your request. ")); th.appendChild(document.createTextNode("We'll call you the same working day. If it's urgent, call 020 3488 4472."));
-    box.appendChild(form); box.appendChild(th);
-    var pre = window.__mhhCourse; if (pre && COURSES.indexOf(pre) > -1) fK.value = pre;
-    var n = parseInt(val("mhh-n"), 10); if (n > 1) fH.value = String(n);
-  }
-  /* Submit is handled by one listener on the document (below), because another script on the site
-     can re-render the page, which drops listeners attached to the form itself. */
-  function submitForm(form) {
-    var box = form.parentNode, g = function (id) { return document.getElementById(id); };
-    var fN = g("mhhf-your-name"), fC = g("mhhf-company-optional"), fE = g("mhhf-email"), fP = g("mhhf-phone"),
-        fK = g("mhhf-course"), fH = g("mhhf-how-many-people"), fQ = g("mhhf-anything-else-optional");
-    var sb = form.querySelector("button[type=submit]"), st = form.querySelector(".mhh-status"), th = box.querySelector(".mhh-thanks");
-    if (!fN || !fE || !fP || !sb || sb.disabled) return;
-    var name = fN.value.trim(), email = fE.value.trim(), ph = fP.value.trim();
-    function err(t, x) { st.className = "mhh-status full err"; st.textContent = t; if (x) x.focus(); }
-    if (!name) return err("Add your name.", fN);
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return err("Enter a valid email address.", fE);
-    if (!ph) return err("Add a phone number so we can call you back.", fP);
-    var parts = name.split(/\s+/), first = parts.shift(), last = parts.join(" ") || "-", people = String(Math.max(1, parseInt(fH.value, 10) || 1));
-    var msg = "Mental health call back request\n\nCompany: " + (fC.value.trim() || "-") + "\nCourse: " + fK.value + "\nPeople: " + people + (fQ.value.trim() ? "\n\nNotes:\n" + fQ.value.trim() : "");
-    var fields = [{ name: "firstname", value: first }, { name: "lastname", value: last }, { name: "email", value: email }, { name: "phone", value: ph },
-      { name: "message", value: msg }, { name: "enquiry_qualification", value: fK.value }, { name: "enquiry_learners", value: people },
-      { name: "enquiry_options_selected", value: "Mental health hub call back" }];
-    var ctx = { pageUri: location.href, pageName: document.title }, m = document.cookie.match(/(?:^|; )hubspotutk=([^;]*)/); if (m) ctx.hutk = decodeURIComponent(m[1]);
-    sb.disabled = true; sb.textContent = "Sending"; st.className = "mhh-status full"; st.textContent = "";
-    fetch(HS_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fields: fields, context: ctx }) })
-      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(function () {
-        track("mhh_enquiry", { course: fK.value, people: +people });
-        var f = document.querySelector("#mhh-form form"), t = document.querySelector("#mhh-form .mhh-thanks");
-        if (f) f.style.display = "none";
-        if (t) { t.style.display = "block"; t.scrollIntoView({ behavior: "smooth", block: "center" }); }
-      })
-      .catch(function () { sb.disabled = false; sb.textContent = "Request a Call Back"; err("That didn't send. Please try again, or call 020 3488 4472."); });
-  }
-  function preselect(course) {
-    window.__mhhCourse = course;
-    var sel = document.getElementById("mhhf-course"); if (sel && COURSES.indexOf(course) > -1) sel.value = course;
-    var hp = document.getElementById("mhhf-how-many-people"), n = parseInt(val("mhh-n"), 10); if (hp && n > 1) hp.value = String(n);
-  }
+<section class="nvqh nvqh-navy boldgrid-section" id="mhh-faq">
+<div class="container">
+<div class="head">
+<h2>Questions we're asked</h2>
+</div>
+<div class="nvqh-faq">
+<details open><summary>Do I need any previous knowledge?</summary><p>No. Level 1 is an introduction, so it's open to anyone, whether you're preparing for work or already in a job.</p></details>
+<details><summary>Should I choose Level 1 or Level 2 Mental Health Awareness?</summary><p>Level 1 is a gentler introduction focused on personal wellbeing. For a workplace team, Level 2 Mental Health Awareness covers mental health at work and counts as the first unit of First Aid for Mental Health.</p></details>
+<details><summary>Does this course make me a mental health first aider?</summary><p>No. To support colleagues as a first aider for mental health, you need the two-day Level 2 First Aid for Mental Health course.</p></details>
+<details><summary>How is the course assessed?</summary><p>By one multiple-choice exam at the end of the day, set and marked by Highfield.</p></details>
+<details><summary>What's included in the price?</summary><p>Tuition, Highfield registration, the exam and your certificate. There are no booking fees.</p></details>
+<details><summary>What do I need for a live online course?</summary><p>A computer or laptop with a camera, microphone and a reliable connection, a quiet private space, and photo ID for the exam. Courses run on Google Meet.</p></details>
+<details><summary>Can we have a course just for our group?</summary><p>Yes. Up to 12 people can have a course of their own, live online on dates that suit you. Ask us for a price.</p></details>
+</div>
+<p class="nvqh-still">Still got a question? Call <a href="tel:02034884472">020 3488 4472</a></p>
+</div>
+</section>
 
-  /* ---------- delegated listeners ---------- */
-  document.addEventListener("submit", function (e) {
-    var f = e.target && e.target.closest && e.target.closest(".mhh-form"); if (!f) return;
-    e.preventDefault(); submitForm(f);
-  }, true);
-  document.addEventListener("change", function (e) { if (e.target && e.target.id && e.target.id.indexOf("mhh-") === 0) render(); });
-  document.addEventListener("input", function (e) { if (e.target && e.target.id === "mhh-n") render(); });
-  document.addEventListener("click", function (e) {
-    if (!e.target.closest) return;
-    var tab = e.target.closest("[data-mhh-tab]"); if (tab) { e.preventDefault(); showTab(tab); return; }
-    var more = e.target.closest("[data-mhh-more]"); if (more) {
-      Array.prototype.forEach.call(datesBox().querySelectorAll("[data-more]"), function (el) { el.hidden = false; el.removeAttribute("data-more"); });
-      more.remove(); datesHTML = datesBox().innerHTML; return;
-    }
-    var cb = e.target.closest("[data-mhh-cb]"); if (cb) { preselect(cb.getAttribute("data-mhh-cb")); track("mhh_callback", { course: cb.getAttribute("data-mhh-cb") }); return; }
-    var b = e.target.closest("[data-mhh-book]"); if (b) track("mhh_book", { product: b.getAttribute("data-mhh-book") });
-  });
+<section class="nvqh nvqh-blue boldgrid-section" id="enquire">
+<div class="container">
+<div class="nvqh-enq">
+<div class="intro">
+<h2>Questions before you book? Talk to us</h2>
+<p>Tell us who the course is for and how many people, and we'll check it's the right fit and find you a date.</p>
+<ul>
+<li>A reply the same working day</li>
+<li>Group courses on dates that suit you</li>
+<li>One account with your other CST Training courses</li>
+</ul>
+<p>Or call <a href="tel:02034884472">020 3488 4472</a></p>
+</div>
+<div class="form">
+<h3>Request a call back</h3>
+<p class="small">We'll call you to talk through your options.</p>
+<div id="mhh-form" data-course="Level 1 Mental Health and Wellbeing"></div>
+</div>
+</div>
+</div>
+</section>
 
-  /* ---------- no white bar between the last section and the site footer ----------
-     The theme pads the page wrapper and leaves empty paragraphs after the content. This only runs
-     on this page, so it walks up from the last hub section to <body>, removes bottom spacing on
-     each wrapper and hides empty elements that follow it. */
-  function isEmpty(el) { return !el.querySelector("img,iframe,form,input,video,svg") && !el.textContent.replace(/\s|\u00a0/g, ""); }
-  function closeFooterGap() {
-    var all = document.querySelectorAll("section.nvqh"); if (!all.length) return;
-    var el = all[all.length - 1];
-    while (el && el !== document.body) {
-      el.style.setProperty("margin-bottom", "0", "important");
-      if (el.tagName !== "SECTION") el.style.setProperty("padding-bottom", "0", "important");
-      var sib = el.nextElementSibling;
-      while (sib) {
-        if (/^(P|BR|DIV)$/.test(sib.tagName) && isEmpty(sib) && !sib.id) sib.style.setProperty("display", "none", "important");
-        else if (/footer/i.test(sib.tagName + " " + sib.className + " " + sib.id)) { sib.style.setProperty("margin-top", "0", "important"); break; }
-        else break;
-        sib = sib.nextElementSibling;
-      }
-      el = el.parentElement;
-    }
-  }
-  var gapTimer = null;
-  function gapSoon() { clearTimeout(gapTimer); gapTimer = setTimeout(closeFooterGap, 150); }
-
-  function init() { injectCss(); render(); loadDates(); faqSchema(); buildForm(); closeFooterGap(); }
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
-  if (window.MutationObserver) new MutationObserver(function () {
-    var box = document.getElementById("mhh-reco"); if (box && !box.firstChild) render();
-    var db = datesBox(); if (db && db.getAttribute("data-state") !== "done") loadDates();
-    injectCss();
-    buildForm();
-    gapSoon();
-  }).observe(document.documentElement, { childList: true, subtree: true });
-})();
+<script src="https://glancyl.github.io/cst-advisor/mental-health-hub.js?v=7"></script>
