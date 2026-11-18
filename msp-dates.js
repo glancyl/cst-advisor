@@ -7,7 +7,7 @@
    <div data-cst-dates data-dates-page="https://www.csttraining.co.uk/msp-foundation-5th-edition/"
         data-elearning-price="£1,000 + VAT" data-elearning-url="https://..."
         data-course-label="3-day course" data-course-desc="online on Google Meet"> fallback text </div>
-   <script nitro-exclude src="https://glancyl.github.io/cst-advisor/msp-dates.js?v=4"></script>
+   <script nitro-exclude src="https://glancyl.github.io/cst-advisor/msp-dates.js?v=5"></script>
 */
 (function () {
   var CACHE_MINS = 30;
@@ -20,9 +20,9 @@
     s.id = 'cstd-css';
     s.textContent =
       '.cstd{max-width:1030px;margin:0 auto}' +
-      '.cstd-filters{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:0 0 22px}' +
-      '.cstd-pill{border:0;background:#fff;color:#1d2560;font-weight:700;font-size:15px;padding:11px 20px;border-radius:999px;cursor:pointer}' +
-      '.cstd-pill.on{background:#4c6bd8;color:#fff}' +
+      '.cstd-filters{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:0 0 22px;position:relative;z-index:5}' +
+      '.cstd-pill{display:inline-block;border:0;background:#fff;color:#1d2560!important;font-weight:700;font-size:15px;padding:11px 20px;border-radius:999px;cursor:pointer;text-decoration:none!important;pointer-events:auto;user-select:none}' +
+      '.cstd-pill.on{background:#4c6bd8;color:#fff!important}' +
       '.cstd-row{display:flex;align-items:center;gap:20px;background:#fff;border-left:5px solid #ff8c04;border-radius:10px;padding:14px 18px;margin:0 0 10px;text-align:left}' +
       '.cstd-row.el{background:#f4f6fa;border-left-color:#4c6bd8}' +
       '.cstd-when{flex:0 0 140px}' +
@@ -33,7 +33,7 @@
       '.cstd-price{color:#1d2560;font-weight:700;font-size:16px;white-space:nowrap}' +
       '.cstd-book{background:#ff8c04;color:#1d2560!important;font-weight:700;font-size:15px;padding:10px 18px;border-radius:999px;text-decoration:none!important;white-space:nowrap}' +
       '.cstd-book:hover{background:#ffa133}' +
-      '.cstd-more{display:block;margin:18px auto 0;background:transparent;border:2px solid #fff;color:#fff;font-weight:700;font-size:16px;padding:11px 24px;border-radius:999px;cursor:pointer}' +
+      '.cstd-more{display:table;text-decoration:none!important;margin:18px auto 0;background:transparent;border:2px solid #fff;color:#fff;font-weight:700;font-size:16px;padding:11px 24px;border-radius:999px;cursor:pointer}' +
       '.cstd-msg{color:#fff;text-align:center;padding:12px}' +
       '.cstd-msg a{color:#ff8c04;font-weight:700}' +
       '@media(max-width:700px){.cstd-row{flex-wrap:wrap;gap:8px 14px}.cstd-when,.cstd-what{flex:1 1 100%}.cstd-price{flex:1}}';
@@ -132,19 +132,25 @@
         var html = '';
         if (elRow && dates.length) {
           html += '<div class="cstd-filters">' +
-            '<button class="cstd-pill' + (filter === 'all' ? ' on' : '') + '" data-f="all">All dates</button>' +
-            '<button class="cstd-pill' + (filter === 'elearning' ? ' on' : '') + '" data-f="elearning">E-learning</button>' +
-            '<button class="cstd-pill' + (filter === 'dates' ? ' on' : '') + '" data-f="dates">' + label + '</button></div>';
+            '<a href="#" role="button" class="cstd-pill' + (filter === 'all' ? ' on' : '') + '" data-f="all">All dates</a>' +
+            '<a href="#" role="button" class="cstd-pill' + (filter === 'elearning' ? ' on' : '') + '" data-f="elearning">E-learning</a>' +
+            '<a href="#" role="button" class="cstd-pill' + (filter === 'dates' ? ' on' : '') + '" data-f="dates">' + label + '</a></div>';
         }
         html += vis.slice(0, limit).map(function (r) { return r.html; }).join('') + fail;
-        if (vis.length > limit) html += '<button class="cstd-more">Show more dates</button>';
+        if (vis.length > limit) html += '<a href="#" role="button" class="cstd-more">Show more dates</a>';
         el.innerHTML = html;
-        Array.prototype.forEach.call(el.querySelectorAll('.cstd-pill'), function (b) {
-          b.addEventListener('click', function () { filter = b.getAttribute('data-f'); limit = show; render(); });
-        });
-        var more = el.querySelector('.cstd-more');
-        if (more) more.addEventListener('click', function () { limit += show; render(); });
       }
+      function onTap(e) {
+        var t = e.target && e.target.closest ? e.target.closest('.cstd-pill, .cstd-more') : null;
+        if (!t || !el.contains(t)) return;
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+        if (t.classList.contains('cstd-more')) { limit += show; } else { filter = t.getAttribute('data-f'); limit = show; }
+        render();
+      }
+      // capture phase on the document, so other site scripts can't swallow the click
+      document.addEventListener('click', onTap, true);
       render();
     }).catch(function () {
       el.innerHTML = elRow + '<div class="cstd-msg"><a href="' + page + '">See all course dates</a> or call 020 3488 4472.</div>';
