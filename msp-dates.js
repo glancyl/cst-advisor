@@ -1,4 +1,4 @@
-/* CST Training course dates list (MSP pages) v4
+/* CST Training course dates list (MSP pages) v7: filters use native radio buttons, no click handlers
    Reads upcoming dates from the course's own dates page (the WooCommerce
    category page, already cached by NitroPack so it loads fast), then renders:
    e-learning "Start today" row first, then dated virtual classroom rows.
@@ -22,8 +22,7 @@
       '.cstd{max-width:1030px;margin:0 auto}' +
       '.cstd-filters{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:0 0 22px;position:relative;z-index:5}' +
       '.cstd-pill{display:inline-block;border:0;background:#fff;color:#1d2560!important;font-weight:700;font-size:15px;padding:11px 20px;border-radius:999px;cursor:pointer;text-decoration:none!important;pointer-events:auto;user-select:none}' +
-      '.cstd-pill.on{background:#4c6bd8;color:#fff!important}' +
-      '.cstd-row{display:flex;align-items:center;gap:20px;background:#fff;border-left:5px solid #ff8c04;border-radius:10px;padding:14px 18px;margin:0 0 10px;text-align:left}' +
+            '.cstd-row{display:flex;align-items:center;gap:20px;background:#fff;border-left:5px solid #ff8c04;border-radius:10px;padding:14px 18px;margin:0 0 10px;text-align:left}' +
       '.cstd-row.el{background:#f4f6fa;border-left-color:#4c6bd8}' +
       '.cstd-when{flex:0 0 140px}' +
       '.cstd-date{color:#1d2560;font-weight:700;font-size:17px;line-height:1.2}' +
@@ -33,8 +32,18 @@
       '.cstd-price{color:#1d2560;font-weight:700;font-size:16px;white-space:nowrap}' +
       '.cstd-book{background:#ff8c04;color:#1d2560!important;font-weight:700;font-size:15px;padding:10px 18px;border-radius:999px;text-decoration:none!important;white-space:nowrap}' +
       '.cstd-book:hover{background:#ffa133}' +
-      '.cstd-more{display:table;text-decoration:none!important;margin:18px auto 0;background:transparent;border:2px solid #fff;color:#fff;font-weight:700;font-size:16px;padding:11px 24px;border-radius:999px;cursor:pointer}' +
+      '.cstd-morewrap{text-align:center;margin-top:18px}' +
+      '.cstd-more{display:inline-block;text-decoration:none!important;margin:0;background:transparent;border:2px solid #fff;color:#fff;font-weight:700;font-size:16px;padding:11px 24px;border-radius:999px;cursor:pointer}' +
       '.cstd-msg{color:#fff;text-align:center;padding:12px}' +
+      '.cstd-r{position:absolute!important;opacity:0!important;width:1px!important;height:1px!important;pointer-events:none!important;margin:0!important}' +
+      'label.cstd-pill,label.cstd-more{margin:0}' +
+      '.cstd-r-all:checked~.cstd-filters .p-all,.cstd-r-el:checked~.cstd-filters .p-el,.cstd-r-dt:checked~.cstd-filters .p-dt{background:#4c6bd8;color:#fff!important}' +
+      '.cstd-r-el:checked~.cstd-list .t-dt{display:none}' +
+      '.cstd-r-dt:checked~.cstd-list .t-el{display:none}' +
+      '.cstd-r-all:checked~.cstd-m:not(:checked)~.cstd-list .x-all{display:none}' +
+      '.cstd-r-dt:checked~.cstd-m:not(:checked)~.cstd-list .x-dt{display:none}' +
+      '.cstd-m:checked~.cstd-morewrap,.cstd-r-el:checked~.cstd-morewrap{display:none}' +
+      '.cstd-r-dt:checked~.cstd-morewrap.no-dt{display:none}' +
       '.cstd-msg a{color:#ff8c04;font-weight:700}' +
       '@media(max-width:700px){.cstd-row{flex-wrap:wrap;gap:8px 14px}.cstd-when,.cstd-what{flex:1 1 100%}.cstd-price{flex:1}}';
     document.head.appendChild(s);
@@ -91,6 +100,8 @@
       .catch(function () { clearTimeout(timer); return []; });
   }
 
+  var UID = 0;
+
   function init(el) {
     var page = el.getAttribute('data-dates-page') || el.getAttribute('data-all-link') || '';
     var elPrice = el.getAttribute('data-elearning-price');
@@ -98,14 +109,11 @@
     var label = el.getAttribute('data-course-label') || 'Virtual classroom';
     var desc = el.getAttribute('data-course-desc') || 'online';
     var show = parseInt(el.getAttribute('data-show') || '6', 10);
-    var elRow = (elPrice && elUrl) ? row('el', 'Start today', 'Any time', '<strong>E-learning</strong> online, at your own pace', elPrice, elUrl) : '';
+    var elRow = (elPrice && elUrl) ? row('el t-el', 'Start today', 'Any time', '<strong>E-learning</strong> online, at your own pace', elPrice, elUrl) : '';
+    var n = ++UID;
 
     el.className += ' cstd';
-
-    // same-origin path so it works on www and non-www
     var path = page.replace(/^https?:\/\/[^\/]+/, '');
-
-    // Dates rendered by the WooCommerce shortcode inside the box (hidden), read straight from the page
     var src = el.querySelector('.cstd-src');
     var srcHtml = src ? src.innerHTML : '';
     var source = srcHtml ? Promise.resolve(parse(srcHtml)) : load(path);
@@ -116,55 +124,52 @@
       var today = new Date(); today.setHours(0, 0, 0, 0);
       var dates = list.filter(function (x) { return x.t >= today.getTime(); }).sort(function (a, b) { return a.t - b.t; });
 
-      var rows = [];
-      if (elRow) rows.push({ type: 'elearning', html: elRow });
-      dates.forEach(function (x) {
+      if (!dates.length) {
+        el.innerHTML = elRow + '<div class="cstd-msg">Dates didn\'t load just now. <a href="' + page + '">See all course dates</a> or call 020 3488 4472.</div>';
+        return;
+      }
+
+      var allIndex = elRow ? 1 : 0;
+      var rows = elRow ? [elRow] : [];
+      dates.forEach(function (x, i) {
         var d = new Date(x.t);
-        rows.push({ type: 'dates', html: row('', d.getDate() + ' ' + MONTHS[d.getMonth()] + ' ' + d.getFullYear(), DAYS[d.getDay()] + ' start',
-          '<strong>' + label + '</strong> ' + desc, x.price, '/cart/?add-to-cart=' + x.id) });
+        var cls = 't-dt' + (allIndex + i >= show ? ' x-all' : '') + (i >= show ? ' x-dt' : '');
+        rows.push(row(cls, d.getDate() + ' ' + MONTHS[d.getMonth()] + ' ' + d.getFullYear(), DAYS[d.getDay()] + ' start',
+          '<strong>' + label + '</strong> ' + desc, x.price, '/cart/?add-to-cart=' + x.id));
       });
 
-      var fail = !dates.length ? '<div class="cstd-msg">Dates didn\'t load just now. <a href="' + page + '">See all course dates</a> or call 020 3488 4472.</div>' : '';
-      var filter = 'all', limit = show;
-
-      function render() {
-        var vis = rows.filter(function (r) { return filter === 'all' || r.type === filter; });
-        var html = '';
-        if (elRow && dates.length) {
-          html += '<div class="cstd-filters">' +
-            '<a href="javascript:void(0)" role="button" onclick="return window.cstdTap(this)" class="cstd-pill' + (filter === 'all' ? ' on' : '') + '" data-f="all">All dates</a>' +
-            '<a href="javascript:void(0)" role="button" onclick="return window.cstdTap(this)" class="cstd-pill' + (filter === 'elearning' ? ' on' : '') + '" data-f="elearning">E-learning</a>' +
-            '<a href="javascript:void(0)" role="button" onclick="return window.cstdTap(this)" class="cstd-pill' + (filter === 'dates' ? ' on' : '') + '" data-f="dates">' + label + '</a></div>';
-        }
-        html += vis.slice(0, limit).map(function (r) { return r.html; }).join('') + fail;
-        if (vis.length > limit) html += '<a href="javascript:void(0)" role="button" onclick="return window.cstdTap(this)" class="cstd-more">Show more dates</a>';
-        el.innerHTML = html;
+      var id = 'cstd' + n;
+      var html = '';
+      if (elRow) {
+        html += '<input type="radio" class="cstd-r cstd-r-all" name="' + id + '" id="' + id + '-all" checked>' +
+          '<input type="radio" class="cstd-r cstd-r-el" name="' + id + '" id="' + id + '-el">' +
+          '<input type="radio" class="cstd-r cstd-r-dt" name="' + id + '" id="' + id + '-dt">';
+      } else {
+        html += '<input type="radio" class="cstd-r cstd-r-dt" name="' + id + '" id="' + id + '-dt" checked>';
       }
-      // called by the inline onclick on each pill; no page jump and no reliance on other site scripts
-      el._cstdTap = function (t) {
-        if (t.className.indexOf('cstd-more') > -1) { limit += show; } else { filter = t.getAttribute('data-f'); limit = show; }
-        render();
-      };
-      render();
+      html += '<input type="checkbox" class="cstd-r cstd-m" id="' + id + '-more">';
+      if (elRow) {
+        html += '<div class="cstd-filters">' +
+          '<label class="cstd-pill p-all" for="' + id + '-all">All dates</label>' +
+          '<label class="cstd-pill p-el" for="' + id + '-el">E-learning</label>' +
+          '<label class="cstd-pill p-dt" for="' + id + '-dt">' + label + '</label></div>';
+      }
+      html += '<div class="cstd-list">' + rows.join('') + '</div>';
+      if (rows.length > show) {
+        html += '<div class="cstd-morewrap' + (dates.length > show ? '' : ' no-dt') + '"><label class="cstd-more" for="' + id + '-more">Show more dates</label></div>';
+      }
+      el.innerHTML = html;
     }).catch(function () {
       el.innerHTML = elRow + '<div class="cstd-msg"><a href="' + page + '">See all course dates</a> or call 020 3488 4472.</div>';
     });
   }
-
-  window.cstdTap = function (t) {
-    try {
-      var box = t;
-      while (box && !box._cstdTap) box = box.parentElement;
-      if (box) box._cstdTap(t);
-    } catch (e) {}
-    return false;
-  };
 
   function start() {
     var mounts = document.querySelectorAll('[data-cst-dates]');
     if (!mounts.length) return;
     css();
     Array.prototype.forEach.call(mounts, init);
+    if (window.console) console.log('CST dates v7 loaded');
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();
