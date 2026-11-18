@@ -1,4 +1,4 @@
-/* CST Training course dates list (MSP pages) v3
+/* CST Training course dates list (MSP pages) v4
    Reads upcoming dates from the course's own dates page (the WooCommerce
    category page, already cached by NitroPack so it loads fast), then renders:
    e-learning "Start today" row first, then dated virtual classroom rows.
@@ -7,7 +7,7 @@
    <div data-cst-dates data-dates-page="https://www.csttraining.co.uk/msp-foundation-5th-edition/"
         data-elearning-price="£1,000 + VAT" data-elearning-url="https://..."
         data-course-label="3-day course" data-course-desc="online on Google Meet"> fallback text </div>
-   <script nitro-exclude src="https://glancyl.github.io/cst-advisor/msp-dates.js?v=3"></script>
+   <script nitro-exclude src="https://glancyl.github.io/cst-advisor/msp-dates.js?v=4"></script>
 */
 (function () {
   var CACHE_MINS = 30;
@@ -101,12 +101,18 @@
     var elRow = (elPrice && elUrl) ? row('el', 'Start today', 'Any time', '<strong>E-learning</strong> online, at your own pace', elPrice, elUrl) : '';
 
     el.className += ' cstd';
-    el.innerHTML = elRow + '<div class="cstd-msg">Loading course dates…</div>';
 
     // same-origin path so it works on www and non-www
     var path = page.replace(/^https?:\/\/[^\/]+/, '');
 
-    load(path).then(function (list) {
+    // Dates rendered by the WooCommerce shortcode inside the box (hidden), read straight from the page
+    var src = el.querySelector('.cstd-src');
+    var srcHtml = src ? src.innerHTML : '';
+    var source = srcHtml ? Promise.resolve(parse(srcHtml)) : load(path);
+
+    el.innerHTML = elRow + '<div class="cstd-msg">Loading course dates…</div>';
+
+    source.then(function (list) {
       var today = new Date(); today.setHours(0, 0, 0, 0);
       var dates = list.filter(function (x) { return x.t >= today.getTime(); }).sort(function (a, b) { return a.t - b.t; });
 
