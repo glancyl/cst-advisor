@@ -5,10 +5,27 @@
    Mount on the page:
    <div data-cst-dates data-category="2455" data-elearning="140080"
         data-course-label="3-day course" data-course-desc="online on Google Meet, 3 consecutive days"></div>
-   <script src="https://glancyl.github.io/cst-advisor/msp-dates.js?v=1"></script>
+   <script src="https://glancyl.github.io/cst-advisor/msp-dates.js?v=2"></script>
 */
 (function () {
   var API = '/wp-json/wc/store/v1/products';
+  var FIELDS = '_fields=id,name,permalink,prices,is_in_stock,is_purchasable';
+  var CACHE_MINS = 30;
+
+  function cached(key, url) {
+    try {
+      var hit = JSON.parse(sessionStorage.getItem(key) || 'null');
+      if (hit && Date.now() - hit.t < CACHE_MINS * 60000) return Promise.resolve(hit.d);
+    } catch (e) {}
+    var ctrl = window.AbortController ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 10000);
+    return fetch(url, ctrl ? { signal: ctrl.signal } : {}).then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        clearTimeout(timer);
+        if (d) { try { sessionStorage.setItem(key, JSON.stringify({ t: Date.now(), d: d })); } catch (e) {} }
+        return d;
+      }).catch(function () { clearTimeout(timer); return null; });
+  }
 
   function css() {
     if (document.getElementById('cstd-css')) return;
@@ -69,10 +86,20 @@
     var desc = el.getAttribute('data-course-desc') || 'online';
     var show = parseInt(el.getAttribute('data-show') || '6', 10);
     var allLink = el.getAttribute('data-all-link') || '';
-    el.innerHTML = '<div class="cstd-msg">Loading dates…</div>';
+    var elPrice = el.getAttribute('data-elearning-price');
+    var elUrl = el.getAttribute('data-elearning-url');
 
-    var getEl = elId ? fetch(API + '/' + elId).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }) : Promise.resolve(null);
-    var getDates = cat ? fetch(API + '?category=' + encodeURIComponent(cat) + '&per_page=100').then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; }) : Promise.resolve([]);
+    // E-learning row shows instantly from the page's own attributes, no API call needed
+    var instantEl = (elPrice && elUrl) ? { permalink: elUrl, _price: elPrice } : null;
+    if (instantEl) {
+      el.innerHTML = row('el', 'Start today', 'Any time', '<strong>E-learning</strong> online, at your own pace', instantEl._price, elUrl) +
+        '<div class="cstd-msg">Loading course dates…</div>';
+    } else {
+      el.innerHTML = '<div class="cstd-msg">Loading dates…</div>';
+    }
+
+    var getEl = instantEl ? Promise.resolve(instantEl) : (elId ? cached('cstd-p-' + elId, API + '/' + elId + '?' + FIELDS) : Promise.resolve(null));
+    var getDates = cat ? cached('cstd-c-' + cat, API + '?category=' + encodeURIComponent(cat) + '&per_page=100&' + FIELDS).then(function (d) { return d || []; }) : Promise.resolve([]);
 
     Promise.all([getEl, getDates]).then(function (res) {
       var el1 = res[0], list = res[1] || [];
@@ -82,12 +109,15 @@
         .sort(function (a, b) { return a.d - b.d; });
 
       var rows = [];
-      if (el1) rows.push({ type: 'elearning', html: row('el', 'Start today', 'Any time', '<strong>E-learning</strong> online, at your own pace', money(el1), el1.permalink) });
+      if (el1) rows.push({ type: 'elearning', html: row('el', 'Start today', 'Any time', '<strong>E-learning</strong> online, at your own pace', el1._price || money(el1), el1.permalink) });
       dates.forEach(function (x) {
         rows.push({ type: 'dates', html: row('', x.d.getDate() + ' ' + MONTHS[x.d.getMonth()] + ' ' + x.d.getFullYear(), DAYS[x.d.getDay()] + ' start',
           '<strong>' + label + '</strong> ' + desc, money(x.p), '/cart/?add-to-cart=' + x.p.id) });
       });
 
+      if (!dates.length && allLink) {
+        rows.push({ type: 'dates', html: '<div class="cstd-msg">Dates didn\'t load. <a href="' + allLink + '">See all course dates</a> or call 020 3488 4472.</div>' });
+      }
       if (!rows.length) {
         el.innerHTML = '<div class="cstd-msg">We couldn\'t load dates just now. <a href="' + (allLink || '/contact/') + '">See all dates</a> or call 020 3488 4472.</div>';
         return;
