@@ -132,30 +132,33 @@
         var html = '';
         if (elRow && dates.length) {
           html += '<div class="cstd-filters">' +
-            '<a href="#" role="button" class="cstd-pill' + (filter === 'all' ? ' on' : '') + '" data-f="all">All dates</a>' +
-            '<a href="#" role="button" class="cstd-pill' + (filter === 'elearning' ? ' on' : '') + '" data-f="elearning">E-learning</a>' +
-            '<a href="#" role="button" class="cstd-pill' + (filter === 'dates' ? ' on' : '') + '" data-f="dates">' + label + '</a></div>';
+            '<a href="javascript:void(0)" role="button" onclick="return window.cstdTap(this)" class="cstd-pill' + (filter === 'all' ? ' on' : '') + '" data-f="all">All dates</a>' +
+            '<a href="javascript:void(0)" role="button" onclick="return window.cstdTap(this)" class="cstd-pill' + (filter === 'elearning' ? ' on' : '') + '" data-f="elearning">E-learning</a>' +
+            '<a href="javascript:void(0)" role="button" onclick="return window.cstdTap(this)" class="cstd-pill' + (filter === 'dates' ? ' on' : '') + '" data-f="dates">' + label + '</a></div>';
         }
         html += vis.slice(0, limit).map(function (r) { return r.html; }).join('') + fail;
-        if (vis.length > limit) html += '<a href="#" role="button" class="cstd-more">Show more dates</a>';
+        if (vis.length > limit) html += '<a href="javascript:void(0)" role="button" onclick="return window.cstdTap(this)" class="cstd-more">Show more dates</a>';
         el.innerHTML = html;
       }
-      function onTap(e) {
-        var t = e.target && e.target.closest ? e.target.closest('.cstd-pill, .cstd-more') : null;
-        if (!t || !el.contains(t)) return;
-        e.preventDefault();
-        e.stopPropagation();
-        if (e.stopImmediatePropagation) e.stopImmediatePropagation();
-        if (t.classList.contains('cstd-more')) { limit += show; } else { filter = t.getAttribute('data-f'); limit = show; }
+      // called by the inline onclick on each pill; no page jump and no reliance on other site scripts
+      el._cstdTap = function (t) {
+        if (t.className.indexOf('cstd-more') > -1) { limit += show; } else { filter = t.getAttribute('data-f'); limit = show; }
         render();
-      }
-      // capture phase on the document, so other site scripts can't swallow the click
-      document.addEventListener('click', onTap, true);
+      };
       render();
     }).catch(function () {
       el.innerHTML = elRow + '<div class="cstd-msg"><a href="' + page + '">See all course dates</a> or call 020 3488 4472.</div>';
     });
   }
+
+  window.cstdTap = function (t) {
+    try {
+      var box = t;
+      while (box && !box._cstdTap) box = box.parentElement;
+      if (box) box._cstdTap(t);
+    } catch (e) {}
+    return false;
+  };
 
   function start() {
     var mounts = document.querySelectorAll('[data-cst-dates]');
