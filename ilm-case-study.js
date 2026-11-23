@@ -1,4 +1,4 @@
-/* CST Training: ILM case study page styles · v4
+/* CST Training: ILM case study page styles · v5
    Palette from the live ILM course pages and hubs: blue #4c6bd8, navy #1d2560, orange #ff8c04. */
 (function () {
   if (document.getElementById('ilmcs-styles')) return;
@@ -33,7 +33,7 @@
 .ilmcs-navy{background:var(--navy)}
 .ilmcs-blue{background:var(--blue)}
 .ilmcs-orange{background:var(--orange)}
-.ilmcs-navy h2,.ilmcs-blue h2,.ilmcs-navy>.ilmcs-wrap p,.ilmcs-navy .ilmcs-head p,.ilmcs-blue .ilmcs-head p,.ilmcs-two>div:first-child p{color:#fff!important}
+.ilmcs-navy h2,.ilmcs-blue h2,.ilmcs-navy .ilmcs-head p,.ilmcs-blue .ilmcs-head p,.ilmcs-two>div:first-child p,.ilmcs-narrow>p{color:#fff!important}
 .ilmcs-orange h2{color:var(--navy)!important}
 .ilmcs-orange .ilmcs-head p{color:var(--navy)!important;font-weight:600}
 
@@ -63,23 +63,26 @@
 
 /* Story 1 quote card */
 .ilmcs-quote{position:relative;max-width:900px;margin:0 auto;background:#fff;border-radius:var(--r);border-top:6px solid var(--orange);padding:44px 48px 32px;box-shadow:0 14px 40px rgba(0,0,0,.25)}
-.ilmcs-quote p{color:var(--navy)!important;font-size:1.08rem;line-height:1.7}
+.ilmcs .ilmcs-quote p{color:var(--navy)!important;font-size:1.08rem!important;line-height:1.7!important;margin:0 0 1em!important;text-align:left}
+.ilmcs .ilmcs-quote p.ilmcs-who{color:var(--muted)!important;font-size:.92rem!important;margin:6px 0 0!important}
 .ilmcs-qmark{position:absolute;top:-6px;left:24px;font-family:Georgia,serif;font-size:96px;line-height:1;color:var(--orange)}
-.ilmcs-quote mark{background:#fff7ec;color:var(--navy);font-weight:700;padding:2px 4px;border-radius:4px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.ilmcs-quote mark{display:inline;background:#fff7ec;color:var(--navy);font-weight:700;padding:2px 4px;border-radius:4px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
 .ilmcs-who{font-weight:700;color:var(--muted)!important;font-size:.92rem!important;margin:6px 0 0!important}
 
 /* Timeline on orange */
-.ilmcs-path{list-style:none!important;margin:0!important;padding:0!important;display:grid;grid-template-columns:repeat(5,1fr);gap:14px;position:relative}
+.ilmcs-path{list-style:none!important;margin:0 auto!important;padding:0!important;display:flex;gap:14px;align-items:stretch;justify-content:center;max-width:1100px}
+.ilmcs-path>li{flex:1 1 0;min-width:0}
 .ilmcs-path li{background:#fff;border-radius:var(--r);padding:22px 16px;margin:0;text-align:center;display:flex;flex-direction:column;gap:4px;box-shadow:0 8px 22px rgba(29,37,96,.15)}
 .ilmcs-path li.cst{background:var(--navy);transform:translateY(-8px);box-shadow:0 14px 30px rgba(29,37,96,.35)}
 .ilmcs-path em{align-self:center;font-style:normal;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;background:var(--orange);color:#fff;border-radius:999px;padding:4px 10px;margin-bottom:6px}
 .ilmcs-path strong{color:var(--navy);font-size:1.08rem}
 .ilmcs-path span{font-size:.93rem;color:var(--muted);line-height:1.45}
-.ilmcs-path li.cst strong{color:#fff}
-.ilmcs-path li.cst span{color:#dfe5fb}
+.ilmcs .ilmcs-path li.cst strong{color:#fff!important}
+.ilmcs .ilmcs-path li.cst span{color:#fff!important}
 
 /* Endorsement on blue */
 .ilmcs-endorse{max-width:940px;margin:0 auto;text-align:center}
+.ilmcs .ilmcs-endorse-h{color:#fff!important;font-size:clamp(2.2rem,5vw,3.4rem)!important;line-height:1.1!important;margin:0 0 22px!important}
 .ilmcs-endorse-text{color:#fff!important;font-size:clamp(1.15rem,2vw,1.4rem)!important;line-height:1.6!important;font-weight:600}
 .ilmcs-endorse-who{color:#dfe5fb!important;font-size:.95rem}
 .ilmcs-endorse-who strong{color:#fff}
@@ -117,10 +120,12 @@
 .ilmcs ul li::marker,.ilmcs ol li::marker{content:none}
 
 /* WordPress adds empty paragraphs and line breaks inside grids */
+.ilmcs-path>:not(li),.ilmcs-chips>:not(li),.ilmcs-steps>:not(li),.ilmcs-ticks>:not(li),.ilmcs-ticks-hero>:not(li),.ilmcs-grid2>:not(div),.ilmcs-two>:not(div),.ilmcs-ctas>:not(a){display:none!important}
 .ilmcs p:empty,.ilmcs-path>br,.ilmcs-chips>br,.ilmcs-two>br,.ilmcs-grid2>br,.ilmcs-steps>br,.ilmcs-ctas>br,.ilmcs-ticks>br,.ilmcs-ticks-hero>br,.ilmcs-quote>br{display:none}
 
 @media (max-width:1000px){
-  .ilmcs-path{grid-template-columns:1fr 1fr}
+  .ilmcs-path{flex-wrap:wrap}
+  .ilmcs-path>li{flex:1 1 40%}
   .ilmcs-path li.cst{transform:none}
 }
 @media (max-width:900px){
@@ -131,7 +136,7 @@
   .ilmcs-hero{border-bottom-right-radius:30px;margin-bottom:-30px;padding-bottom:56px}
   .ilmcs-first{padding-top:80px}
   .ilmcs-quote{padding:40px 22px 24px}
-  .ilmcs-path{grid-template-columns:1fr}
+  .ilmcs-path>li{flex:1 1 100%}
 }`;
   var s = document.createElement('style');
   s.id = 'ilmcs-styles';
