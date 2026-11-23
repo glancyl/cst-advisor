@@ -1,201 +1,127 @@
-<!-- CST Training: ILM case study page. Paste into the WordPress code editor. -->
-<script nitro-exclude src="https://glancyl.github.io/cst-advisor/ilm-case-study.js?v=2"></script>
+/* CST Training: ILM case study page styles · v2
+   Palette and section styles from the live First Aid and NVQ hubs. */
+(function () {
+  if (document.getElementById('ilmcs-styles')) return;
+  var f = document.createElement('link');
+  f.rel = 'stylesheet';
+  f.href = 'https://fonts.googleapis.com/css2?family=Alata&family=Asap:wght@400;600;700&display=swap';
+  document.head.appendChild(f);
 
-<div class="ilmcs">
+  var css = `
+.ilmcs{--navy:#1d2560;--blue:#4c6bd8;--orange:#ff8c04;--light:#f4f5f9;--pale:#e9ebf5;--line:#dcdfea;--body:#3D4665;--muted:#6B7394;--r:14px;
+  font-family:"Asap",Arial,sans-serif;color:var(--body);font-size:16px;line-height:1.6}
+.ilmcs *,.ilmcs *::before,.ilmcs *::after{box-sizing:border-box}
+.ilmcs h1,.ilmcs h2,.ilmcs h3{font-family:"Asap",Arial,sans-serif;font-weight:700;color:var(--navy);margin:0 0 12px}
+.ilmcs h1{font-size:clamp(1.9rem,3.6vw,2.6rem)!important;line-height:1.2!important;color:#fff}
+.ilmcs h2{font-size:clamp(1.7rem,3.4vw,2.4rem)!important;line-height:1.2!important}
+.ilmcs h3{font-size:1.2rem!important;line-height:1.3!important;margin:0 0 8px!important}
+.ilmcs p{margin:0 0 .9em}
+.ilmcs :focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+.ilmcs-wrap{max-width:1140px;margin:0 auto;padding:0 20px}
+.ilmcs-narrow{max-width:860px}
+.ilmcs-head{text-align:center;max-width:820px;margin:0 auto 30px}
+.ilmcs-head p{margin:0}
+.ilmcs-eyebrow{font-weight:700;font-size:.82rem;text-transform:uppercase;letter-spacing:.12em;color:var(--orange);margin:0 0 10px!important}
 
-  <!-- HERO (blue) -->
-  <section class="ilmcs-hero">
-    <div class="ilmcs-wrap">
-      <p class="ilmcs-eyebrow">Case study &middot; Our ILM partnership</p>
-      <h1>Building future leaders with ILM, from the warehouse floor to the boardroom</h1>
-      <p class="ilmcs-lede">ILM has featured CST Training as a case study. These are the learners behind it, and how flexible ILM qualifications helped them get where they are today.</p>
-      <ul class="ilmcs-ticks-hero">
-        <li>Delivering ILM since 2022</li>
-        <li>ILM Levels 2 to 7</li>
-        <li>120,000+ learners trained</li>
-        <li>0% finance available</li>
-      </ul>
-      <div class="ilmcs-ctas left">
-        <a class="ilmcs-btn pri" href="/ilm-courses-nvqs/">Explore ILM courses</a>
-        <a class="ilmcs-btn gh" href="/contact-us/">Talk to an adviser</a>
-      </div>
-      <p class="ilmcs-byline">By Hannah Tyler, Director of Product, CST Training &middot; November 2026</p>
-    </div>
-  </section>
+/* Section colours */
+.ilmcs-white,.ilmcs-light,.ilmcs-pale,.ilmcs-navy,.ilmcs-blue{padding:56px 0}
+.ilmcs-white{background:#fff}
+.ilmcs-light{background:var(--light)}
+.ilmcs-pale{background:var(--pale)}
+.ilmcs-navy{background:var(--navy);color:#fff}
+.ilmcs-blue{background:var(--blue);color:#fff}
+.ilmcs-navy h2,.ilmcs-blue h2{color:#fff}
+.ilmcs-navy p,.ilmcs-blue p{color:#fff}
 
-  <!-- STORY 1 (navy) -->
-  <section class="ilmcs-navy ilmcs-first">
-    <div class="ilmcs-wrap">
-      <div class="ilmcs-story">
-        <div class="ilmcs-story-intro">
-          <p class="ilmcs-eyebrow">Learner story &middot; ILM Level 6</p>
-          <h2>&ldquo;I could easily have given up&rdquo;</h2>
-          <p>This learner had already spoken to several providers about an ILM Level 6 qualification, and none could adapt to their needs. They chose CST Training because our flexible assessment let them prove their leadership by talking through real examples, answering structured questions and presenting, with their assessor Cheryl asking follow-up questions as they went.</p>
-        </div>
-        <blockquote class="ilmcs-quote">
-          <p>&ldquo;The flexibility of the assessment was a big part of what drew me to the ILM Level 6 with CST Training. I&rsquo;d already spoken to other providers who couldn&rsquo;t accommodate my needs. As someone who is autistic and has ADHD and dyslexia, being able to use professional discussions, structured questions and presentations made a real difference.</p>
-          <p>I could talk through real examples, explain my decisions and answer follow-up questions. Cheryl could ask for more detail where needed, and I could provide evidence there and then.</p>
-          <p>It felt relevant to the work I do because I could demonstrate how I think and make decisions in practice while still meeting the same assessment criteria. After those earlier conversations with other providers, I could easily have given up. Being able to complete the qualification this way opened a door to further education that might otherwise have remained closed to me.&rdquo;</p>
-          <footer>ILM Level 6 learner, CST Training</footer>
-        </blockquote>
-      </div>
-    </div>
-  </section>
+/* Hero */
+.ilmcs-hero{background:var(--blue);color:#fff;padding:48px 0 70px;border-bottom-right-radius:50px;position:relative;z-index:1;margin-bottom:-50px}
+.ilmcs-hero .ilmcs-wrap{max-width:1140px}
+.ilmcs-hero h1{max-width:860px}
+.ilmcs-hero .ilmcs-eyebrow{color:#fff;opacity:.85}
+.ilmcs-lede{color:#fff;font-size:1.12rem;max-width:760px}
+.ilmcs-byline{font-size:.85rem;color:#dfe5fb;margin:18px 0 0!important}
+.ilmcs-ticks-hero{list-style:none;margin:16px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:10px 26px}
+.ilmcs-ticks-hero li{display:flex;gap:10px;align-items:center;font-weight:700;margin:0}
+.ilmcs-ticks-hero li::before,.ilmcs-ticks li::before{content:"";flex:0 0 20px;height:20px;border-radius:50%;background:var(--orange) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5.5 10.5l3 2.8 6-6.3' fill='none' stroke='%23fff' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/20px no-repeat}
+.ilmcs-first{padding-top:96px}
 
-  <!-- STORY 2 (white) -->
-  <section class="ilmcs-white">
-    <div class="ilmcs-wrap">
-      <div class="ilmcs-head">
-        <p class="ilmcs-eyebrow">Learner story &middot; ILM Level 5 to Level 7</p>
-        <h2>From night shifts in a warehouse to a director&rsquo;s chair</h2>
-        <p>Some results take years to show. This learner&rsquo;s career is what happens when talent is developed rather than overlooked.</p>
-      </div>
-      <ol class="ilmcs-path">
-        <li><strong>Warehouse operative</strong><span>Working night shifts on the warehouse floor</span></li>
-        <li><strong>ILM Level 5</strong><span>Completed their ILM Level 5 qualification</span></li>
-        <li><strong>Management roles</strong><span>Promoted through several roles and headhunted for more senior ones</span></li>
-        <li><strong>Director</strong><span>Now working at director level</span></li>
-        <li><strong>ILM Level 7</strong><span>Still learning, now studying at Level 7</span></li>
-      </ol>
-    </div>
-  </section>
+/* Buttons */
+.ilmcs-ctas{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:24px}
+.ilmcs-ctas.left{justify-content:flex-start}
+.ilmcs-btn{display:inline-block;padding:13px 26px;border-radius:30px;border:2px solid transparent;font-weight:700;text-decoration:none!important;transition:background .15s}
+.ilmcs-btn.pri{background:var(--orange);border-color:var(--orange);color:#fff!important}
+.ilmcs-btn.pri:hover{background:#e67d00;border-color:#e67d00}
+.ilmcs-btn.gh{background:transparent;border-color:#fff;color:#fff!important}
+.ilmcs-btn.gh:hover{background:rgba(255,255,255,.14)}
 
-  <!-- ILM ENDORSEMENT (light) -->
-  <section class="ilmcs-light">
-    <div class="ilmcs-wrap">
-      <figure class="ilmcs-endorse">
-        <p class="ilmcs-eyebrow">What ILM says about CST Training</p>
-        <blockquote>&ldquo;CST Training has embraced the new ILM leadership and management qualifications with real energy, and it shows in the results. They now support learners from the NHS and care homes to manufacturing, councils and logistics, and they use ILM&rsquo;s flexible assessment to let people prove their leadership skills through real workplace examples. We&rsquo;ve seen learners go from night shifts in a warehouse to director level, and others access qualifications they once thought weren&rsquo;t open to them. That&rsquo;s exactly the difference leadership development should make.&rdquo;</blockquote>
-        <figcaption><strong>[Name]</strong>, [Job title], ILM (Institute of Leadership &amp; Management)</figcaption>
-      </figure>
-    </div>
-  </section>
+/* Story 1 */
+.ilmcs-story{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:40px;align-items:start}
+.ilmcs-quote{margin:0;background:#fff;border-radius:var(--r);border-top:5px solid var(--orange);padding:30px 32px;box-shadow:0 10px 30px rgba(0,0,0,.18)}
+.ilmcs-quote p{color:var(--navy)!important;font-size:1.05rem;line-height:1.65}
+.ilmcs-quote footer{font-weight:700;color:var(--muted);font-size:.9rem;margin-top:6px}
 
-  <!-- SECTORS (pale) -->
-  <section class="ilmcs-pale">
-    <div class="ilmcs-wrap">
-      <div class="ilmcs-head">
-        <h2>Our ILM learners lead teams in every kind of workplace</h2>
-        <p>Hospitals, care homes, factories, councils, warehouses and offices across the UK. The jobs look very different, but employers all want the same thing: people who can lead well, so they can grow talent from within.</p>
-      </div>
-      <ul class="ilmcs-chips">
-        <li>Health and social care</li><li>Manufacturing and engineering</li><li>Logistics</li><li>Local councils</li><li>Education</li><li>Housing</li><li>Retail</li><li>Hospitality</li><li>Construction</li><li>Technology</li><li>Professional services</li>
-      </ul>
-    </div>
-  </section>
+/* Timeline */
+.ilmcs-path{list-style:none;margin:10px 0 0;padding:0;display:grid;grid-template-columns:repeat(5,1fr)}
+.ilmcs-path li{position:relative;padding:46px 12px 0;margin:0;text-align:center}
+.ilmcs-path li::before{content:"";position:absolute;top:8px;left:50%;transform:translateX(-50%);width:24px;height:24px;border-radius:50%;background:#fff;border:5px solid var(--blue);z-index:1}
+.ilmcs-path li:last-child::before{background:var(--orange);border-color:var(--orange)}
+.ilmcs-path li::after{content:"";position:absolute;top:19px;left:50%;width:100%;height:3px;background:var(--pale)}
+.ilmcs-path li:last-child::after{display:none}
+.ilmcs-path strong{display:block;color:var(--navy);font-size:1.05rem;margin-bottom:4px}
+.ilmcs-path span{display:block;font-size:.95rem;color:var(--muted);line-height:1.45}
 
-  <!-- ACCIDENTAL MANAGER (white) -->
-  <section class="ilmcs-white">
-    <div class="ilmcs-wrap ilmcs-two">
-      <div>
-        <h2>Great at the job doesn&rsquo;t automatically mean ready to lead</h2>
-        <p>The challenge employers raise with us most is the accidental manager. Someone excels at their work, gets promoted, and is suddenly responsible for people rather than tasks.</p>
-        <p>Holding a difficult conversation, coaching someone who is struggling, delegating properly and managing performance rarely come from operational experience alone. That is the gap ILM qualifications are built to close.</p>
-      </div>
-      <div class="ilmcs-panel">
-        <h3>The skills new managers tell us they need most</h3>
-        <ul class="ilmcs-ticks">
-          <li>Communicating clearly with a team</li>
-          <li>Coaching and developing others</li>
-          <li>Delegating with confidence</li>
-          <li>Managing performance fairly</li>
-          <li>Making and explaining decisions</li>
-        </ul>
-      </div>
-    </div>
-  </section>
+/* Endorsement */
+.ilmcs-endorse{max-width:1000px;margin:0 auto;background:#fff;border:1px solid var(--line);border-left:6px solid var(--orange);border-radius:var(--r);padding:34px 40px;box-shadow:0 10px 30px rgba(29,37,96,.08)}
+.ilmcs-endorse blockquote{margin:0 0 16px;padding:0;border:0;font-size:1.25rem;line-height:1.55;color:var(--navy);font-style:normal;background:none}
+.ilmcs-endorse figcaption{color:var(--muted);font-size:.95rem}
+.ilmcs-endorse figcaption strong{color:var(--navy)}
 
-  <!-- PATHWAYS (navy) -->
-  <section class="ilmcs-navy">
-    <div class="ilmcs-wrap">
-      <div class="ilmcs-head">
-        <h2>Two clear pathways, so you know exactly where to start</h2>
-        <p>The new ILM qualifications split into two routes, so employers can prepare people before a promotion and keep building their skills once they are leading a team.</p>
-      </div>
-      <div class="ilmcs-grid2">
-        <div class="ilmcs-card"><span class="ilmcs-pill">Development pathway</span><h3>Before you step up</h3><p>For aspiring leaders building the knowledge and confidence they need ahead of a first management role.</p></div>
-        <div class="ilmcs-card"><span class="ilmcs-pill">Skills pathway</span><h3>Once you are leading people</h3><p>For practising managers who want to prove and strengthen what they already do with their team.</p></div>
-      </div>
-    </div>
-  </section>
+/* Chips */
+.ilmcs-chips{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
+.ilmcs-chips li{background:#fff;border:1.5px solid #c3c8dc;border-radius:999px;padding:9px 16px;font-weight:600;color:var(--navy);margin:0}
 
-  <!-- ASSESSMENT (light) -->
-  <section class="ilmcs-light">
-    <div class="ilmcs-wrap">
-      <div class="ilmcs-head">
-        <h2>Prove your leadership the way you actually lead</h2>
-        <p>Good leaders aren&rsquo;t judged on essays, so ILM assessment isn&rsquo;t limited to written assignments. You meet exactly the same standards in a way that suits your role.</p>
-      </div>
-      <ol class="ilmcs-steps">
-        <li><h3>Professional discussions</h3><p>Talk your assessor through real situations you have handled and why you made the calls you did.</p></li>
-        <li><h3>Presentations</h3><p>Present your ideas the way you would to your own team or senior managers.</p></li>
-        <li><h3>Workplace evidence</h3><p>Use the work you already do as proof of your skills, so the qualification fits around your job.</p></li>
-      </ol>
-    </div>
-  </section>
+/* Layout and cards */
+.ilmcs-two{display:grid;grid-template-columns:1.2fr 1fr;gap:40px;align-items:center}
+.ilmcs-grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:1000px;margin:0 auto}
+.ilmcs-panel{background:var(--light);border:1px solid var(--line);border-top:5px solid var(--orange);border-radius:var(--r);padding:26px 28px}
+.ilmcs-card{background:#fff;color:var(--body);border-radius:var(--r);padding:26px;border-top:5px solid var(--orange)}
+.ilmcs-card p{color:var(--body)!important;margin:0}
+.ilmcs-card.bordered{border:1px solid var(--line);border-top:5px solid var(--orange);box-shadow:0 10px 30px rgba(29,37,96,.06)}
+.ilmcs-pill{display:inline-block;background:var(--navy);color:#fff;font-size:.8rem;font-weight:700;padding:5px 12px;border-radius:999px;margin-bottom:12px}
+.ilmcs-ticks{list-style:none;margin:0 0 16px;padding:0;display:grid;gap:10px}
+.ilmcs-ticks li{display:flex;gap:10px;align-items:flex-start;margin:0}
+.ilmcs-ticks li::before{margin-top:2px}
+.ilmcs-link{font-weight:700;color:var(--navy)!important;text-decoration:none!important;border-bottom:2px solid var(--orange)}
 
-  <!-- BENEFITS (white) -->
-  <section class="ilmcs-white">
-    <div class="ilmcs-wrap">
-      <div class="ilmcs-head"><h2>What an ILM qualification gives you</h2></div>
-      <div class="ilmcs-grid2">
-        <div class="ilmcs-card bordered">
-          <h3>For employers</h3>
-          <ul class="ilmcs-ticks">
-            <li>A practical way to grow leaders from within</li>
-            <li>Stronger succession plans</li>
-            <li>Learning your people apply straight back at work</li>
-            <li>In-house programmes for whole teams</li>
-          </ul>
-          <a class="ilmcs-link" href="/team-training/">Training a team? Get a quote</a>
-        </div>
-        <div class="ilmcs-card bordered">
-          <h3>For learners</h3>
-          <ul class="ilmcs-ticks">
-            <li>One of the most recognised names in leadership</li>
-            <li>A clear route from first line manager to senior leader</li>
-            <li>Assessment that fits around your job and how you work</li>
-            <li>0% finance, so you can spread the cost</li>
-          </ul>
-          <a class="ilmcs-link" href="/ilm-courses-nvqs/">Compare ILM levels</a>
-        </div>
-      </div>
-    </div>
-  </section>
+/* Steps */
+.ilmcs-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;counter-reset:s;list-style:none;margin:0;padding:0}
+.ilmcs-steps li{counter-increment:s;background:#fff;border:1px solid var(--line);border-top:4px solid var(--orange);border-radius:var(--r);padding:24px 22px;margin:0}
+.ilmcs-steps li::before{content:counter(s);display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--navy);color:#fff;font-weight:700;margin-bottom:12px}
+.ilmcs-steps p{margin:0;font-size:.97rem}
 
-  <!-- LOOKING AHEAD (pale) -->
-  <section class="ilmcs-pale">
-    <div class="ilmcs-wrap ilmcs-narrow">
-      <h2>Why human leadership skills matter more as AI grows</h2>
-      <p>AI is changing how every organisation works. What it can&rsquo;t replace is a leader who communicates well, uses good judgement, shows empathy, takes responsibility and coaches their team. Those skills sit at the heart of the new ILM qualifications.</p>
-      <p class="ilmcs-source">This case study was first published by ILM. <a href="https://www.i-l-m.com/news-and-events/news-and-blog/building-future-leaders" target="_blank" rel="noopener">Read it on the ILM website</a>.</p>
-    </div>
-  </section>
+.ilmcs-source{font-size:.9rem;color:var(--muted);border-top:1px solid #c3c8dc;padding-top:14px;margin-top:20px!important}
+.ilmcs-source a{color:var(--navy);font-weight:700}
 
-  <!-- CTA (blue) -->
-  <section class="ilmcs-blue">
-    <div class="ilmcs-wrap">
-      <div class="ilmcs-head">
-        <h2>Ready to write your own leadership story?</h2>
-        <p>Not sure which ILM level is right for you? Our training coordinators will talk it through and help you choose.</p>
-      </div>
-      <div class="ilmcs-ctas">
-        <a class="ilmcs-btn pri" href="/ilm-courses-nvqs/">Explore ILM courses</a>
-        <a class="ilmcs-btn gh" href="/contact-us/">Talk to an adviser</a>
-      </div>
-    </div>
-  </section>
+/* WordPress adds empty paragraphs and line breaks inside grids */
+.ilmcs-story>p:empty,.ilmcs-path>p:empty,.ilmcs-chips>p:empty,.ilmcs-two>p:empty,.ilmcs-grid2>p:empty,.ilmcs-steps>p:empty,.ilmcs-ctas>p:empty,.ilmcs-ticks>p:empty,.ilmcs-ticks-hero>p:empty,
+.ilmcs-story>br,.ilmcs-path>br,.ilmcs-chips>br,.ilmcs-two>br,.ilmcs-grid2>br,.ilmcs-steps>br,.ilmcs-ctas>br,.ilmcs-ticks>br,.ilmcs-ticks-hero>br{display:none}
 
-</div>
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Article",
-  "headline": "Building future leaders with ILM, from the warehouse floor to the boardroom",
-  "description": "ILM features CST Training's leadership programmes. See how flexible ILM assessment helped learners go from warehouse night shifts to director level.",
-  "author": { "@type": "Person", "name": "Hannah Tyler", "jobTitle": "Director of Product" },
-  "publisher": { "@type": "Organization", "name": "CST Training", "url": "https://www.csttraining.co.uk" },
-  "datePublished": "2026-11-23"
+@media (max-width:900px){
+  .ilmcs-story,.ilmcs-two,.ilmcs-grid2,.ilmcs-steps{grid-template-columns:1fr}
+  .ilmcs-path{grid-template-columns:1fr}
+  .ilmcs-path li{text-align:left;padding:0 0 22px 44px}
+  .ilmcs-path li::before{left:12px;top:0;transform:translateX(-50%)}
+  .ilmcs-path li::after{left:11px;top:20px;width:3px;height:100%}
 }
-</script>
+@media (max-width:700px){
+  .ilmcs-white,.ilmcs-light,.ilmcs-pale,.ilmcs-navy,.ilmcs-blue{padding:40px 0}
+  .ilmcs-hero{border-bottom-right-radius:30px;margin-bottom:-30px;padding-bottom:56px}
+  .ilmcs-first{padding-top:70px}
+  .ilmcs-endorse,.ilmcs-quote{padding:24px 20px}
+  .ilmcs-endorse blockquote{font-size:1.08rem}
+}`;
+  var s = document.createElement('style');
+  s.id = 'ilmcs-styles';
+  s.textContent = css;
+  document.head.appendChild(s);
+})();
