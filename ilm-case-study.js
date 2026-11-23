@@ -1,4 +1,4 @@
-/* CST Training: ILM case study page styles · v6
+/* CST Training: ILM case study page styles · v7
    Palette from the live ILM course pages and hubs: blue #4c6bd8, navy #1d2560, orange #ff8c04. */
 (function () {
   if (document.getElementById('ilmcs-styles')) return;
@@ -87,6 +87,9 @@
 .ilmcs-endorse-who{color:#dfe5fb!important;font-size:.95rem}
 .ilmcs-endorse-who strong{color:#fff}
 .ilmcs-endorse::before{content:"\\201C";display:block;font-family:Georgia,serif;font-size:90px;line-height:.8;color:var(--orange)}
+
+.ilmcs-endorse-2{max-width:820px;margin:36px auto 0;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-top:5px solid var(--orange);border-radius:14px;padding:28px 32px}
+.ilmcs .ilmcs-endorse-2-text{color:#fff!important;font-size:1.08rem!important;line-height:1.65!important;font-style:italic}
 
 /* Chips */
 .ilmcs-chips{list-style:none!important;margin:0!important;padding:0!important;display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
