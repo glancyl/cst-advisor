@@ -1,4 +1,4 @@
-/* CST Training: ILM case study page styles · v7
+/* CST Training: ILM case study page styles · v8
    Palette from the live ILM course pages and hubs: blue #4c6bd8, navy #1d2560, orange #ff8c04. */
 (function () {
   if (document.getElementById('ilmcs-styles')) return;
@@ -71,7 +71,10 @@
 
 /* Timeline on orange */
 .ilmcs-path{list-style:none!important;margin:0 auto!important;padding:0!important;display:flex;gap:14px;align-items:stretch;justify-content:center;max-width:1100px}
-.ilmcs-path>li{flex:1 1 0;min-width:0}
+.ilmcs-path>li{flex:1 1 0;min-width:0;position:relative}
+.ilmcs .ilmcs-path{gap:34px}
+.ilmcs-path>li:not(:last-child)::after{content:"";position:absolute;top:50%;right:-23px;width:12px;height:12px;border-top:3px solid var(--navy);border-right:3px solid var(--navy);transform:translateY(-50%) rotate(45deg)}
+.ilmcs-path>li.cst:not(:last-child)::after{top:calc(50% + 8px)}
 .ilmcs-path li{background:#fff;border-radius:var(--r);padding:22px 16px;margin:0;text-align:center;display:flex;flex-direction:column;gap:4px;box-shadow:0 8px 22px rgba(29,37,96,.15)}
 .ilmcs-path li.cst{background:var(--navy);transform:translateY(-8px);box-shadow:0 14px 30px rgba(29,37,96,.35)}
 .ilmcs-path em{align-self:center;font-style:normal;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;background:var(--orange);color:#fff;border-radius:999px;padding:4px 10px;margin-bottom:6px}
@@ -131,6 +134,7 @@
   .ilmcs-path{flex-wrap:wrap}
   .ilmcs-path>li{flex:1 1 40%}
   .ilmcs-path li.cst{transform:none}
+  .ilmcs-path>li:not(:last-child)::after{display:none}
 }
 @media (max-width:900px){
   .ilmcs-two,.ilmcs-grid2,.ilmcs-steps{grid-template-columns:1fr}
@@ -141,6 +145,7 @@
   .ilmcs-first{padding-top:80px}
   .ilmcs-quote{padding:40px 22px 24px}
   .ilmcs-path>li{flex:1 1 100%}
+  .ilmcs-path>li:not(:last-child)::after{display:block;top:auto;bottom:-24px;right:auto;left:50%;transform:translateX(-50%) rotate(135deg)}
 }`;
   var s = document.createElement('style');
   s.id = 'ilmcs-styles';
