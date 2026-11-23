@@ -1,4 +1,4 @@
-/* CST Training: ILM case study page styles · v5
+/* CST Training: ILM case study page styles · v6
    Palette from the live ILM course pages and hubs: blue #4c6bd8, navy #1d2560, orange #ff8c04. */
 (function () {
   if (document.getElementById('ilmcs-styles')) return;
@@ -77,8 +77,8 @@
 .ilmcs-path em{align-self:center;font-style:normal;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;background:var(--orange);color:#fff;border-radius:999px;padding:4px 10px;margin-bottom:6px}
 .ilmcs-path strong{color:var(--navy);font-size:1.08rem}
 .ilmcs-path span{font-size:.93rem;color:var(--muted);line-height:1.45}
-.ilmcs .ilmcs-path li.cst strong{color:#fff!important}
-.ilmcs .ilmcs-path li.cst span{color:#fff!important}
+.ilmcs .ilmcs-path li{font-size:.93rem;line-height:1.45;color:var(--muted)}
+.ilmcs .ilmcs-path li.cst,.ilmcs .ilmcs-path li.cst *:not(em){color:#fff!important}
 
 /* Endorsement on blue */
 .ilmcs-endorse{max-width:940px;margin:0 auto;text-align:center}
@@ -120,7 +120,8 @@
 .ilmcs ul li::marker,.ilmcs ol li::marker{content:none}
 
 /* WordPress adds empty paragraphs and line breaks inside grids */
-.ilmcs-path>:not(li),.ilmcs-chips>:not(li),.ilmcs-steps>:not(li),.ilmcs-ticks>:not(li),.ilmcs-ticks-hero>:not(li),.ilmcs-grid2>:not(div),.ilmcs-two>:not(div),.ilmcs-ctas>:not(a){display:none!important}
+.ilmcs-path>:not(li),.ilmcs-chips>:not(li),.ilmcs-steps>:not(li),.ilmcs-ticks>:not(li),.ilmcs-ticks-hero>:not(li),.ilmcs-grid2>:not(div),.ilmcs-two>:not(div){display:none!important}
+.ilmcs-ctas>p{display:contents}
 .ilmcs p:empty,.ilmcs-path>br,.ilmcs-chips>br,.ilmcs-two>br,.ilmcs-grid2>br,.ilmcs-steps>br,.ilmcs-ctas>br,.ilmcs-ticks>br,.ilmcs-ticks-hero>br,.ilmcs-quote>br{display:none}
 
 @media (max-width:1000px){
