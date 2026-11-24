@@ -92,7 +92,7 @@ STOPS.forEach(s=>{
 const hashId = location.hash.slice(1);
 const startId = byId[hashId] ? hashId : START;
 const viewer = pannellum.viewer("pano", {
-  default:{ firstScene:startId, sceneFadeDuration:900, autoLoad:true, compass:false, hfov:105, minHfov:30, maxHfov:120 },
+  default:{ firstScene:startId, sceneFadeDuration:900, autoLoad:true, compass:false, hfov:120, minHfov:30, maxHfov:120 },
   scenes
 });
 
