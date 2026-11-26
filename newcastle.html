@@ -122,7 +122,7 @@ function showFloor(i){
 }
 function mark(id){
   stopsEl.querySelectorAll("button").forEach(b=>b.setAttribute("aria-current", String(b.dataset.id===id)));
-  const cur = stopsEl.querySelector('[aria-current="true"]'); if (cur) cur.scrollIntoView({block:"nearest",inline:"nearest"});
+  const cur = stopsEl.querySelector('[aria-current="true"]'); if (cur) { const l = cur.offsetLeft - stopsEl.offsetLeft; if (l < stopsEl.scrollLeft || l + cur.offsetWidth > stopsEl.scrollLeft + stopsEl.clientWidth) stopsEl.scrollLeft = l - 10; }
 }
 function onScene(id){
   const s=byId[id];
