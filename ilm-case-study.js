@@ -1,4 +1,4 @@
-/* CST Training: ILM case study page styles · v9
+/* CST Training: ILM case study page styles · v10
    Palette from the live ILM course pages and hubs: blue #4c6bd8, navy #1d2560, orange #ff8c04. */
 (function () {
   if (document.getElementById('ilmcs-styles')) return;
@@ -47,6 +47,9 @@
 .ilmcs-ticks-hero li{display:flex;gap:10px;align-items:center;font-weight:700;margin:0;color:#fff}
 .ilmcs-ticks-hero li::before,.ilmcs-ticks li::before{content:"";flex:0 0 20px;height:20px;border-radius:50%;background:var(--orange) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5.5 10.5l3 2.8 6-6.3' fill='none' stroke='%23fff' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/20px no-repeat}
 .ilmcs-first{padding-top:110px}
+
+.ilmcs .ilmcs-featured{display:inline-flex;flex-wrap:wrap;align-items:center;gap:8px 12px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:8px 18px;margin:18px 0 0!important;color:#fff!important;font-weight:600}
+.ilmcs-featured a{color:#fff!important;font-weight:700;border-bottom:2px solid var(--orange)}
 
 /* Buttons */
 .ilmcs-ctas{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:26px}
